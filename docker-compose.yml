@@ -1,0 +1,54 @@
+version: '3'
+services:
+
+  # Hipsta [Workerman + Slim]
+  hipsta:
+    build:
+      context: .
+      dockerfile: Dockerfile.hipsta
+    container_name: hipsta
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+    env_file:
+      - .env
+    networks:
+      - internal
+
+  # wrk
+  wrk:
+    build:
+      context: .
+      dockerfile: Dockerfile.wrk
+    container_name: wrk
+    networks:
+      - internal
+
+  # MySQL
+  # Will be started on host.docker.internal
+
+  #db:
+    #image: mysql:5.7.22
+    #container_name: db
+    #restart: unless-stopped
+    #tty: true
+    #ports:
+    #  - "3306:3306"
+    #environment:
+    #  MYSQL_DATABASE: laravel
+    #  MYSQL_ROOT_PASSWORD: your_mysql_root_password
+    #  SERVICE_TAGS: dev
+    #  SERVICE_NAME: mysql
+    #networks:
+    #  - app-network
+
+#volumes:
+ # www:
+#    driver: host
+#    driver_opts:
+#      source: ./
+
+networks:
+  internal:
+    driver: bridge
