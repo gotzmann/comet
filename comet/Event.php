@@ -43,6 +43,6 @@ abstract class Event
 
     public function getPayload()
     {
-        return $payload;
+        return $this->payload;
     }
 }

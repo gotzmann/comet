@@ -13,6 +13,8 @@
 
 use Phinx\Migration\AbstractMigration;
 
+// FIXME It seems that CREATE TABLE on already created table do nothing but has no warnings!
+
 class InitMigration extends AbstractMigration
 {
     /*
@@ -49,7 +51,7 @@ class InitMigration extends AbstractMigration
                 id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
                 -- type of event like CONSUMER_SERVICE_PAYMENT_EVENT
                 type varchar(100),
-                uuid VARCHAR(100) NOT NULL,
+                -- uuid VARCHAR(100) NOT NULL,
                 packet_id varchar(100),
 
                 -- status = NEW -> PROCESSING -> PROCESSED / DECLINED / FAILED

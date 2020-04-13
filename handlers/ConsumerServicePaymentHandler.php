@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use Slim\Psr7\Request as SlimRequest;
 use Slim\Psr7\Response as SlimResponse;
+use Illuminate\Database\Capsule\Manager as DB;
 
 const SBERPRIME_EVENTS_TABLE = 'sberprime_events';
 //namespace Handlers;
@@ -40,16 +41,20 @@ $consumerServicePaymentHandler = function(SlimRequest $request, SlimResponse $re
 //    $event2 = Comet\Event::createFromPayload($payload);
 //var_dump($event2);
 
-    // TODO Check if this is duplicate event based on packetId or other data?
+//var_dump($parsedBody);
+echo "\npacketId=" . $event->packetId;
 
+    // TODO In case of problems there we miss the timeout response?
+    // TODO Check if this is duplicate event based on packetId or other data?
     // TODO Automatic store to DB only fields marked as existed in table
-    $fortunes = Capsule::table(SBERPRIME_EVENTS_TABLE)->insert([
-        'packet_id' => $event->packetId
+    // -- uuid VARCHAR(100) NOT NULL,
+    $fortunes = DB::table(SBERPRIME_EVENTS_TABLE)->insert([
+        'packet_id' => $event->packetId,
+        'payload' => $event->getPayload(),
     ]);
 
 
-    //var_dump($parsedBody);
-    echo "\npacketId=" . $event->packetId;
+
 /*
     // responses:
         '200':
