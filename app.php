@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 use Workerman\Worker;
 //use Workerman\Timer;
@@ -24,16 +25,32 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 
 //global $app, $capsule, $sql;
 
+//use Handlers\ConsumerServicePaymentHandler;
+//use Middleware\JsonBodyParser;
+
 require_once __DIR__ . '/vendor/autoload.php';
+
+$dirs = ['handlers', 'middleware', 'models'];
+foreach($dirs as $dir) {
+    foreach(glob(__DIR__ . "/$dir/*.php") as $file) {
+        //echo "\n$file";
+        require $file;
+    }
+}
+
+/*
+$consumerServicePaymentHandler = function(SlimRequest $request, SlimResponse $response, $args)
+{
+    var_dump($response->getBody());
+    $response->getBody()->write("{Comet} ConsumerServicePaymentHandler!");
+    return $response;
+};
+*/
 
 // The very first function which runs ONLY ONCE and bootstrap the WHOLE app
 function bootstrap()
 {
     global $capsule, $worker, $sql;
-
-    $port = getenv('PORT') != '' ? getenv('PORT') : 8080;
-    $worker = new Worker("http://0.0.0.0:$port");
-    $worker->count = (int) shell_exec('nproc') * 4;
 
     // TODO DO we need this or better global static?
     $capsule = new Capsule;
@@ -73,19 +90,37 @@ function bootstrap()
     // TODO Include user-defined bootstrap()
 }
 
+//get("1", "2", "3");
+
+
 // Initialization code for EACH worker - it runs when worker starts working
 function init()
 {
     // TODO Refactor routing for stand-alone handlers
 
-    global $app, $capsule, $sql;
+    global $app, $capsule, $sql, $the,
+        $consumerServicePaymentHandler;
+
+        //var_dump($the);
 
     // Init Slim App and HTTP Handlers
 
     $app = AppFactory::create();
     $app->setBasePath("/api/v1"); // TODO Make ENV BASE_PATH
 
-    $app->get('/', function (SlimRequest $request, SlimResponse $response, $args) {
+    $middleware = new JsonBodyParserMiddleware();
+    $app->add($middleware);
+
+    $app->get('/servicePaymentHandler',
+        $consumerServicePaymentHandler);
+
+//    $app->get('/servicePaymentHandler',
+//        get);
+
+    $app->post('/servicePaymentHandler',
+        $consumerServicePaymentHandler);
+
+    $app->get('/', function(SlimRequest $request, SlimResponse $response, $args) {
         $response->getBody()->write("{Slimmer} Root!");
         return $response;
     });
@@ -94,6 +129,10 @@ function init()
         $response->getBody()->write("{Slimmer} Hello!");
         $new_response = $response->withHeader('testheader', 'itworks');
         return $new_response;
+    });
+
+    $app->get('/error', function (SlimRequest $request, SlimResponse $response, $args) {
+        $null->wtf(); // Null Exception
     });
 
     $app->get('/json', function (SlimRequest $request, SlimResponse $response, $args) {

@@ -1,2 +1,6 @@
 .env
 vendor/
+temp/
+tmp/
+out
+

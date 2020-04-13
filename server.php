@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 use Workerman\Worker;
 //use Workerman\Timer;
@@ -27,6 +28,11 @@ require_once __DIR__ . '/app.php';
 global $app, $worker, $capsule, $sql;
 //global $config;
 
+$port = getenv('LISTEN_PORT') != '' ? getenv('LISTEN_PORT') : 80;
+$host = getenv('LISTEN_HOST') != '' ? getenv('LISTEN_HOST') : '127.0.0.1';
+$worker = new Worker("http://$host:$port");
+$worker->count = (int) shell_exec('nproc') * 4;
+
 // The very first function which runs ONLY ONCE and bootstrap the WHOLE app
 bootstrap();
 
@@ -44,7 +50,10 @@ $worker->onMessage = static function($connection, $request)
         $connection->send($response);
     }
     // TODO Catch it within App:handle and return 404 code
-    catch (HttpNotFoundException $e) {
+    catch(HttpNotFoundException $e) {
+    }
+    // TODO All others cases - generate HTTP 500 Error ?
+    catch(\Exception $e) {
     }
 };
 
