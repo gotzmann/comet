@@ -4,6 +4,7 @@ declare(strict_types=1);
 use Slim\Psr7\Request as SlimRequest;
 use Slim\Psr7\Response as SlimResponse;
 
+const SBERPRIME_EVENTS_TABLE = 'sberprime_events';
 //namespace Handlers;
 
 //use ConsumerServicePaymentEvent;
@@ -36,8 +37,16 @@ $consumerServicePaymentHandler = function(SlimRequest $request, SlimResponse $re
     //$event->fillFromPayload($payload);
     $event = ConsumerServicePaymentEvent::createFromPayload($payload);
 //var_dump($event);
-    $event2 = Comet\Event::createFromPayload($payload);
+//    $event2 = Comet\Event::createFromPayload($payload);
 //var_dump($event2);
+
+    // TODO Check if this is duplicate event based on packetId or other data?
+
+    // TODO Automatic store to DB only fields marked as existed in table
+    $fortunes = Capsule::table(SBERPRIME_EVENTS_TABLE)->insert([
+        'packet_id' => $event->packetId
+    ]);
+
 
     //var_dump($parsedBody);
     echo "\npacketId=" . $event->packetId;
