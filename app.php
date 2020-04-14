@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 use Workerman\Worker;
-//use Workerman\Timer;
+use Workerman\Timer;
 
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
@@ -16,14 +16,14 @@ use Slim\Psr7\Factory\StreamFactory;
 use Slim\Factory\AppFactory;
 use Slim\Psr7\Headers;
 
-use Illuminate\Database\Capsule\Manager as DB;
+use Illuminate\Database\Capsule\Manager as Capsule;
 // Set the event dispatcher used by Eloquent models... (optional)
 //use Illuminate\Events\Dispatcher;
 //use Illuminate\Container\Container;
 
 //require_once __DIR__ . '/vendor/autoload.php';
 
-//global $app, $DB, $sql;
+global $app, $capsule, $sql;
 
 //use Handlers\ConsumerServicePaymentHandler;
 //use Middleware\JsonBodyParser;
@@ -50,13 +50,13 @@ $consumerServicePaymentHandler = function(SlimRequest $request, SlimResponse $re
 // The very first function which runs ONLY ONCE and bootstrap the WHOLE app
 function bootstrap()
 {
-    global $db, $worker, $sql;
+    global $capsule, $worker, $sql;
 
     // TODO DO we need this or better global static?
-    $db = new DB();
-
+    $capsule = new Capsule;
+//echo "\nDB=" . DB::class;
     // TODO getenv from ENV
-    $db->addConnection([
+    $capsule->addConnection([
         'driver'    => 'mysql',
         //'host'      => '192.168.99.1', // 'host.docker.internal',
         'host'      => '127.0.0.1',
@@ -72,7 +72,7 @@ function bootstrap()
     //$db->setEventDispatcher(new Dispatcher(new Container));
 
     // Make this DB instance available globally via static methods... (optional)
-    $db->setAsGlobal();
+    $capsule->setAsGlobal();
 
     // Setup the Eloquent ORM... (optional; unless you've used setEventDispatcher())
     //$db->bootEloquent();
@@ -80,7 +80,8 @@ function bootstrap()
     // Init PDO statements
 
     //global $statement, $fortune, $random, $update;
-    $pdo = new PDO('mysql:host=192.168.99.1;dbname=hello', 'hello', 'hello',
+    //$pdo = new PDO('mysql:host=192.168.99.1;dbname=hello', 'hello', 'hello',
+    $pdo = new PDO('mysql:host=127.0.0.1;dbname=hello', 'hello', 'hello',
         [ PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES => false ]
     );
     //$statement = $pdo->prepare('SELECT id,randomNumber FROM World WHERE id=?');
@@ -97,9 +98,37 @@ function bootstrap()
 // Initialization code for EACH worker - it runs when worker starts working
 function init()
 {
+/*
+    // TODO DO we need this or better global static?
+    $db = new DB;
+echo "\nDB=" . DB::class;
+    // TODO getenv from ENV
+    $db->addConnection([
+        'driver'    => 'mysql',
+        //'host'      => '192.168.99.1', // 'host.docker.internal',
+        'host'      => '127.0.0.1',
+        'database'  => 'hello',
+        'username'  => 'hello',
+        'password'  => 'hello',
+        'charset'   => 'utf8',
+        'collation' => 'utf8_unicode_ci',
+        'prefix'    => '',
+    ]);
+
+    // Set the event dispatcher used by Eloquent models... (optional)
+    $db->setEventDispatcher(new Dispatcher(new Container));
+
+    // Make this DB instance available globally via static methods... (optional)
+    $db->setAsGlobal();
+
+    // Setup the Eloquent ORM... (optional; unless you've used setEventDispatcher())
+    $db->bootEloquent();
+*/
+
+
     // TODO Refactor routing for stand-alone handlers
 
-    global $app, $db, $sql, $the,
+    global $app, $capsule, $sql, $the,
         $consumerServicePaymentHandler;
 
         //var_dump($the);
@@ -155,7 +184,7 @@ function init()
     });
 
     $app->get('/orm', function (SlimRequest $request, SlimResponse $response, $args) {
-        $fortunes = DB::table('fortune')->get();
+        $fortunes = Capsule::table('fortune')->get();
         $payload = json_encode($fortunes);
         $response->getBody()->write($payload);
         return $response

@@ -17,52 +17,68 @@ use Phinx\Migration\AbstractMigration;
 
 class InitMigration extends AbstractMigration
 {
-    /*
-      - clientKey
-      - clientKeyType
-      - customerId
-      - packetId
-      - paySystemTransactionId
-      - paySystemType
-      - paymentDate
-      - paymentExpired
-      - paymentOrderId
-      - serviceCatalogType
-      - serviceExternalId
-    */
 
     public function up()
     {
         $this->execute("
 
+            -- sberdisk_users
             CREATE TABLE IF NOT EXISTS users (
-                id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-                uuid VARCHAR(100) NOT NULL,
 
-                -- payment_order_id
+                id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                uuid       VARCHAR(100) NOT NULL,
+
+                -- TODO All other fields required for representing all user info for Billing
 
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
                 PRIMARY KEY (id)
+
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+            -- sberprime_events
             CREATE TABLE IF NOT EXISTS sberprime_events (
-                id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-                -- type of event like CONSUMER_SERVICE_PAYMENT_EVENT
-                type varchar(100),
-                -- uuid VARCHAR(100) NOT NULL,
-                packet_id varchar(100),
 
-                -- status = NEW -> PROCESSING -> PROCESSED / DECLINED / FAILED
-                status VARCHAR(100),
+                id                  INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                uuid                VARCHAR(100),
+                type                VARCHAR(100), -- type of event like CONSUMER_SERVICE_PAYMENT_EVENT
+                status              VARCHAR(100), -- status = NEW -> PROCESSING -> PROCESSED / DECLINED / FAILED
 
-                -- payment_order_id
+                client_key          VARCHAR(100),
+                client_key_type     VARCHAR(100), -- ENUM
+                customer_id         VARCHAR(100), -- UUID
+                packet_id           VARCHAR(100),
+                pay_system_transaction_id VARCHAR(100),
+                pay_system_type     VARCHAR(100), -- ENUM
+                payment_date        DATETIME,
+                payment_expired     DATETIME,
+                payment_order_id    VARCHAR(100),
+                service_catalog_type VARCHAR(100),
+                service_external_id VARCHAR(100),
 
                 payload JSON, -- original POST body of request,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+                PRIMARY KEY (id),
+                UNIQUE KEY(packet_id)
+
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+            -- sberdisk_tariffs
+            CREATE TABLE IF NOT EXISTS sberdisk_tariffs (
+
+                id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                uuid       VARCHAR(100) NOT NULL,
+
+                -- TODO All other fields required for representing all tariffs in Billing
+
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
                 PRIMARY KEY (id)
+
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
         ");
