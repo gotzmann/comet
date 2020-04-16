@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 use Workerman\Worker;
-//use Workerman\Timer;
+use Workerman\Timer;
 
 /*
 use Workerman\Protocols\Http\Request as WorkermanRequest;

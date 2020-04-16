@@ -1,14 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace Comet;
+//namespace Comet;
 
 // TODO We need validation methods seems to that Laravel and Go provides
 
 abstract class Event
 {
-    const TYPE = 'ABSTRACT_EVENT';
-
     // Statuses to track movement from stage to stage
 
     const STATUS_NEW        = 'new';
@@ -17,10 +15,14 @@ abstract class Event
     const STATUS_FAILED     = 'failed';
     const STATUS_DECLINED   = 'declined';
 
+    protected $type;
+    protected $status;
     protected $payload;
 
     function __construct()
     {
+        $this->type = static::class;
+        $this->status = self::STATUS_NEW;
     }
 
     public static function create()

@@ -11,9 +11,6 @@
     "autoload": {
         "psr-4": {
             "": "/"
-        },
-        "files": [
-            "comet/Event.php"            
-        ]
+        }
     }
 }
