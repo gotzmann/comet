@@ -32,6 +32,7 @@ class InitMigration extends AbstractMigration
                 updated_at                  DATETIME DEFAULT CURRENT_TIMESTAMP,
 
                 PRIMARY KEY (id)
+                -- UNIQUE KEY (???)
 
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -53,6 +54,7 @@ class InitMigration extends AbstractMigration
                 payment_date                DATETIME,
                 payment_expired             DATETIME,
                 payment_order_id            VARCHAR(100),
+                promo_code                  VARCHAR(100),
                 service_catalog_type        VARCHAR(100),
                 service_external_id         VARCHAR(100), -- ENUM
 
@@ -60,8 +62,8 @@ class InitMigration extends AbstractMigration
                 created_at                  DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at                  DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-                PRIMARY KEY (id),
-                UNIQUE KEY (packet_id)
+                PRIMARY KEY (id)
+                -- UNIQUE KEY (???)
 
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -78,6 +80,7 @@ class InitMigration extends AbstractMigration
                 updated_at                  DATETIME DEFAULT CURRENT_TIMESTAMP,
 
                 PRIMARY KEY (id)
+                -- UNIQUE KEY (???)
 
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

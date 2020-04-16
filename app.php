@@ -88,7 +88,8 @@ function init()
     // TODO Refactor routing for stand-alone handlers
 
     global $app, $orm, $sql,
-        $consumerServicePaymentHandler;
+        $servicePaymentHandler,
+        $servicePaymentExpiredHandler;
 
     // Init Slim App and HTTP Handlers
 
@@ -99,8 +100,12 @@ function init()
     $app->add($middleware);
 
     // FIXME If there no GET / POST / URL handler when Postman calls - there are no any response at all!
+
     $app->post('/servicePaymentHandler',
-        $consumerServicePaymentHandler);
+        $servicePaymentHandler);
+
+        $app->post('/servicePaymentExpiredHandler',
+            $servicePaymentExpiredHandler);
 
     // TODO Remove after tests
     $app->get('/hello', function (SlimRequest $request, SlimResponse $response, $args) {

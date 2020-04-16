@@ -5,9 +5,7 @@ use Slim\Psr7\Request as SlimRequest;
 use Slim\Psr7\Response as SlimResponse;
 use Illuminate\Database\Capsule\Manager as ORM;
 
-const SBERPRIME_EVENTS_TABLE = 'sberprime_events';
-
-$consumerServicePaymentHandler = function(SlimRequest $request, SlimResponse $response, $args)
+$servicePaymentHandler = function(SlimRequest $request, SlimResponse $response, $args)
 {
     $payload = (string) $request->getBody();
     $event = ConsumerServicePaymentEvent::createFromPayload($payload);
@@ -22,7 +20,7 @@ $consumerServicePaymentHandler = function(SlimRequest $request, SlimResponse $re
     // FIXME If there NOT NULL field in DB that we omit in field list - insert() methods just go some limbo wihtout returning anything
 
     try {
-        $result = ORM::table(SBERPRIME_EVENTS_TABLE)->insert([
+        $result = ORM::table('sberprime_events')->insert([
             $event->toArray()
         ]);
     } catch(Exception $e) {

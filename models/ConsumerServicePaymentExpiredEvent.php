@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-// Прием владельцем Услуги платежного извещения о факте оплаты клиентом Пакета услуг содержащего данную Услугу
-// ServicePaymentEvent External
+// Прием владельцем Услуги извещения об истечении срока оплаченного периода подписки
+// ServicePaymentExpiredEvent External
 // https://sberx-event-sberx-dev.apps.ocp.sbercloud.ru/swagger-ui.html
 
-class ConsumerServicePaymentEvent extends Event
+class ConsumerServicePaymentExpiredEvent extends Event
 {
     public $clientKey;
     public $clientKeyType;
