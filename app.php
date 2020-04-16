@@ -16,6 +16,11 @@ use Slim\Psr7\Factory\StreamFactory;
 use Slim\Factory\AppFactory;
 use Slim\Psr7\Headers;
 
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use Monolog\Formatter\LineFormatter;
+// FIXME By default Workerman logs to ./vendor/workerman/workerman.log too - disable it!
+
 //use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Capsule\Manager as ORM;
 // Set the event dispatcher used by Eloquent models... (optional)
@@ -42,7 +47,18 @@ foreach(scandir(__DIR__) as $dir) {
 // The very first function which runs ONLY ONCE and bootstrap the WHOLE app
 function bootstrap()
 {
-    global $orm, $sql;
+    global $orm, $log, $sql;
+
+    // the default output format is "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n"
+    $formatter = new LineFormatter(
+        "\n%datetime% >> %channel%:%level_name% >> %message%",
+        "Y-m-d H:i:s"
+    );
+    // TODO Log file name from ENV!
+    $stream = new StreamHandler(__DIR__ . '/log/sberprime.log', Logger::INFO);
+    $stream->setFormatter($formatter);
+    $log = new Logger('sberprime');
+    $log->pushHandler($stream);
 
     // TODO DO we need this or better global static?
     $orm = new ORM;
@@ -155,8 +171,11 @@ function handle(WorkermanRequest $request)
         (new StreamFactory)->createStream($request->rawBody())
     );
 
+    // FIXME If there no handler for specified route - it does not return any response at all!
+//echo "\nSTART ret" ;
     $ret = $app->handle($req);
-
+//echo "\nhandle ret = ";
+//var_dump($ret);
     $response = new WorkermanResponse(
         $ret->getStatusCode(),
         $ret->getHeaders(),

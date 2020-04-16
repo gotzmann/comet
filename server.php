@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use Workerman\Worker;
 use Workerman\Timer;
+use Workerman\Protocols\Http\Response as WorkermanResponse;
 
 use Slim\Exception\HttpNotFoundException;
 
@@ -35,15 +36,19 @@ $worker->onWorkerStart = static function() { init(); };
 // Handle EACH request and form response
 $worker->onMessage = static function($connection, $request)
 {
+    // TODO All errors and exceptions send to log by default?
     try {
         $response = handle($request);
         $connection->send($response);
-    }
-    // TODO Catch it within App:handle and return 404 code
-    catch(HttpNotFoundException $e) {
-    }
-    // TODO All others cases - generate HTTP 500 Error ?
-    catch(\Exception $e) {
+    } catch(HttpNotFoundException $error) {
+        // TODO Catch it within App:handle and return 404 code
+    } catch(\Throwable $error) {
+        // TODO All others cases - generate HTTP 500 Error ?
+        // TODO Send to Monolog?
+        // FIXME IF NOT DEBUG, SEND TO CLIENT
+        // FIXME IF DEBUG SHOW IN CONSOLE
+        // TODO Return 500 error with some error message
+        $connection->send(new WorkermanResponse(500));
     }
 };
 

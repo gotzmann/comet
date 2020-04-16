@@ -1,6 +1,6 @@
 .env
 vendor/
+log/
 temp/
 tmp/
 out
-
