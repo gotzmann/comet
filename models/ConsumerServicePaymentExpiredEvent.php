@@ -5,6 +5,8 @@ declare(strict_types=1);
 // ServicePaymentExpiredEvent External
 // https://sberx-event-sberx-dev.apps.ocp.sbercloud.ru/swagger-ui.html
 
+use Comet\Event;
+
 class ConsumerServicePaymentExpiredEvent extends Event
 {
     public $clientKey;

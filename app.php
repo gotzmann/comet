@@ -32,6 +32,9 @@ use Illuminate\Database\Capsule\Manager as ORM;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+$dbHost = empty(getenv('DB_HOST')) ? '127.0.0.1' : getenv('DB_HOST');
+
+// TODO Move to autoload!
 // Include all PHP files except vendors and migrations
 foreach(scandir(__DIR__) as $dir) {
     if (!in_array($dir, ['.', '..', 'vendor', 'migrations'])) {
@@ -47,11 +50,12 @@ foreach(scandir(__DIR__) as $dir) {
 // The very first function which runs ONLY ONCE and bootstrap the WHOLE app
 function bootstrap()
 {
-    global $orm, $log, $sql;
+    global $orm, $log, $sql,
+        $dbHost;
 
     // the default output format is "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n"
     $formatter = new LineFormatter(
-        "\n%datetime% >> %channel%:%level_name% >> %message%",
+        "\n%datetime% > %channel%:%level_name% > %message%",
         "Y-m-d H:i:s"
     );
     // TODO Log file name from ENV!
@@ -66,8 +70,8 @@ function bootstrap()
     // TODO getenv from ENV
     $orm->addConnection([
         'driver'    => 'mysql',
-        //'host'      => '192.168.99.1', // 'host.docker.internal',
-        'host'      => '127.0.0.1',
+        'host'      => '192.168.99.1', // 'host.docker.internal',
+        //'host'      => $dbHost,
         'database'  => 'hello',
         'username'  => 'hello',
         'password'  => 'hello',
@@ -88,8 +92,8 @@ function bootstrap()
     // Init PDO statements
 
     //global $statement, $fortune, $random, $update;
-    //$pdo = new PDO('mysql:host=192.168.99.1;dbname=hello', 'hello', 'hello',
-    $pdo = new PDO('mysql:host=127.0.0.1;dbname=hello', 'hello', 'hello', [
+    $pdo = new PDO('mysql:host=192.168.99.1;dbname=hello', 'hello', 'hello', [
+    //$pdo = new PDO("mysql:host=$dbHost;dbname=hello", 'hello', 'hello', [
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false
     ]);

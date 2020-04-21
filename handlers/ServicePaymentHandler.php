@@ -12,7 +12,7 @@ $servicePaymentHandler = function(SlimRequest $request, SlimResponse $response, 
     $payload = (string) $request->getBody();
     $event = ConsumerServicePaymentEvent::createFromPayload($payload);
 
-    $log->info("[servicePaymentHandler] " . $payload);
+    $log->info("ServicePaymentHandler with payload >" . $payload);
 
     // TODO In case of problems there we miss the timeout response?
     // TODO Check if this is duplicate event based on packetId or other data?
@@ -26,7 +26,7 @@ $servicePaymentHandler = function(SlimRequest $request, SlimResponse $response, 
         ]);
     } catch(Exception $e) {
         // TODO Log exception
-        $log->error("[ERR] " . $e->getMessage());
+        $log->error($e->getMessage());
         // TODO What status code we should return?
         // FIXME Другие коды ошибок!
         return $response->withStatus(503);
@@ -43,5 +43,5 @@ $servicePaymentHandler = function(SlimRequest $request, SlimResponse $response, 
     // REAL : https://files.sberdisk.ru/ocs/v2.php/apps/notifications/api/v2/notifications
     // TODO ADD HTTP Client
 
-    return $response->withStatus(201);
+    return $response->withStatus(200);
 };

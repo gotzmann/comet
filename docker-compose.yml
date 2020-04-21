@@ -1,20 +1,42 @@
+# docker-compose up --build --force-recreate
+
 version: '3'
 services:
 
-  # Hipsta [Workerman + Slim]
-  hipsta:
+  # CentOS [Workerman + Slim]
+  cent:
     build:
       context: .
-      dockerfile: Dockerfile.hipsta
-    container_name: hipsta
+      dockerfile: Dockerfile
+    container_name: cent
     ports:
-      - "8080:8080"
+      - "888:888"
     environment:
-      PORT: 8080
+      LISTEN_HOST: 0.0.0.0
+      LISTEN_PORT: 888
+      DB_HOST: host.docker.internal
     env_file:
       - .env
     networks:
       - internal
+
+  # Ubu [Workerman + Slim]
+  ubu:
+    build:
+      context: .
+      dockerfile: Dockerfile.ubuntu
+    container_name: ubu
+    ports:
+      - "999:999"
+    environment:
+      LISTEN_HOST: 0.0.0.0
+      LISTEN_PORT: 999
+      DB_HOST: host.docker.internal
+    env_file:
+      - .env
+    networks:
+      - internal
+
 
   # wrk
   wrk:

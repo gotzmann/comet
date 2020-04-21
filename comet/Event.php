@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-//namespace Comet;
+namespace Comet;
 
 // TODO We need validation methods seems to that Laravel and Go provides
 

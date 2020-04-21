@@ -10,8 +10,11 @@ use Slim\Exception\HttpNotFoundException;
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/app.php';
 
-$port = getenv('LISTEN_PORT') != '' ? getenv('LISTEN_PORT') : 80;
-$host = getenv('LISTEN_HOST') != '' ? getenv('LISTEN_HOST') : '127.0.0.1';
+//$port = getenv('LISTEN_PORT') != '' ? getenv('LISTEN_PORT') : 80;
+//$host = getenv('LISTEN_HOST') != '' ? getenv('LISTEN_HOST') : '127.0.0.1';
+$host = empty(getenv('LISTEN_HOST')) ? '127.0.0.1' : getenv('LISTEN_HOST');
+$port = empty(getenv('LISTEN_PORT')) ? 80 : getenv('LISTEN_PORT');
+
 $worker = new Worker("http://$host:$port");
 $worker->count = (int) shell_exec('nproc') * 4;
 
