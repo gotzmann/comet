@@ -32,8 +32,6 @@ use Illuminate\Database\Capsule\Manager as ORM;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-$dbHost = empty(getenv('DB_HOST')) ? '127.0.0.1' : getenv('DB_HOST');
-
 // TODO Move to autoload!
 // Include all PHP files except vendors and migrations
 foreach(scandir(__DIR__) as $dir) {
@@ -50,13 +48,15 @@ foreach(scandir(__DIR__) as $dir) {
 // The very first function which runs ONLY ONCE and bootstrap the WHOLE app
 function bootstrap()
 {
-    global $orm, $log, $sql,
-        $dbHost;
+    global $orm, $log, $sql;
 
+    $dbType = empty(getenv('DB_TYPE')) ? 'pgsql' : getenv('DB_TYPE');
+    $dbHost = empty(getenv('DB_HOST')) ? '192.168.99.1' : getenv('DB_HOST');
+echo "\nUsing database [$dbType] on $dbHost...";
     // the default output format is "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n"
     $formatter = new LineFormatter(
-        "\n%datetime% > %channel%:%level_name% > %message%",
-        "Y-m-d H:i:s"
+        "\n%datetime% | %channel%:%level_name% | %message%",
+        "Y-m-d | H:i:s"
     );
     // TODO Log file name from ENV!
     $stream = new StreamHandler(__DIR__ . '/log/sberprime.log', Logger::INFO);
@@ -67,19 +67,37 @@ function bootstrap()
     // TODO DO we need this or better global static?
     $orm = new ORM;
 
-    // TODO getenv from ENV
-    $orm->addConnection([
-        'driver'    => 'mysql',
-        'host'      => '192.168.99.1', // 'host.docker.internal',
-        //'host'      => $dbHost,
-        'database'  => 'hello',
-        'username'  => 'hello',
-        'password'  => 'hello',
-        'charset'   => 'utf8',
-        'collation' => 'utf8_unicode_ci',
-        'prefix'    => '',
-    ]);
+//    if ($dbType == 'pgsql') {
+        // TODO getenv from ENV
+        $orm->addConnection([
+            'driver'    => $dbType,
+            //'host'      => $dbHost,
+            //'host'      =>'host.docker.internal',
+            //'host'      => '172.19.0.1',
+            'host'      => '192.168.99.1',
+            //'port'      => 5432,
+            'database'  => 'sberprime',
+            'schema'    => 'public',
+            'username'  => 'postgres',
+            'password'  => 'postgres',
+            'charset'   => 'utf8',
+            'prefix'    => ''
+        ]);
 
+/*    } else {
+        // TODO getenv from ENV
+        $orm->addConnection([
+            'driver'    => 'mysql',
+            'host'      => '192.168.99.1',
+            'database'  => 'hello',
+            'username'  => 'hello',
+            'password'  => 'hello',
+            'charset'   => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix'    => '',
+        ]);
+    }
+*/
     // Set the event dispatcher used by Eloquent models... (optional)
     //$orm->setEventDispatcher(new Dispatcher(new Container));
 
@@ -131,6 +149,12 @@ function init()
     $app->get('/hello', function (SlimRequest $request, SlimResponse $response, $args) {
         $response->getBody()->write("{Slimmer} Hello!");
         $new_response = $response->withHeader('testheader', 'itworks');
+        return $new_response;
+    });
+
+    // TODO Remove after tests
+    $app->get('/info', function (SlimRequest $request, SlimResponse $response, $args) {
+        $response->getBody()->write(phpinfo());
         return $new_response;
     });
 

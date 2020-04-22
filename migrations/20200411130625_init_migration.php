@@ -19,70 +19,65 @@ class InitMigration extends AbstractMigration
     {
         $this->execute("
 
+            BEGIN;
+
             -- sberdisk_users
 
             CREATE TABLE IF NOT EXISTS users (
 
-                id INT(11)                  UNSIGNED NOT NULL AUTO_INCREMENT,
+                id                          BIGSERIAL PRIMARY KEY,
                 uuid                        VARCHAR(100) NOT NULL,
 
                 -- TODO All other fields required for representing all user info for Billing & Subscription
 
-                created_at                  DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at                  DATETIME DEFAULT CURRENT_TIMESTAMP,
+                created_at                  TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at                  TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 
-                PRIMARY KEY (id)
-                -- UNIQUE KEY (???)
-
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            );
 
             -- sberprime_events
 
             CREATE TABLE IF NOT EXISTS sberprime_events (
 
-                id                          INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                id                          BIGSERIAL PRIMARY KEY,
                 uuid                        VARCHAR(100),
-                type                        VARCHAR(100), -- type of event like CONSUMER_SERVICE_PAYMENT_EVENT
-                status                      VARCHAR(100), -- status = NEW -> PROCESSING -> PROCESSED / DECLINED / FAILED
+                type                        VARCHAR(100), -- type of event like ConsumerServicePaymentEvent
+                status                      VARCHAR(100), -- status like new -> processing -> processed / declined / failed
 
                 client_key                  VARCHAR(100),
                 client_key_type             VARCHAR(100), -- ENUM
                 customer_id                 VARCHAR(100), -- UUID
-                packet_id                   VARCHAR(100) NOT NULL,
+                packet_id                   VARCHAR(100),
                 pay_system_transaction_id   VARCHAR(100),
                 pay_system_type             VARCHAR(100), -- ENUM
-                payment_date                DATETIME,
-                payment_expired             DATETIME,
+                payment_date                TIMESTAMPTZ,
+                payment_expired             TIMESTAMPTZ,
                 payment_order_id            VARCHAR(100),
                 promo_code                  VARCHAR(100),
                 service_catalog_type        VARCHAR(100),
                 service_external_id         VARCHAR(100), -- ENUM
 
-                payload                     JSON, -- original POST body of request,
-                created_at                  DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at                  DATETIME DEFAULT CURRENT_TIMESTAMP,
+                payload                     JSONB, -- original POST body of request,
+                created_at                  TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at                  TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 
-                PRIMARY KEY (id)
-                -- UNIQUE KEY (???)
-
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            );
 
             -- sberdisk_tariffs
 
-            CREATE TABLE IF NOT EXISTS sberdisk_tariffs (
+--            CREATE TABLE IF NOT EXISTS sberdisk_tariffs (
 
-                id                          INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-                uuid                        VARCHAR(100) NOT NULL,
+--                id                          BIGSERIAL PRIMARY KEY,
+--                uuid                        VARCHAR(100) NOT NULL,
 
                 -- TODO All other fields required for representing all tariffs in Billing
 
-                created_at                  DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at                  DATETIME DEFAULT CURRENT_TIMESTAMP,
+--                created_at                  TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+--                updated_at                  TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
-                PRIMARY KEY (id)
-                -- UNIQUE KEY (???)
+--            );
 
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            COMMIT;
 
         ");
 

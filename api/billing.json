@@ -1,0 +1,389 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "SberDisk Billing Api",
+    "version": "v1"
+  },
+  "paths": {
+    "/order/register": {
+      "post": {
+        "tags": [
+          "SberDiskBilling"
+        ],
+        "summary": "Регистрирует заказ в E-Com Сбербанка",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPurchaseRequest"
+              },
+              "example": {
+  "clientId": "spashorin@altatec.ru",
+  "totalPrice": 9900,
+  "successUrl": "https://files.sberdisk.ru/purchase/success",
+  "failUrl": "https://files.sberdisk.ru/purchase/success",
+  "isAutomaticPayment": false
+}
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPurchaseRequest"
+              },
+              "example": {
+  "clientId": "spashorin@altatec.ru",
+  "totalPrice": 9900,
+  "successUrl": "https://files.sberdisk.ru/purchase/success",
+  "failUrl": "https://files.sberdisk.ru/purchase/success",
+  "isAutomaticPayment": false
+}
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPurchaseRequest"
+              },
+              "example": {
+  "clientId": "spashorin@altatec.ru",
+  "totalPrice": 9900,
+  "successUrl": "https://files.sberdisk.ru/purchase/success",
+  "failUrl": "https://files.sberdisk.ru/purchase/success",
+  "isAutomaticPayment": false
+}
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPurchaseRequest"
+              },
+              "example": {
+  "clientId": "spashorin@altatec.ru",
+  "totalPrice": 9900,
+  "successUrl": "https://files.sberdisk.ru/purchase/success",
+  "failUrl": "https://files.sberdisk.ru/purchase/success",
+  "isAutomaticPayment": false
+}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterPurchaseResponse"
+                },
+                "example": {
+  "resultCode": 0,
+  "resultMessage": null,
+  "redirectUrl": "https://securepayments.sberbank.ru/payment/merchants/sbersafe/payment_ru.html?mdOrder=adf733e1-9b74-7cb2-b458-b13201d9aa71",
+  "orderId": null,
+  "purchaseId": null
+}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/order/confirm": {
+      "post": {
+        "tags": [
+          "SberDiskBilling"
+        ],
+        "summary": "Проверяет статус заказа и выделяет квоту, если заказ оплачен",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmPurchaseRequest"
+              },
+              "example": {
+  "correlationId": null,
+  "orderId": "adf733e1-9b74-7cb2-b458-b13201d9aa71",
+  "clientId": "spashorin@altatec.ru"
+}
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmPurchaseRequest"
+              },
+              "example": {
+  "correlationId": null,
+  "orderId": "adf733e1-9b74-7cb2-b458-b13201d9aa71",
+  "clientId": "spashorin@altatec.ru"
+}
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmPurchaseRequest"
+              },
+              "example": {
+  "correlationId": null,
+  "orderId": "adf733e1-9b74-7cb2-b458-b13201d9aa71",
+  "clientId": "spashorin@altatec.ru"
+}
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmPurchaseRequest"
+              },
+              "example": {
+  "correlationId": null,
+  "orderId": "adf733e1-9b74-7cb2-b458-b13201d9aa71",
+  "clientId": "spashorin@altatec.ru"
+}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmPurchaseResponse"
+                },
+                "example": {
+  "resultCode": 0,
+  "resultMessage": "Успешно",
+  "status": 3,
+  "bindingId": null
+}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/order/renew": {
+      "post": {
+        "tags": [
+          "SberDiskBilling"
+        ],
+        "summary": "Оплачивает заказ по связке в E-Com Сбербанка",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenewPurchaseRequest"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenewPurchaseRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenewPurchaseRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenewPurchaseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RenewPurchaseResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RegisterPurchaseRequest": {
+        "required": [
+          "ClientId",
+          "SuccessUrl",
+          "TotalPrice"
+        ],
+        "type": "object",
+        "properties": {
+          "ClientId": {
+            "type": "string",
+            "description": "Идентификатор клиента во внешней системе"
+          },
+          "TotalPrice": {
+            "type": "integer",
+            "description": "Стоимость продукта",
+            "format": "int32"
+          },
+          "SuccessUrl": {
+            "type": "string",
+            "description": "Адрес для перенаправления в случае успешной оплаты"
+          },
+          "FailUrl": {
+            "type": "string",
+            "description": "Адрес для перенаправления в случае неуспешной оплаты",
+            "nullable": true
+          },
+          "IsAutomaticPayment": {
+            "type": "boolean",
+            "description": "Флажок, что платеж совершается автоматически"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Запрос регистрации заказа"
+      },
+      "RegisterPurchaseResponse": {
+        "type": "object",
+        "properties": {
+          "ResultCode": {
+            "type": "integer",
+            "description": "Код ответа\r\n0 - успех\r\n1 - неуспех",
+            "format": "int32"
+          },
+          "ResultMessage": {
+            "type": "string",
+            "description": "Расшифровка ResultCode",
+            "nullable": true
+          },
+          "RedirectUrl": {
+            "type": "string",
+            "description": "Адрес, по которому нужно перенаправить пользователя",
+            "nullable": true
+          },
+          "OrderId": {
+            "type": "string",
+            "description": "Идентификатор заказа",
+            "format": "uuid",
+            "nullable": true
+          },
+          "PurchaseId": {
+            "type": "string",
+            "description": "Идентификатор покупки",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Ответ на запрос регистрации заказа"
+      },
+      "ConfirmPurchaseRequest": {
+        "required": [
+          "OrderId"
+        ],
+        "type": "object",
+        "properties": {
+          "CorrelationId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "OrderId": {
+            "type": "string",
+            "description": "Идентификатор (orderId), полученный при возврате со страницы оплаты Банка",
+            "format": "uuid"
+          },
+          "ClientId": {
+            "type": "string",
+            "description": "Идентификатор (uid) клиента во внешней системе",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Запрос подтверждения заказа"
+      },
+      "PurchaseStatus": {
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "ConfirmPurchaseResponse": {
+        "type": "object",
+        "properties": {
+          "ResultCode": {
+            "type": "integer",
+            "description": "Код ответа\r\n0 - успех\r\n1 - неуспех",
+            "format": "int32"
+          },
+          "ResultMessage": {
+            "type": "string",
+            "description": "Текстовая расшифровка ответа",
+            "nullable": true
+          },
+          "Status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PurchaseStatus"
+              }
+            ],
+            "description": "Статус заказа\r\n1 - зарегистрирован в биллинге, не оплачен\r\n2 - зарегистрирован в E-Com, не оплачен\r\n3 - зарегистрирован, оплачен\r\n4 - зарегистрирован, оплата не удалась\r\n5 - зарегистрирован, произведен возврат средств",
+            "nullable": true
+          },
+          "BindingId": {
+            "type": "string",
+            "description": "Идентификатор связки клиента с картой в E-Com",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Ответ на запрос подтверждения оплаты"
+      },
+      "RenewPurchaseRequest": {
+        "required": [
+          "ClientId",
+          "OrderNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "OrderNumber": {
+            "type": "string",
+            "description": "Номер (идентификатор) заказа"
+          },
+          "ClientId": {
+            "type": "string",
+            "description": "Идентификатор клиента во внешней системе"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RenewPurchaseResponse": {
+        "type": "object",
+        "properties": {
+          "Info": {
+            "type": "string",
+            "description": "При успешном ответе. Результат попытки оплаты. Возможные значения представлены ниже:\r\n<para />Ваш платёж обработан, происходит переадресация...\r\n<para />Операция отклонена.Проверьте введенные данные, достаточность средств на карте и повторите операцию.Происходит переадресация...\r\n<para />Извините, платеж не может быть совершен.Происходит переадресация...\r\n<para />Операция отклонена. Обратитесь в магазин.Происходит переадресация...\r\n<para />Операция отклонена. Обратитесь в банк, выпустивший карту. Происходит переадресация...\r\n<para />Операция невозможна. Аутентификация держателя карты завершена неуспешно.Происходит переадресация...\r\n<para />Нет связи с банком. Повторите позже. Происходит переадресация...\r\nИ<para />стек срок ожидания ввода данных.Происходит переадресация...\r\n<para />Не получен ответ от банка.Повторите позже. Происходит переадресация...",
+            "nullable": true
+          },
+          "Redirect": {
+            "type": "string",
+            "description": "При успешном ответе. В случае SSL-платежа – URL, на который производится переадресация после\r\nплатежа.В случае 3DS-платежа – URL для возврата с ACS.",
+            "nullable": true
+          },
+          "ErrorCode": {
+            "type": "integer",
+            "description": "Код завершения.\r\n<para />0 — Обработка запроса прошла без системных ошибок\r\n<para />1 — Необходимо указать CVC2/CVV2 код, поскольку у мерчанта нет разрешения на проведение платежа без CVC\r\n<para />1 — Неверный формат CVC\r\n<para />1 — Неверный язык\r\n<para />2 — Заказ не найден\r\n<para />2 — Связка не найдена\r\n<para />5 — Доступ запрещен\r\n<para />5 — Пользователь должен изменить свой пароль\r\n<para />7 — Системная ошибка",
+            "format": "int32",
+            "nullable": true
+          },
+          "ErrorMessage": {
+            "type": "string",
+            "description": "При ответе с ошибкой. Сообщение об ошибке.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}
