@@ -6,21 +6,21 @@ environments:
     default_migration_table: migrations
     default_environment: development
     production:
-        adapter: mysql
-        host: localhost
-        name: hello
-        user: hello
-        pass: 'hello'
+        adapter: pgsql
+        host: 192.168.99.1
+        name: sberprime
+        user: postgres
+        pass: 'postgres'
         port: 3306
         charset: utf8
 
     development:
-        adapter: mysql
-        host: localhost
-        name: hello
-        user: hello
-        pass: 'hello'
-        port: 3306
+        adapter: pgsql
+        host: 192.168.99.1
+        name: sberprime
+        user: postgres
+        pass: postgres
+        port: 5432
         charset: utf8
 
     testing:

@@ -55,7 +55,7 @@ function bootstrap()
     $dbUser = empty(getenv('DB_USER')) ? 'postgres' : getenv('DB_USER');
     $dbPassword = empty(getenv('DB_PASSWORD')) ? 'postgres' : getenv('DB_PASSWORD');
 
-    echo "\nUsing database $dbType:$dbName on $dbHost:$dbPort...";
+    echo "[INFO] Using database $dbType:$dbName on $dbHost:$dbPort\n";
 
     // the default output format is "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n"
     $formatter = new LineFormatter(
@@ -94,9 +94,7 @@ function bootstrap()
     //$orm->bootEloquent();
 
     // Init PDO statements
-
-    //global $statement, $fortune, $random, $update;
-    $pdo = new PDO("$dbType:host=$dbHost;port=$dbPort;dbname=$dbName;charset=UTF8", $dbUser, $dbPassword, [
+    $pdo = new PDO("$dbType:host=$dbHost;port=$dbPort;dbname=$dbName", $dbUser, $dbPassword, [
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false
     ]);
@@ -144,7 +142,7 @@ function init()
         $info = ob_get_contents();
         ob_clean();
         $response->getBody()->write($info);
-        return $new_response;
+        return $response;
     });
 
     // TODO Remove after tests
