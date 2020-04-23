@@ -1,9 +1,6 @@
 <?php
 declare(strict_types=1);
 
-//use Workerman\Worker;
-//use Workerman\Timer;
-
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
 
@@ -52,7 +49,14 @@ function bootstrap()
 
     $dbType = empty(getenv('DB_TYPE')) ? 'pgsql' : getenv('DB_TYPE');
     $dbHost = empty(getenv('DB_HOST')) ? '192.168.99.1' : getenv('DB_HOST');
-echo "\nUsing database [$dbType] on $dbHost...";
+    $dbPort = empty(getenv('DB_PORT')) ? 5432 : getenv('DB_PORT');
+    $dbName = empty(getenv('DB_NAME')) ? 'sberprime' : getenv('DB_NAME');
+    $dbSchema = empty(getenv('DB_SCHEMA')) ? 'public' : getenv('DB_SCHEMA');
+    $dbUser = empty(getenv('DB_USER')) ? 'postgres' : getenv('DB_USER');
+    $dbPassword = empty(getenv('DB_PASSWORD')) ? 'postgres' : getenv('DB_PASSWORD');
+
+    echo "\nUsing database $dbType:$dbName on $dbHost:$dbPort...";
+
     // the default output format is "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n"
     $formatter = new LineFormatter(
         "\n%datetime% | %channel%:%level_name% | %message%",
@@ -67,37 +71,19 @@ echo "\nUsing database [$dbType] on $dbHost...";
     // TODO DO we need this or better global static?
     $orm = new ORM;
 
-//    if ($dbType == 'pgsql') {
-        // TODO getenv from ENV
-        $orm->addConnection([
-            'driver'    => $dbType,
-            //'host'      => $dbHost,
-            //'host'      =>'host.docker.internal',
-            //'host'      => '172.19.0.1',
-            'host'      => '192.168.99.1',
-            //'port'      => 5432,
-            'database'  => 'sberprime',
-            'schema'    => 'public',
-            'username'  => 'postgres',
-            'password'  => 'postgres',
-            'charset'   => 'utf8',
-            'prefix'    => ''
-        ]);
+    // TODO getenv from ENV
+    $orm->addConnection([
+        'driver'    => $dbType,
+        'host'      => $dbHost,
+        'port'      => $dbPort,
+        'database'  => $dbName,
+        'schema'    => $dbSchema,
+        'username'  => $dbUser,
+        'password'  => $dbPassword,
+        'charset'   => 'utf8',
+        'prefix'    => ''
+    ]);
 
-/*    } else {
-        // TODO getenv from ENV
-        $orm->addConnection([
-            'driver'    => 'mysql',
-            'host'      => '192.168.99.1',
-            'database'  => 'hello',
-            'username'  => 'hello',
-            'password'  => 'hello',
-            'charset'   => 'utf8',
-            'collation' => 'utf8_unicode_ci',
-            'prefix'    => '',
-        ]);
-    }
-*/
     // Set the event dispatcher used by Eloquent models... (optional)
     //$orm->setEventDispatcher(new Dispatcher(new Container));
 
@@ -110,8 +96,7 @@ echo "\nUsing database [$dbType] on $dbHost...";
     // Init PDO statements
 
     //global $statement, $fortune, $random, $update;
-    $pdo = new PDO('mysql:host=192.168.99.1;dbname=hello', 'hello', 'hello', [
-    //$pdo = new PDO("mysql:host=$dbHost;dbname=hello", 'hello', 'hello', [
+    $pdo = new PDO("$dbType:host=$dbHost;port=$dbPort;dbname=$dbName;charset=UTF8", $dbUser, $dbPassword, [
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false
     ]);
@@ -154,7 +139,11 @@ function init()
 
     // TODO Remove after tests
     $app->get('/info', function (SlimRequest $request, SlimResponse $response, $args) {
-        $response->getBody()->write(phpinfo());
+        ob_start();
+        phpinfo();
+        $info = ob_get_contents();
+        ob_clean();
+        $response->getBody()->write($info);
         return $new_response;
     });
 
@@ -200,10 +189,7 @@ function handle(WorkermanRequest $request)
     );
 
     // FIXME If there no handler for specified route - it does not return any response at all!
-//echo "\nSTART ret" ;
     $ret = $app->handle($req);
-//echo "\nhandle ret = ";
-//var_dump($ret);
     $response = new WorkermanResponse(
         $ret->getStatusCode(),
         $ret->getHeaders(),

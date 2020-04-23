@@ -3,7 +3,7 @@
 version: '3'
 services:
 
-  # CentOS [Workerman + Slim]
+  # CentOS
   cent:
     build:
       context: .
@@ -15,13 +15,13 @@ services:
       LISTEN_HOST: 0.0.0.0
       LISTEN_PORT: 888
       DB_TYPE: pgsql
-      DB_HOST: host.docker.internal
+      DB_HOST: 192.168.99.1
     env_file:
       - .env
     networks:
       - internal
 
-  # Ubu [Workerman + Slim]
+  # Ubuntu
   ubu:
     build:
       context: .
@@ -32,13 +32,12 @@ services:
     environment:
       LISTEN_HOST: 0.0.0.0
       LISTEN_PORT: 999
-      DB_TYPE: pgsql      
-      DB_HOST: host.docker.internal
+      DB_TYPE: pgsql
+      DB_HOST: 192.168.99.1
     env_file:
       - .env
     networks:
       - internal
-
 
   # wrk
   wrk:
@@ -48,30 +47,6 @@ services:
     container_name: wrk
     networks:
       - internal
-
-  # MySQL
-  # Will be started on host.docker.internal
-
-  #db:
-    #image: mysql:5.7.22
-    #container_name: db
-    #restart: unless-stopped
-    #tty: true
-    #ports:
-    #  - "3306:3306"
-    #environment:
-    #  MYSQL_DATABASE: laravel
-    #  MYSQL_ROOT_PASSWORD: your_mysql_root_password
-    #  SERVICE_TAGS: dev
-    #  SERVICE_NAME: mysql
-    #networks:
-    #  - app-network
-
-#volumes:
- # www:
-#    driver: host
-#    driver_opts:
-#      source: ./
 
 networks:
   internal:
