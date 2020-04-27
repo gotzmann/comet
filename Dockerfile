@@ -1,6 +1,8 @@
 # docker build -f Dockerfile -t cent --no-cache .
 
-FROM centos:8
+# TODO Check the real content of latest multistage build to be shure there no any passwords, secrets, etc
+
+FROM centos:8 AS base
 
 ARG PHP=7.4
 
@@ -43,6 +45,12 @@ WORKDIR /var/www
 #RUN composer install --optimize-autoloader --classmap-authoritative --no-dev --quiet
 RUN composer install --optimize-autoloader --classmap-authoritative --no-dev
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+#COPY entrypoint.sh /entrypoint.sh
+#TODO Remove ALL temporary and secret files before get final slim image
+RUN rm -rf .git .env .env.dev
+
+FROM base AS app
+
+RUN chmod +x entrypoint.sh
+#RUN chmod +x /entrypoint.sh
+#ENTRYPOINT ["/entrypoint.sh"]

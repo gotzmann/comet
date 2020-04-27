@@ -12,7 +12,7 @@ $servicePaymentHandler = function(SlimRequest $request, SlimResponse $response, 
     $payload = (string) $request->getBody();
     $event = ConsumerServicePaymentEvent::createFromPayload($payload);
 
-    $log->info("ServicePaymentHandler with payload >" . $payload);
+    $log->info("ServicePaymentHandler with payload : " . $payload);
 
     // TODO In case of problems there we miss the timeout response?
     // TODO Check if this is duplicate event based on packetId or other data?

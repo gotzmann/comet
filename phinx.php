@@ -19,7 +19,7 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
 if (getenv('DB_TYPE') == '' || getenv('DB_NAME') == '')
-    die("\n[ERR] Environment has no vars for DB settings!");
+    die("\n[ERR] Environment has no DB settings!");
 
 return
     [

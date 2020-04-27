@@ -36,6 +36,9 @@ RUN composer install --optimize-autoloader --classmap-authoritative --no-dev
 #EXPOSE ${PORT}
 #EXPOSE 1980
 
+#TODO Remove ALL temporary and secret files before get final slim image
+RUN rm -rf .git .env .env.dev
+
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

@@ -3,48 +3,18 @@
 version: '3'
 services:
 
-  # CentOS
-  cent:
+  sberprime:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: cent
+    container_name: sberprime
     ports:
-      - "888:888"
+      - 80:80
+    volumes:
+      - ./log:/var/www/log
     environment:
-      LISTEN_HOST: 0.0.0.0
-      LISTEN_PORT: 888
-      DB_TYPE: pgsql
-      DB_HOST: 192.168.99.1
     env_file:
       - .env
-    networks:
-      - internal
-
-  # Ubuntu
-  ubu:
-    build:
-      context: .
-      dockerfile: Dockerfile.ubuntu
-    container_name: ubu
-    ports:
-      - "999:999"
-    environment:
-      LISTEN_HOST: 0.0.0.0
-      LISTEN_PORT: 999
-      DB_TYPE: pgsql
-      DB_HOST: 192.168.99.1
-    env_file:
-      - .env
-    networks:
-      - internal
-
-  # wrk
-  wrk:
-    build:
-      context: .
-      dockerfile: Dockerfile.wrk
-    container_name: wrk
     networks:
       - internal
 

@@ -7,8 +7,12 @@ use Illuminate\Database\Capsule\Manager as ORM;
 
 $servicePaymentExpiredHandler = function(SlimRequest $request, SlimResponse $response, $args)
 {
+    global $log;
+
     $payload = (string) $request->getBody();
     $event = ConsumerServicePaymentExpiredEvent::createFromPayload($payload);
+
+    $log->info("ServicePaymentExpiredHandler with payload : " . $payload);
 
     // TODO Log this event
     //echo "\npacket_id=" . $event->packetId;

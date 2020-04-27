@@ -29,6 +29,12 @@ use Illuminate\Database\Capsule\Manager as ORM;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+if (getenv('DB_TYPE') == '' || getenv('DB_NAME') == '')
+    die("\n[ERR] Environment has no DB settings!");
+
 // TODO Move to autoload!
 // Include all PHP files except vendors and migrations
 foreach(scandir(__DIR__) as $dir) {
@@ -47,20 +53,20 @@ function bootstrap()
 {
     global $orm, $log, $sql;
 
-    $dbType = empty(getenv('DB_TYPE')) ? 'pgsql' : getenv('DB_TYPE');
-    $dbHost = empty(getenv('DB_HOST')) ? '192.168.99.1' : getenv('DB_HOST');
-    $dbPort = empty(getenv('DB_PORT')) ? 5432 : getenv('DB_PORT');
-    $dbName = empty(getenv('DB_NAME')) ? 'sberprime' : getenv('DB_NAME');
-    $dbSchema = empty(getenv('DB_SCHEMA')) ? 'public' : getenv('DB_SCHEMA');
-    $dbUser = empty(getenv('DB_USER')) ? 'postgres' : getenv('DB_USER');
-    $dbPassword = empty(getenv('DB_PASSWORD')) ? 'postgres' : getenv('DB_PASSWORD');
+    $dbType = getenv('DB_TYPE');
+    $dbHost = getenv('DB_HOST');
+    $dbPort = getenv('DB_PORT');
+    $dbName = getenv('DB_NAME');
+    $dbSchema = getenv('DB_SCHEMA');
+    $dbUser = getenv('DB_USER');
+    $dbPassword = getenv('DB_PASSWORD');
 
     echo "[INFO] Using database $dbType:$dbName on $dbHost:$dbPort\n";
 
     // the default output format is "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n"
     $formatter = new LineFormatter(
-        "\n%datetime% | %channel%:%level_name% | %message%",
-        "Y-m-d | H:i:s"
+        "\n%datetime% >> %channel%:%level_name% >> %message%",
+        "Y-m-d H:i:s"
     );
     // TODO Log file name from ENV!
     $stream = new StreamHandler(__DIR__ . '/log/sberprime.log', Logger::INFO);
@@ -125,9 +131,12 @@ function init()
     $app->post('/servicePaymentHandler',
         $servicePaymentHandler);
 
-        $app->post('/servicePaymentExpiredHandler',
-            $servicePaymentExpiredHandler);
+    $app->post('/servicePaymentExpiredHandler',
+        $servicePaymentExpiredHandler);
 
+    // TODO Add endpoints to show API version and healthcheck
+
+/*
     // TODO Remove after tests
     $app->get('/hello', function (SlimRequest $request, SlimResponse $response, $args) {
         $response->getBody()->write("{Slimmer} Hello!");
@@ -168,7 +177,7 @@ function init()
         return $response
             ->withHeader('Content-Type', 'application/json');
     });
-
+*/
     // TODO Include user-defined init()
 }
 
