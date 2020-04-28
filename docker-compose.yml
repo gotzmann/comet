@@ -3,21 +3,24 @@
 version: '3'
 services:
 
+  # TODO Build image here OR pull it from Docker Hub / Registry?
+
   sberprime:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: sberprime
+    image: gotzmann/sberprime
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile
+    #container_name: sberprime
     ports:
       - 80:80
     volumes:
       - ./log:/var/www/log
-    environment:
+    #environment:
     env_file:
       - .env
-    networks:
-      - internal
+#    networks:
+#      - internal
 
-networks:
-  internal:
-    driver: bridge
+#networks:
+#  internal:
+#    driver: bridge

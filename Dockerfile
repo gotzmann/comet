@@ -3,6 +3,7 @@
 # TODO Check the real content of latest multistage build to be shure there no any passwords, secrets, etc
 
 FROM centos:8 AS base
+#FROM centos:8
 
 ARG PHP=7.4
 
@@ -41,16 +42,20 @@ COPY ./ /var/www/
 #RUN rm -rf /var/www/vendor
 #COPY php.ini /etc/php/7.4/cli/php.ini
 
+#RUN cd /var/www
 WORKDIR /var/www
 #RUN composer install --optimize-autoloader --classmap-authoritative --no-dev --quiet
 RUN composer install --optimize-autoloader --classmap-authoritative --no-dev
 
 #COPY entrypoint.sh /entrypoint.sh
 #TODO Remove ALL temporary and secret files before get final slim image
-RUN rm -rf .git .env .env.dev
+RUN rm -rf .git .env .env.dev log/sberprime.log
 
-FROM base AS app
+#COPY entrypoint.sh /entrypoint.sh
 
+FROM base
+
+COPY / /
+WORKDIR /var/www
 RUN chmod +x entrypoint.sh
-#RUN chmod +x /entrypoint.sh
-#ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]

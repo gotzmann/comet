@@ -29,8 +29,9 @@ use Illuminate\Database\Capsule\Manager as ORM;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-$dotenv->load();
+// FIXME Use Dotenv OR docker-compose ?
+#$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+#$dotenv->load();
 
 if (getenv('DB_TYPE') == '' || getenv('DB_NAME') == '')
     die("\n[ERR] Environment has no DB settings!");
