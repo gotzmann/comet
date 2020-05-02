@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="600" height="250" src="comet.png">
+  <img width="600" height="250" src="logo.png">
 </p>
 
 # Comet
