@@ -3,11 +3,19 @@ declare(strict_types=1);
 
 namespace Comet;
 
+// TODO Are ALL of these uses are useful?!
 use Workerman\Worker;
 use Workerman\Timer;
+use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
-
+use Slim\Psr7\Request as SlimRequest;
+use Slim\Psr7\Response as SlimResponse;
 use Slim\Exception\HttpNotFoundException;
+use Slim\Psr7\Factory\ServerRequestFactory;
+use Slim\Psr7\Factory\UriFactory;
+use Slim\Psr7\Factory\StreamFactory;
+use Slim\Factory\AppFactory;
+use Slim\Psr7\Headers;
 
 //require_once __DIR__ . '/vendor/autoload.php';
 //require_once __DIR__ . '/app.php';
