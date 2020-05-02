@@ -4,14 +4,13 @@
 	"require": {
         "workerman/workerman": "4.*",
         "slim/slim": "4.*",
-        "slim/psr7": "^1.0",
-		"symfony/yaml": "^5.0",
+        "slim/psr7": "^1.0",		
 		"monolog/monolog": "^2.0",
 		"vlucas/phpdotenv": "^4.1"
 	},
     "autoload": {
         "psr-4": {
-            "Comet\\": "./"
+            "Comet\\": ""
         }
     }
 }

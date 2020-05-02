@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 namespace Comet;
 
 use Workerman\Worker;
@@ -82,6 +83,7 @@ class Server
             } catch(HttpNotFoundException $error) {
                 // TODO Catch it within App:handle and return 404 code
             } catch(\Throwable $error) {
+                echo $error->getMessage();
                 // TODO All others cases - generate HTTP 500 Error ?
                 // TODO Send to Monolog?
                 // FIXME IF NOT DEBUG, SEND TO CLIENT
