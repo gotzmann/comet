@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+/*
 
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
@@ -142,72 +143,6 @@ function init()
 
     // TODO Add endpoints to show API version and healthcheck
 
-/*
-    // TODO Remove after tests
-    $app->get('/hello', function (SlimRequest $request, SlimResponse $response, $args) {
-        $response->getBody()->write("{Slimmer} Hello!");
-        $new_response = $response->withHeader('testheader', 'itworks');
-        return $new_response;
-    });
-
-    // TODO Remove after tests
-    $app->get('/info', function (SlimRequest $request, SlimResponse $response, $args) {
-        ob_start();
-        phpinfo();
-        $info = ob_get_contents();
-        ob_clean();
-        $response->getBody()->write($info);
-        return $response;
-    });
-
-    // TODO Remove after tests
-    $app->get('/error', function (SlimRequest $request, SlimResponse $response, $args) {
-        $null->wtf(); // Null Exception
-    });
-
-    // TODO Remove after tests
-    $app->get('/pdo', function (SlimRequest $request, SlimResponse $response, $args) {
-        global $sql;
-        $sql->execute();
-        $payload = json_encode($sql->fetchAll());
-        $response->getBody()->write($payload);
-        return $response
-            ->withHeader('Content-Type', 'application/json');
-    });
-
-    // TODO Remove after tests
-    $app->get('/orm', function (SlimRequest $request, SlimResponse $response, $args) {
-        $fortunes = ORM::table('fortune')->get();
-        $payload = json_encode($fortunes);
-        $response->getBody()->write($payload);
-        return $response
-            ->withHeader('Content-Type', 'application/json');
-    });
-*/
     // TODO Include user-defined init()
 }
-
-// Handle EACH request and form response
-function handle(WorkermanRequest $request)
-{
-    global $app;
-
-    $req = new SlimRequest(
-        $request->method(),
-        (new UriFactory())->createUri($request->path()),
-        (new Headers())->setHeaders($request->header()),
-        $request->cookie(),
-        [], // $_SERVER ?
-        (new StreamFactory)->createStream($request->rawBody())
-    );
-
-    // FIXME If there no handler for specified route - it does not return any response at all!
-    $ret = $app->handle($req);
-    $response = new WorkermanResponse(
-        $ret->getStatusCode(),
-        $ret->getHeaders(),
-        $ret->getBody()
-    );
-
-    return $response;
-}
+*/
