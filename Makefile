@@ -17,8 +17,8 @@ down:
 build:
 push:
 
-	#docker build -f Dockerfile -t ${DOCKER_REPO}/${APP_NAME} --no-cache .
-	docker build -f Dockerfile -t ${DOCKER_REPO}/${APP_NAME} .
+	docker build -f Dockerfile -t ${DOCKER_REPO}/${APP_NAME} --no-cache .
+	#docker build -f Dockerfile -t ${DOCKER_REPO}/${APP_NAME} .
 	docker push ${DOCKER_REPO}/${APP_NAME}
 
 # TODO Migrate DB through Phinx files
