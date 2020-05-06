@@ -22,9 +22,19 @@ use Slim\Psr7\Headers;
 
 class Server
 {
+    //private $app;
 
-    public function __construct()
+    private $host;
+    private $port;
+    private $log;
+
+    private $status;
+
+    public function __construct(array $config)    
     {
+        $this->host = $config['host'] ?? 'localhost';                     
+        $this->port = $config['port'] ?? 80;                     
+        $this->log = $config['log'] ?? null;                     
     }
 
     // Handle EACH request and form response
@@ -52,13 +62,15 @@ class Server
         return $response;
     }
 
-    static function run($bootstrap, $init)
+//    static function run($bootstrap, $init)
+    public function run($bootstrap, $init)
     {
 
-        $host = empty(getenv('LISTEN_HOST')) ? '127.0.0.1' : getenv('LISTEN_HOST');
-        $port = empty(getenv('LISTEN_PORT')) ? 80 : getenv('LISTEN_PORT');
+//        $host = empty(getenv('LISTEN_HOST')) ? '127.0.0.1' : getenv('LISTEN_HOST');
+//        $port = empty(getenv('LISTEN_PORT')) ? 80 : getenv('LISTEN_PORT');
 
-        $worker = new Worker("http://$host:$port");
+        // TODO Support HTTPS
+        $worker = new Worker('http://' . $this->host . ':' . $this->port);
         // FIXME What the best count number for workers?
         $worker->count = (int) shell_exec('nproc') * 4;
 
@@ -74,7 +86,7 @@ class Server
         */
 
         // The very first function which runs ONLY ONCE and bootstrap the WHOLE app
-        $bootstrap();
+        //$bootstrap();
 
         // Initialization code for EACH worker - it runs when worker starts working
         //$worker->onWorkerStart = static function() { $init(); };
