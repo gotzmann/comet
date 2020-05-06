@@ -16,13 +16,14 @@ use Slim\Psr7\Factory\UriFactory;
 use Slim\Psr7\Factory\StreamFactory;
 use Slim\Factory\AppFactory;
 use Slim\Psr7\Headers;
+use Middleware\JsonBodyParserMiddleware;
 
-//require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 //require_once __DIR__ . '/app.php';
 
-class Server
+class Server 
 {
-    //private $app;
+    private $app;
 
     private $host;
     private $port;
@@ -34,7 +35,19 @@ class Server
     {
         $this->host = $config['host'] ?? 'localhost';                     
         $this->port = $config['port'] ?? 80;                     
-        $this->log = $config['log'] ?? null;                     
+        $this->log = $config['log'] ?? null;  
+        
+        $this->app = AppFactory::create();
+        // FIXME Base path as config param!
+        $this->app->setBasePath("/api/v1"); // TODO Make ENV BASE_PATH   
+        
+        // FIXME Load ALL middlewares from /middleware folder OR enable only that was sent via config
+        $this->app->add(new JsonBodyParserMiddleware());
+    }
+
+    public function __call (string $name, array $arguments) 
+    {
+        return $this->app->$name(...$arguments);
     }
 
     // Handle EACH request and form response
@@ -63,7 +76,7 @@ class Server
     }
 
 //    static function run($bootstrap, $init)
-    public function run($bootstrap, $init)
+    public function run($init)
     {
 
 //        $host = empty(getenv('LISTEN_HOST')) ? '127.0.0.1' : getenv('LISTEN_HOST');
@@ -102,6 +115,7 @@ class Server
                 $connection->send($response);
             } catch(HttpNotFoundException $error) {
                 // TODO Catch it within App:handle and return 404 code
+                //$connection->send(new WorkermanResponse(404));
             } catch(\Throwable $error) {
                 echo $error->getMessage();
                 // TODO All others cases - generate HTTP 500 Error ?
