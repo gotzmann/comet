@@ -8,34 +8,53 @@ use Workerman\Worker;
 use Workerman\Timer;
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
-use Slim\Psr7\Request as SlimRequest;
-use Slim\Psr7\Response as SlimResponse;
+
+use Slim\Psr7\Request; // as SlimRequest;
+use Slim\Psr7\Response; // as SlimResponse;
 use Slim\Exception\HttpNotFoundException;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Factory\UriFactory;
 use Slim\Psr7\Factory\StreamFactory;
 use Slim\Factory\AppFactory;
 use Slim\Psr7\Headers;
-use Middleware\JsonBodyParserMiddleware;
+
+use Comet\Middleware\JsonBodyParserMiddleware;
 
 require_once __DIR__ . '/vendor/autoload.php';
-//require_once __DIR__ . '/app.php';
+//var_dump(__DIR__); die();
+// TODO Move to autoload!
+// Include all PHP files except vendors and migrations
+/*
+$root =  __DIR__ . '/../../..';
+$ignore = ['.', '..', 'vendor'];
+foreach(scandir($root) as $dir) {
+    if (!in_array($dir, $ignore)) {
+        $dir = $root . DIRECTORY_SEPARATOR . $dir;
+        if (is_dir($dir)) {
+            foreach(glob("$dir/*.php") as $file) {
+                require_once $file;
+                echo "\n" . $file;    
+            }
+        }
+    }
+}
+*/
 
-class Server 
+class Comet
 {
-    private $app;
+    public const VERSION = '0.2.0';
 
+    private $app;
     private $host;
     private $port;
-    private $log;
-
+    private $logger;
     private $status;
 
     public function __construct(array $config)    
     {
         $this->host = $config['host'] ?? 'localhost';                     
         $this->port = $config['port'] ?? 80;                     
-        $this->log = $config['log'] ?? null;  
+        $this->logger = $config['logger'] ?? null;  
         
         $this->app = AppFactory::create();
         // FIXME Base path as config param!
@@ -45,17 +64,20 @@ class Server
         $this->app->add(new JsonBodyParserMiddleware());
     }
 
+    // Magic call to any of the Slim App methods like add, addMidleware, handle, run, etc...
+    // See the full list of available methods: https://github.com/slimphp/Slim/blob/4.x/Slim/App.php
     public function __call (string $name, array $arguments) 
     {
         return $this->app->$name(...$arguments);
     }
 
     // Handle EACH request and form response
-    public static function handle(WorkermanRequest $request)
+    private function _handle(WorkermanRequest $request)
     {
-        global $app;
-
-        $req = new SlimRequest(
+        //global $app;
+//var_dump($request);
+        //$req = new SlimRequest(
+        $req = new Request(
             $request->method(),
             (new UriFactory())->createUri($request->path()),
             (new Headers())->setHeaders($request->header()),
@@ -63,20 +85,25 @@ class Server
             [], // $_SERVER ?
             (new StreamFactory)->createStream($request->rawBody())
         );
-
+//var_dump($req);        
+//echo "\nFun Begings here...";
         // FIXME If there no handler for specified route - it does not return any response at all!
-        $ret = $app->handle($req);
+//var_dump($app);        
+//var_dump($this->app);        
+        $ret = $this->app->handle($req);
+//echo "\n ENDS ";        
+//var_dump($ret);        
         $response = new WorkermanResponse(
             $ret->getStatusCode(),
             $ret->getHeaders(),
             $ret->getBody()
         );
-
+//var_dump($response);
         return $response;
     }
 
 //    static function run($bootstrap, $init)
-    public function run($init)
+    public function run($init = null)
     {
 
 //        $host = empty(getenv('LISTEN_HOST')) ? '127.0.0.1' : getenv('LISTEN_HOST');
@@ -103,15 +130,17 @@ class Server
 
         // Initialization code for EACH worker - it runs when worker starts working
         //$worker->onWorkerStart = static function() { $init(); };
-        $worker->onWorkerStart = $init;
+        if ($init)
+            $worker->onWorkerStart = $init;
 
         // TODO /favicon.ico = 404 HttpNotFoundException
         // Handle EACH request and form response
-        $worker->onMessage = static function($connection, $request)
+        //$worker->onMessage = static function($connection, $request)
+        $worker->onMessage = function($connection, WorkermanRequest $request)
         {
             // TODO All errors and exceptions send to log by default?
             try {
-                $response = self::handle($request);
+                $response = $this->_handle($request);
                 $connection->send($response);
             } catch(HttpNotFoundException $error) {
                 // TODO Catch it within App:handle and return 404 code
