@@ -3,46 +3,22 @@ declare(strict_types=1);
 
 namespace Comet;
 
-// TODO Are ALL of these uses are useful?!
 use Workerman\Worker;
 use Workerman\Timer;
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
-
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 use Slim\Psr7\Headers;
-use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Factory\UriFactory;
 use Slim\Psr7\Factory\StreamFactory;
 use Slim\Factory\AppFactory;
 use Slim\Exception\HttpNotFoundException;
-
 use Comet\Middleware\JsonBodyParserMiddleware;
-
-//require_once __DIR__ . '/vendor/autoload.php';
-//var_dump(__DIR__); die();
-// TODO Move to autoload!
-// Include all PHP files except vendors and migrations
-/*
-$root =  __DIR__ . '/../../..';
-$ignore = ['.', '..', 'vendor'];
-foreach(scandir($root) as $dir) {
-    if (!in_array($dir, $ignore)) {
-        $dir = $root . DIRECTORY_SEPARATOR . $dir;
-        if (is_dir($dir)) {
-            foreach(glob("$dir/*.php") as $file) {
-                require_once $file;
-                echo "\n" . $file;    
-            }
-        }
-    }
-}
-*/
 
 class Comet
 {
-    public const VERSION = '0.2.0';
+    public const VERSION = '0.2.2';
 
     private $app;
     private $host;
@@ -74,9 +50,6 @@ class Comet
     // Handle EACH request and form response
     private function _handle(WorkermanRequest $request)
     {
-        //global $app;
-//var_dump($request);
-        //$req = new SlimRequest(
         $req = new Request(
             $request->method(),
             (new UriFactory())->createUri($request->path()),
@@ -85,20 +58,13 @@ class Comet
             [], // $_SERVER ?
             (new StreamFactory)->createStream($request->rawBody())
         );
-//var_dump($req);        
-//echo "\nFun Begings here...";
         // FIXME If there no handler for specified route - it does not return any response at all!
-//var_dump($app);        
-//var_dump($this->app);        
         $ret = $this->app->handle($req);
-//echo "\n ENDS ";        
-//var_dump($ret);        
         $response = new WorkermanResponse(
             $ret->getStatusCode(),
             $ret->getHeaders(),
             $ret->getBody()
         );
-//var_dump($response);
         return $response;
     }
 
@@ -109,21 +75,22 @@ class Comet
         // Suppress Workerman startup message        
         global $argv;        
         $argv[] = '-q';
-        
+
+        echo "\n-------------------------------------------------------------------------";
+        echo "\nServer               Listen                              Workers   Status";
+        echo "\n-------------------------------------------------------------------------\n";        
+
         //----------------------- WORKERMAN -----------------------------
         //Workerman version:4.0.4          PHP version:7.3.5
         //------------------------ WORKERS -------------------------------
         //worker               listen                              processes status
         //none                 http://127.0.0.1:80                 16        [ok]        
         
-
-//        $host = empty(getenv('LISTEN_HOST')) ? '127.0.0.1' : getenv('LISTEN_HOST');
-//        $port = empty(getenv('LISTEN_PORT')) ? 80 : getenv('LISTEN_PORT');
-
         // TODO Support HTTPS
         $worker = new Worker('http://' . $this->host . ':' . $this->port);
         // FIXME What the best count number for workers?
         $worker->count = (int) shell_exec('nproc') * 4;
+        $worker->name = 'Comet v' . self::VERSION;
 
         /* Timer will work on Linux only - cause it based on pcntl_alarm()
         $counter = 0;
