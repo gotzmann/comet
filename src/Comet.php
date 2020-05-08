@@ -106,6 +106,17 @@ class Comet
     public function run($init = null)
     {
 
+        // Suppress Workerman startup message        
+        global $argv;        
+        $argv[] = '-q';
+        
+        //----------------------- WORKERMAN -----------------------------
+        //Workerman version:4.0.4          PHP version:7.3.5
+        //------------------------ WORKERS -------------------------------
+        //worker               listen                              processes status
+        //none                 http://127.0.0.1:80                 16        [ok]        
+        
+
 //        $host = empty(getenv('LISTEN_HOST')) ? '127.0.0.1' : getenv('LISTEN_HOST');
 //        $port = empty(getenv('LISTEN_PORT')) ? 80 : getenv('LISTEN_PORT');
 
@@ -155,7 +166,7 @@ class Comet
                 $connection->send(new WorkermanResponse(500));
             }
         };
-
+        
         // Let's go!
         Worker::runAll();
     }
