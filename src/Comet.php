@@ -9,18 +9,18 @@ use Workerman\Timer;
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
 
-use Slim\Psr7\Request; // as SlimRequest;
-use Slim\Psr7\Response; // as SlimResponse;
-use Slim\Exception\HttpNotFoundException;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+use Slim\Psr7\Headers;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Factory\UriFactory;
 use Slim\Psr7\Factory\StreamFactory;
 use Slim\Factory\AppFactory;
-use Slim\Psr7\Headers;
+use Slim\Exception\HttpNotFoundException;
 
 use Comet\Middleware\JsonBodyParserMiddleware;
 
-require_once __DIR__ . '/vendor/autoload.php';
+//require_once __DIR__ . '/vendor/autoload.php';
 //var_dump(__DIR__); die();
 // TODO Move to autoload!
 // Include all PHP files except vendors and migrations

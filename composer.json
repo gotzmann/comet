@@ -1,16 +1,19 @@
 {
     "name": "gotzmann/comet",
     "description": "Modern PHP framework for building fast REST APIs with JSON",
+  	"license": "MIT",
+    "keywords": ["comet", "php", "api", "rest-api", "json"],
+    "homepage": "https://github.com/gotzmann/comet",
+  	"authors": [{
+   		"name": "Serge Gotsuliak",
+     	"email": "sgotsulyak@gmail.com"
+    }],
 	"require": {
         "workerman/workerman": "4.*",
         "slim/slim": "4.*",
-        "slim/psr7": "^1.0",		
-		"monolog/monolog": "^2.0",
-		"vlucas/phpdotenv": "^4.1"
+        "slim/psr7": "1.*"
 	},
     "autoload": {
-        "psr-4": {
-            "Comet\\": ""
-        }
+        "psr-4": { "Comet\\": "src/" }
     }
 }
