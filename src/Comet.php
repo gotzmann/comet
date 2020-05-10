@@ -32,8 +32,7 @@ class Comet
         $this->port = $config['port'] ?? 80;                     
         $this->logger = $config['logger'] ?? null;  
         
-        $this->app = AppFactory::create();
-        // FIXME Base path as config param!        
+        $this->app = AppFactory::create();   
         
         // FIXME Load ALL middlewares from /middleware folder OR enable only that was sent via config
         $this->app->add(new JsonBodyParserMiddleware());
