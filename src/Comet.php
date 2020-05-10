@@ -33,8 +33,7 @@ class Comet
         $this->logger = $config['logger'] ?? null;  
         
         $this->app = AppFactory::create();
-        // FIXME Base path as config param!
-        $this->app->setBasePath("/api/v1"); // TODO Make ENV BASE_PATH   
+        // FIXME Base path as config param!        
         
         // FIXME Load ALL middlewares from /middleware folder OR enable only that was sent via config
         $this->app->add(new JsonBodyParserMiddleware());
