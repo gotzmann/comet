@@ -14,6 +14,22 @@ Comet gets all superpowers from Slim microframework and Workerman library as wel
 
 [Workerman](https://github.com/walkor/Workerman) is an asynchronous event-driven framework. It deliver high performance to build fast and scalable network applications. Workerman supports HTTP, Websocket, SSL and other custom protocols. 
 
+## Performance and Latency
+
+PHP is often criticized for its low throughput and high latency. But that's not necessarilty true for modern frameworks. Let's see how Comet outperfroms others.
+
+<p align="center">
+  <img width="600" height="250" src="plaintext-performance.jpg">
+</p>
+
+As you can see, the right architecture provides it with tenfold advantage over Symfony and other popular frameworks.
+
+<p align="center">
+  <img width="600" height="250" src="plaintext-latency.jpg">
+</p>
+
+On the other side, latency is so slow even under hard pressure of 1,000 concurrent connections, that Comete can compete with web frameworks based on compile-time languages like Go and Java.
+
 ## Installation
 
 It's recommended that you use [Composer](https://getcomposer.org/) to install Comet.
