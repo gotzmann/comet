@@ -19,16 +19,16 @@ Comet gets all superpowers from Slim microframework and Workerman library as wel
 PHP is often criticized for its low throughput and high latency. But that's not necessarilty true for modern frameworks. Let's see how Comet outperfroms others.
 
 <p align="center">
-  <img width="600" height="250" src="plaintext-performance.jpg">
+  <img width="800" src="plaintext-performance.jpg">
 </p>
 
 As you can see, the right architecture provides it with tenfold advantage over Symfony and other popular frameworks.
 
 <p align="center">
-  <img width="600" height="250" src="plaintext-latency.jpg">
+  <img width="800" src="plaintext-latency.jpg">
 </p>
 
-On the other side, latency is so slow even under hard pressure of 1,000 concurrent connections, that Comete can compete with web frameworks based on compile-time languages like Go and Java.
+Comet provides sub-millisecond latency for typical use cases. Even under hard pressure of thousand concurrent connections it can compete with frameworks of compiled platforms like Go and Java.
 
 ## Installation
 
@@ -41,6 +41,25 @@ $ composer require gotzmann/comet
 This will install framework itself and all required dependencies. Comet requires PHP 7.1 or newer.
 
 ## Basic Usage
+
+Comet itself is and hybrid app that allows you to use any methods and data structures of Slim framework: http://www.slimframework.com/docs/v4/
+
+## PSR-4 and Autoloading
+
+Before you proceed with complex examples, be sure that your composer.json contains autoload section like this:
+
+```bash
+    "autoload": {
+        "psr-4": { "\\": "src/" }
+    }
+```    
+
+If not, you should add the section mentioned above and update all vendors packages and autoload logic by command:
+
+```bash
+$ composer install
+```    
+
 
 ### Simple Hello Comet
 
@@ -103,21 +122,7 @@ Start Postman and see the JSON resonse from GET http://localhost:8080
 
 ### Simple CRUD controller
 
-At first, be sure that your composer.json contains autoload section like this:
-
-```bash
-    "autoload": {
-        "psr-4": { "\\": "" }
-    }
-```    
-
-If not, you should add this section and run:
-
-```bash
-$ composer install
-```    
-
-Create SimpleController.php in Controllers folder:
+Create src/Controllers/SimpleController.php:
 
 ```php
 <?php
@@ -129,25 +134,28 @@ use Slim\Psr7\Response;
 
 class SimpleController
 {    
-    private $counter = 0;
+    private static $counter = 0;
 
     public function getCounter(Request $request, Response $response, $args)
     {
-        $response->getBody()->write($this->counter);  
+        $response->getBody()->write(self::$counter);  
         return $response->withStatus(200);
     }
 
     public function setCounter(Request $request, Response $response, $args)    
     {        
         $body = (string) $request->getBody();
-        $json = json_decode($json, true);
-        var_dump($json);
-        return $response->withStatus(200);        
+        $json = json_decode($json);
+        if (!$json) {
+            return $response->withStatus(500);
+        }  
+        self::$counter = $json->counter;
+        return $response;        
     }
 }  
 ```    
 
-Then create Comet server app.php at root folder:
+Then create Comet server app.php at project root folder:
 
 ```php
 <?php
@@ -157,7 +165,10 @@ use Controllers\SimpleController;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-$app = new Comet();
+$app = new Comet([
+    'host' => 'localhost',
+    'port' => 8080
+]);
 
 $app->setBasePath("/api/v1"); 
 
@@ -168,4 +179,37 @@ $app->post('/counter',
     'Controllers\SimpleController:setCounter');
 
 $app->run();
+```
+
+Now you are ready to get counter value with API GET endpoint:
+
+GET http://localhost:8080/counter
+
+You can change counter sending JSON request for POST method:
+
+POST http://localhost:8080/counter with body { "counter": 100 } and 'application/json' header
+
+Any call with mailformed body will be replied with HTTP 500 code, as defined at controller logic.
+
+## Docker and Nginx
+
+Please see [Dockerfile](Dockerfile) at this repo as starting point for creating your own app images and containers.
+
+If you would like to use Nginx as reverse proxy or load balancer for your Comet app, insert into nginx.conf these lines:
+
+```php
+http {
+ 
+    upstream app {
+        server http://path.to.your.app:port;
+    }
+  
+    server {
+        listen 80;
+         location / {
+            proxy_pass         http://app;
+            proxy_redirect     off;
+        }
+    }
+}    
 ```
