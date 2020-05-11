@@ -6,11 +6,11 @@
 
 Comet is a modern PHP framework for building fast REST APIs and microservices.
 
-## What is it
+## Superpowers
 
 Comet gets all superpowers from Slim microframework and Workerman library as well as adds it's own magic sauce.
 
-[Slim](https://github.com/slimphp/Slim/) is a micro-framework that helps write simple yet powerful web applications and APIs based on modern PSR standards.
+[Slim](https://github.com/slimphp/Slim) is a micro-framework that helps write simple yet powerful web applications and APIs based on modern PSR standards.
 
 [Workerman](https://github.com/walkor/Workerman) is an asynchronous event-driven framework. It deliver high performance to build fast and scalable network applications. Workerman supports HTTP, Websocket, SSL and other custom protocols. 
 
