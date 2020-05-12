@@ -8,31 +8,39 @@ Comet is a modern PHP framework for building fast REST APIs and microservices.
 
 ## Superpowers
 
-Comet gets all superpowers from Slim microframework and Workerman library as well as adds it's own magic sauce.
+Comet gets all superpowers from Slim and Workerman as well as adds its own magic.
 
 [Slim](https://github.com/slimphp/Slim) is a micro-framework that helps write simple yet powerful web applications and APIs based on modern PSR standards.
 
-[Workerman](https://github.com/walkor/Workerman) is an asynchronous event-driven framework. It deliver high performance to build fast and scalable network applications. Workerman supports HTTP, Websocket, SSL and other custom protocols. 
+[Workerman](https://github.com/walkor/Workerman) is an asynchronous event-driven framework. It delivers high performance to build fast and scalable network applications. 
+
+Comet is a hybrid app server that allows you natively use all methods of Slim: http://www.slimframework.com/docs/v4/
 
 ## Performance and Latency
 
-PHP is often criticized for its low throughput and high latency. But that's not necessarilty true for modern frameworks. Let's see how Comet outperfroms others.
+PHP is often criticized for its low throughput and high latency. But that is not necessarily true for modern frameworks. Let's see how Comet outperforms others.
 
 <p align="center">
   <img width="800" src="plaintext-performance.jpg">
 </p>
 
-As you can see, the right architecture provides it with tenfold advantage over Symfony and other popular frameworks.
+As you can see, the right architecture provides it with tenfold advantage over Symfony and other popular frameworks. 
 
 <p align="center">
-  <img width="800" src="plaintext-latency.jpg">
+  <img width="800" src="plaintext-latency-1.jpg">
 </p>
 
-Comet provides sub-millisecond latency for typical use cases. Even under hard pressure of thousand concurrent connections it can compete with frameworks of compiled platforms like Go and Java.
+<p align="center">
+  <img width="800" src="plaintext-latency-1000.jpg">
+</p>
 
-## Installation
+Comet provides sub-millisecond latency for typical scenarios. Even under hard pressure of thousands concurrent connections it can compete with frameworks of compiled platforms like Go and Java.
 
-It's recommended that you use [Composer](https://getcomposer.org/) to install Comet.
+## Basics
+
+### Installation
+
+It is recommended that you use [Composer](https://getcomposer.org/) to install Comet.
 
 ```bash
 $ composer require gotzmann/comet
@@ -40,28 +48,7 @@ $ composer require gotzmann/comet
 
 This will install framework itself and all required dependencies. Comet requires PHP 7.1 or newer.
 
-## Basic Usage
-
-Comet itself is and hybrid app that allows you to use any methods and data structures of Slim framework: http://www.slimframework.com/docs/v4/
-
-## PSR-4 and Autoloading
-
-Before you proceed with complex examples, be sure that your composer.json contains autoload section like this:
-
-```bash
-    "autoload": {
-        "psr-4": { "\\": "src/" }
-    }
-```    
-
-If not, you should add the section mentioned above and update all vendors packages and autoload logic by command:
-
-```bash
-$ composer install
-```    
-
-
-### Simple Hello Comet
+### Hello Comet
 
 Create single app.php file at project root folder with content:
 
@@ -88,9 +75,9 @@ Start it from command line:
 $ php app.php start
 ```
 
-Then open browser on type default address http://localhost:80 - you'll see hello from Comet!
+Then open browser and type in default address http://localhost:80 - you'll see hello from Comet!
 
-### Simple JSON response
+### Simple JSON Response
 
 Let's start Comet server listening on custom port and returning JSON payload.
 
@@ -120,7 +107,25 @@ $app->run();
 
 Start Postman and see the JSON resonse from GET http://localhost:8080
 
-### Simple CRUD controller
+## Advanced Topics
+
+### PSR-4 and Autoloading
+
+Before you proceed with complex examples, be sure that your composer.json contains autoload section like this:
+
+```bash
+    "autoload": {
+        "psr-4": { "\\": "src/" }
+    }
+```    
+
+If not, you should add the section mentioned above and update all vendor packages and autoload logic by command:
+
+```bash
+$ composer install
+```    
+
+### Controllers for MVC apps
 
 Create src/Controllers/SimpleController.php:
 
@@ -187,7 +192,7 @@ GET http://localhost:8080/counter
 
 You can change counter sending JSON request for POST method:
 
-POST http://localhost:8080/counter with body { "counter": 100 } and 'application/json' header
+POST http://localhost:8080/counter with body { "counter": 100 } and 'application/json' header.
 
 Any call with mailformed body will be replied with HTTP 500 code, as defined at controller logic.
 
