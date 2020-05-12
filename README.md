@@ -69,8 +69,10 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 $app = new Comet();
 
-$app->get('/hello', function ($request, $response, $args) {
-    $response->getBody()->write("Hello, Comet!");      
+$app->get('/hello', function ($request, $response) {
+    $response
+        ->getBody()
+        ->write("Hello, Comet!");      
     return $response;
 });
 
@@ -101,7 +103,7 @@ $app = new Comet([
     'port' => 8080
 ]);
 
-$app->get('/json', function ($request, $response, $args) {    
+$app->get('/json', function ($request, $response) {    
     $object = new stdClass();
     $object->data = [ "code" => 200, "message" => "Hello, Comet!" ];
     $payload = json_encode($object);
