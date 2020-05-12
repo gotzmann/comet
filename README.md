@@ -70,7 +70,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 $app = new Comet();
 
 $app->get('/hello', function ($request, $response, $args) {
-	  $response->getBody()->write("Hello, Comet!");      
+    $response->getBody()->write("Hello, Comet!");      
     return $response;
 });
 
