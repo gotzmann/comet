@@ -21,17 +21,21 @@ Comet is a hybrid app server that allows you natively use all methods of Slim: h
 PHP is often criticized for its low throughput and high latency. But that is not necessarily true for modern frameworks. Let's see how Comet outperforms others.
 
 <p align="center">
-  <img width="800" src="plaintext-performance.jpg">
+  <img width="600" src="performance-1.jpg">
+</p>
+
+<p align="center">
+  <img width="600" src="performance-1000.jpg">
 </p>
 
 As you can see, the right architecture provides it with tenfold advantage over Symfony and other popular frameworks. 
 
 <p align="center">
-  <img src="latency-1.jpg">
+  <img width="600" src="latency-1.jpg">
 </p>
 
 <p align="center">
-  <img src="latency-1000.jpg">
+  <img width="600" src="latency-1000.jpg">
 </p>
 
 Comet provides sub-millisecond latency for typical scenarios. Even under hard pressure of thousands concurrent connections it can compete with frameworks of compiled platforms like Go and Java.
