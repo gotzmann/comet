@@ -21,12 +21,12 @@ Comet is a hybrid app server that allows you natively use all methods of Slim: h
 PHP is often criticized for its low throughput and high latency. But that is not necessarily true for modern frameworks. Let's see how Comet outperforms others.
 
 <p align="center">
-  <img width="600" src="performance-1.jpg">
-</p>
-
-<p align="center">
   <img width="600" src="performance-1000.jpg">
 </p>
+
+<h6 align="center">
+  Benchmarking stripped down versions of PHP frameworks with no ORM and switched off modules with 1,000 concurrent connections.
+</h6>
 
 As you can see, the right architecture provides it with tenfold advantage over Symfony and other popular frameworks. 
 
@@ -38,9 +38,9 @@ How long it takes to get response from API is even more important than overall s
   <img width="600" src="latency-1.jpg">
 </p>
 
-<p align="center">
-  <img width="600" src="latency-1000.jpg">
-</p>
+<h6 align="center">
+  Minimal response latency of stripped frameworks under series of serial requests.
+</h6>
 
 Comet provides sub-millisecond latency for typical scenarios. Even under hard pressure of thousand concurrent connections it can compete with frameworks of compiled platforms like Go and Java.
 
@@ -100,14 +100,18 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 $app = new Comet([
     'host' => 'localhost',
-    'port' => 8080
+    'port' => 8080,
 ]);
 
-$app->get('/json', function ($request, $response) {    
-    $object = new stdClass();
-    $object->data = [ "code" => 200, "message" => "Hello, Comet!" ];
-    $payload = json_encode($object);
-    $response->getBody()->write($payload);
+$app->get('/json', function ($request, $response) {        
+    $data = [        
+        "code" => 200, 
+        "message" => "Hello, Comet!",        
+    ];
+    $payload = json_encode($data);
+    $response
+        ->getBody()
+        ->write($payload);
     return $response
         ->withHeader('Content-Type', 'application/json');
 });
@@ -135,7 +139,7 @@ If not, you should add the section mentioned above and update all vendor package
 $ composer install
 ```    
 
-### Controllers for MVC apps
+### Controllers
 
 Create src/Controllers/SimpleController.php:
 
@@ -182,7 +186,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 $app = new Comet([
     'host' => 'localhost',
-    'port' => 8080
+    'port' => 8080,
 ]);
 
 $app->setBasePath("/api/v1"); 
@@ -196,19 +200,23 @@ $app->post('/counter',
 $app->run();
 ```
 
-Now you are ready to get counter value with API GET endpoint:
+Now you are ready to get counter value with API GET endpoint. And pay attention to '/api/v1' prefix of URL:
 
-GET http://localhost:8080/counter
+GET http://localhost:8080/api/v1/counter
 
 You can change counter sending JSON request for POST method:
 
-POST http://localhost:8080/counter with body { "counter": 100 } and 'application/json' header.
+POST http://localhost:8080/api/v1/counter with body { "counter": 100 } and 'application/json' header.
 
-Any call with mailformed body will be replied with HTTP 500 code, as defined at controller logic.
+Any call with mailformed body will be replied with HTTP 500 code, as defined in controller.
 
-## Docker and Nginx
+## Deployment
+
+### Docker
 
 Please see [Dockerfile](Dockerfile) at this repo as starting point for creating your own app images and containers.
+
+### Nginx
 
 If you would like to use Nginx as reverse proxy or load balancer for your Comet app, insert into nginx.conf these lines:
 
