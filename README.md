@@ -25,7 +25,7 @@ PHP is often criticized for its low throughput and high latency. But that is not
 </p>
 
 <h5 align="center">
-  Benchmarking stripped versions of frameworks with no ORM and switched off modules under 1,000 concurrent connections
+  Benchmarking stripped versions of frameworks with no ORM under 1,000 concurrent connections
 </h5>
 
 As you can see, the right architecture provides it with tenfold advantage over Symfony and other popular frameworks. 
@@ -38,9 +38,9 @@ How long it takes to get response from API often is even more important than ove
   <img width="600" src="latency-1.jpg">
 </p>
 
-<p align="center"><sub>
+<h5 align="center">
   Response latency of minimal versions of popular PHP frameworks under series of serial web requests
-</sub></p>
+</h5>
 
 Comet provides sub-millisecond latency for typical scenarios. Even under hard pressure of thousand concurrent connections it can compete with frameworks of compiled platforms like Go and Java.
 
