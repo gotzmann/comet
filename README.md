@@ -46,7 +46,7 @@ Comet provides sub-millisecond latency for typical scenarios. Even under hard pr
 
 ### Too good to be true? 
 
-You may recheck all benchmarks on your own to be sure that charts are not scam - see the repo: https://github.com/gotzmann/benchmarks
+You may run all benchmarks on your own to be sure charts are not scam: https://github.com/gotzmann/benchmarks
 
 ## Basics
 
