@@ -39,9 +39,9 @@ class Comet
 
     // Magic call to any of the Slim App methods like add, addMidleware, handle, run, etc...
     // See the full list of available methods: https://github.com/slimphp/Slim/blob/4.x/Slim/App.php
-    public function __call (string $name, array $arguments) 
+    public function __call (string $name, array $args) 
     {
-        return self::$app->$name(...$arguments);
+        return self::$app->$name(...$args);
     }
 
     // Handle EACH request and form response
@@ -58,6 +58,7 @@ class Comet
 
         // FIXME If there no handler for specified route - it does not return any response at all!
         $ret = self::$app->handle($req);
+
         $response = new WorkermanResponse(
             $ret->getStatusCode(),
             $ret->getHeaders(),
@@ -83,12 +84,10 @@ class Comet
         $worker->count = (int) shell_exec('nproc') * 4;
         $worker->name = 'Comet v' . self::VERSION;
 
-        // Initialization code for EACH worker - it runs when worker starts working
-        //$worker->onWorkerStart = static function() { $init(); };
         if ($init)
             $worker->onWorkerStart = $init;
 
-        // Handle EACH request and form response        
+        // Main Loop : Request -> Comet -> Response
         $worker->onMessage = static function($connection, WorkermanRequest $request)
         {
             // TODO All errors and exceptions send to log by default?
