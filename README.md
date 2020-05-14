@@ -16,7 +16,7 @@ Comet gets all superpowers from Slim and Workerman as well as adds its own magic
 
 Comet allows you natively use all the methods of Slim: http://www.slimframework.com/docs/v4/
 
-## Performance
+### Performance
 
 PHP is often criticized for its low throughput and high latency. But that is not necessarily true for modern frameworks. Let's see how Comet outperforms others.
 
@@ -30,7 +30,7 @@ PHP is often criticized for its low throughput and high latency. But that is not
 
 As you can see, the right architecture provides it with tenfold advantage over Symfony and other popular frameworks. 
 
-## Latency
+### Latency
 
 How long it takes to get response from API often is even more important than overall service throughput. And that is where Comet really shines!
 
@@ -43,6 +43,10 @@ How long it takes to get response from API often is even more important than ove
 </h5>
 
 Comet provides sub-millisecond latency for typical scenarios. Even under hard pressure of thousand concurrent connections it can compete with frameworks of compiled platforms like Go and Java.
+
+### Too good to be true? 
+
+You may recheck all benchmarks on your own to be sure that charts are not scam - see the repo: https://github.com/gotzmann/benchmarks
 
 ## Basics
 
