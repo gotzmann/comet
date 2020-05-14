@@ -21,7 +21,7 @@ Comet allows you natively use all the methods of Slim: http://www.slimframework.
 PHP is often criticized for its low throughput and high latency. But that is not necessarily true for modern frameworks. Let's see how Comet outperforms others.
 
 <p align="center">
-  <img width="600" src="docs/performance-1000.jpg">
+  <img src="docs/performance-1000.jpg">
 </p>
 
 <h5 align="center">
@@ -35,7 +35,7 @@ As you can see, the right architecture provides it with tenfold advantage over S
 How long it takes to get response from API often is even more important than overall service throughput. And that is where Comet really shines!
 
 <p align="center">
-  <img width="600" src="docs/latency-1.jpg">
+  <img src="docs/latency-1.jpg">
 </p>
 
 <h5 align="center">
