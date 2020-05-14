@@ -1,10 +1,10 @@
 <p align="center">
-  <img width="600" height="250" src="logo.png">
+  <img width="600" height="250" src="docs/logo.png">
 </p>
 
 # Comet
 
-Comet is a modern PHP framework for building fast REST APIs and microservices.
+Comet is a modern PHP framework for building fast REST APIs and microservices. 
 
 ## Superpowers
 
@@ -14,14 +14,14 @@ Comet gets all superpowers from Slim and Workerman as well as adds its own magic
 
 [Workerman](https://github.com/walkor/Workerman) is an asynchronous event-driven framework. It delivers high performance to build fast and scalable network applications. 
 
-Comet is a hybrid app server that allows you natively use all methods of Slim: http://www.slimframework.com/docs/v4/
+Comet allows you natively use all the methods of Slim: http://www.slimframework.com/docs/v4/
 
 ## Performance
 
 PHP is often criticized for its low throughput and high latency. But that is not necessarily true for modern frameworks. Let's see how Comet outperforms others.
 
 <p align="center">
-  <img width="600" src="performance-1000.jpg">
+  <img width="600" src="docs/performance-1000.jpg">
 </p>
 
 <h5 align="center">
@@ -35,7 +35,7 @@ As you can see, the right architecture provides it with tenfold advantage over S
 How long it takes to get response from API often is even more important than overall service throughput. And that is where Comet really shines!
 
 <p align="center">
-  <img width="600" src="latency-1.jpg">
+  <img width="600" src="docs/latency-1.jpg">
 </p>
 
 <h5 align="center">
@@ -85,7 +85,7 @@ Start it from command line:
 $ php app.php start
 ```
 
-Then open browser and type in default address http://localhost:80 - you'll see hello from Comet!
+Then open browser and type in default address http://localhost - you'll see hello from Comet!
 
 ### Simple JSON Response
 
