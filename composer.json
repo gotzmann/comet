@@ -2,16 +2,17 @@
     "name": "gotzmann/comet",
     "description": "Modern PHP framework for building REST APIs",
   	"license": "MIT",
-    "keywords": ["comet", "php", "api", "framework", "rest-api", "json", "slim-php", "workerman"],
+    "keywords": ["comet", "php", "api", "framework", "rest-api", "json", "slim-php", "workerman", "psr-7", "psr-17", "psr-18"],
     "homepage": "https://github.com/gotzmann/comet",
     "authors": [{
    	    "name": "Serge Gotsuliak",
         "email": "sgotsulyak@gmail.com"
     }],
     "require": {
-        "workerman/workerman": "4.*",
-        "slim/slim": "4.*",
-        "slim/psr7": "1.*"
+        "workerman/workerman": "^4.0",
+        "slim/slim": "^4.5",
+        "nyholm/psr7": "^1.2",
+        "nyholm/psr7-server": "^0.4"
     },
     "autoload": {
         "psr-4": { "Comet\\": "src/" }

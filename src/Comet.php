@@ -6,8 +6,10 @@ namespace Comet;
 use Workerman\Worker;
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
-use Slim\Psr7\Request;
-use Slim\Psr7\Response;
+#use Slim\Psr7\Request;
+use Nyholm\Psr7\Request;
+#use Slim\Psr7\Response;
+use Nyholm\Psr7\Response;
 use Slim\Psr7\Headers;
 use Slim\Psr7\Factory\UriFactory;
 use Slim\Psr7\Factory\StreamFactory;
@@ -47,6 +49,7 @@ class Comet
     // Handle EACH request and form response
     private static function _handle(WorkermanRequest $request)
     {
+/* Slim Request Building       
         $req = new Request(
             $request->method(),
             (new UriFactory())->createUri($request->path()),
@@ -55,10 +58,22 @@ class Comet
             [], // FIXME $_SERVER ?
             (new StreamFactory)->createStream($request->rawBody())
         );
+*/        
+
+        // Nyholm Request Building
+        $req = new Request(
+            $request->method(),
+            $request->path(),
+            $request->header(),
+            //$request->cookie(),
+            //[], // FIXME $_SERVER ?
+            $request->rawBody()
+        );
 
         // FIXME If there no handler for specified route - it does not return any response at all!
         $ret = self::$app->handle($req);
-
+var_dump($ret);
+die();
         $response = new WorkermanResponse(
             $ret->getStatusCode(),
             $ret->getHeaders(),
