@@ -152,8 +152,8 @@ Create src/Controllers/SimpleController.php:
 
 namespace Controllers;
 
-use Slim\Psr7\Request;
-use Slim\Psr7\Response;
+use Nyholm\Psr7\ServerRequest as Request;
+use Nyholm\Psr7\Response;
 
 class SimpleController
 {    
