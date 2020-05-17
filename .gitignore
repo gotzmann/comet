@@ -1,6 +1,7 @@
 .env
-vendor/
-log/
-temp/
-tmp/
+/vendor/
+/public/
+/log/
+/temp/
+/tmp/
 out
