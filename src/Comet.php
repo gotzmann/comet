@@ -6,31 +6,30 @@ namespace Comet;
 use Workerman\Worker;
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
-#use Slim\Psr7\Request;
-use Nyholm\Psr7\Request;
-#use Slim\Psr7\Response;
+use Nyholm\Psr7\ServerRequest as Request;
 use Nyholm\Psr7\Response;
-use Slim\Psr7\Headers;
-use Slim\Psr7\Factory\UriFactory;
-use Slim\Psr7\Factory\StreamFactory;
 use Slim\Factory\AppFactory;
 use Slim\Exception\HttpNotFoundException;
 use Comet\Middleware\JsonBodyParserMiddleware;
 
+// TODO Return Comet not workerman in Response Server headers
+
 class Comet
 {
-    public const VERSION = '0.3.2';
+    public const VERSION = '0.4.0';
 
     private static $app;
     private $host;
     private $port;
     private $logger;
     private $status;
+    private $debug;
 
     public function __construct(array $config = null)    
     {
         $this->host = $config['host'] ?? 'localhost';                     
-        $this->port = $config['port'] ?? 80;                     
+        $this->port = $config['port'] ?? 80;
+        $this->debug = $config['debug'] ?? false;              
         $this->logger = $config['logger'] ?? null;  
         
         self::$app = AppFactory::create();   
@@ -45,35 +44,22 @@ class Comet
     {
         return self::$app->$name(...$args);
     }
-
-    // Handle EACH request and form response
+    
     private static function _handle(WorkermanRequest $request)
     {
-/* Slim Request Building       
-        $req = new Request(
-            $request->method(),
-            (new UriFactory())->createUri($request->path()),
-            (new Headers())->setHeaders($request->header()),
-            $request->cookie(),
-            [], // FIXME $_SERVER ?
-            (new StreamFactory)->createStream($request->rawBody())
-        );
-*/        
-
-        // Nyholm Request Building
+		// TODO Implement Comet's own Request with cookies as __construct() param
         $req = new Request(
             $request->method(),
             $request->path(),
             $request->header(),
-            //$request->cookie(),
-            //[], // FIXME $_SERVER ?
             $request->rawBody()
         );
 
         // FIXME If there no handler for specified route - it does not return any response at all!
-        $ret = self::$app->handle($req);
-var_dump($ret);
-die();
+        $ret = self::$app->handle($req
+        	->withCookieParams($request->cookie())
+        );
+
         $response = new WorkermanResponse(
             $ret->getStatusCode(),
             $ret->getHeaders(),
@@ -110,23 +96,23 @@ die();
 
         // Main Loop : Request -> Comet -> Response
         $worker->onMessage = static function($connection, WorkermanRequest $request)
-        {
-            // TODO All errors and exceptions send to log by default?
+        {            
             try {
                 $response = self::_handle($request);
                 $connection->send($response);
             } catch(HttpNotFoundException $error) {
-                // TODO Catch it within App:handle and return 404 code
                 $connection->send(new WorkermanResponse(404));
             } catch(\Throwable $error) {
-                echo $error->getMessage();
-                // TODO Log error
-                // TODO Return error message?
+	            if ($this->debug) {
+	                echo $error->getMessage();
+	            }
+            	if ($this->logger) {
+	            	$this->logger->error($error->getMessage());
+	            }
                 $connection->send(new WorkermanResponse(500));
             }
         };
         
-        // Let's go!
         Worker::runAll();
     }
 }
