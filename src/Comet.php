@@ -70,13 +70,16 @@ class Comet
 
     public function run($init = null)
     {
-        // Suppress Workerman startup message and show Comet instead
+        // Suppress Workerman startup message 
         global $argv;        
         $argv[] = '-q';
 
-        echo "\n-------------------------------------------------------------------------";
-        echo "\nServer               Listen                              Workers   Status";
-        echo "\n-------------------------------------------------------------------------\n";        
+        // Show welcome screen on Windows
+        if (DIRECTORY_SEPARATOR === '\\') {        
+            echo "\n-------------------------------------------------------------------------";
+            echo "\nServer               Listen                              Workers   Status";
+            echo "\n-------------------------------------------------------------------------\n";        
+        }    
         
         // TODO Support HTTPS
         $worker = new Worker('http://' . $this->host . ':' . $this->port);
