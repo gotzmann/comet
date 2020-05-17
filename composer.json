@@ -12,8 +12,7 @@
         "workerman/workerman": "^4.0",
         "slim/slim": "^4.5",
         "nyholm/psr7": "^1.2",
-        "nyholm/psr7-server": "^0.4",
-        "kriswallsmith/buzz": "^1.1"
+        "nyholm/psr7-server": "^0.4"
     },
     "autoload": {
         "psr-4": { "Comet\\": "src/" }
