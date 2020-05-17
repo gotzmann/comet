@@ -133,7 +133,7 @@ Before you proceed with complex examples, be sure that your composer.json contai
 
 ```bash
     "autoload": {
-        "psr-4": { "\\": "src/" }
+        "psr-4": { "App\\": "src/" }
     }
 ```    
 
@@ -150,7 +150,7 @@ Create src/Controllers/SimpleController.php:
 ```php
 <?php
 
-namespace Controllers;
+namespace App\Controllers;
 
 use Nyholm\Psr7\ServerRequest as Request;
 use Nyholm\Psr7\Response;
@@ -184,7 +184,7 @@ Then create Comet server app.php at project root folder:
 <?php
 
 use Comet\Comet;
-use Controllers\SimpleController;
+use App\Controllers\SimpleController;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
