@@ -73,9 +73,12 @@ class Comet
         // Suppress Workerman startup message 
         global $argv;        
         $argv[] = '-q';
-
-        // Show welcome screen on Windows
-        if (DIRECTORY_SEPARATOR === '\\') {        
+        
+        // Some more preparations for Windows hosts
+        if (DIRECTORY_SEPARATOR === '\\') {              
+            if ($this->host === '0.0.0.0') {
+                $this->host = '127.0.0.1';
+            }                        
             echo "\n-------------------------------------------------------------------------";
             echo "\nServer               Listen                              Workers   Status";
             echo "\n-------------------------------------------------------------------------\n";        
