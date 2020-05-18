@@ -86,7 +86,7 @@ class Comet
             echo "\n-------------------------------------------------------------------------\n";        
         }    
         
-        $worker = new Worker('http://' . self::host . ':' . self::port);
+        $worker = new Worker('http://' . self::$host . ':' . self::$port);
         $worker->count = (int) shell_exec('nproc') * 4;
         $worker->name = 'Comet v' . self::VERSION;
 
@@ -102,11 +102,11 @@ class Comet
             } catch(HttpNotFoundException $error) {
                 $connection->send(new WorkermanResponse(404));
             } catch(\Throwable $error) {
-	            if (self::debug) {
+	            if (self::$debug) {
 	                echo $error->getMessage();
 	            }
-            	if (self::logger) {
-	            	self::logger->error($error->getMessage());
+            	if (self::$logger) {
+	            	self::$logger->error($error->getMessage());
 	            }
                 $connection->send(new WorkermanResponse(500));
             }
