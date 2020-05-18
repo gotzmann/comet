@@ -23,18 +23,18 @@ class Comet
     public const VERSION = 'v0.4.2-dev';
 
     private static $app;
-    private $host;
-    private $port;
-    private $logger;
-    private $status;
-    private $debug;
+    private static $host;
+    private static $port;
+    private static $logger;
+    private static $status;
+    private static $debug;
 
     public function __construct(array $config = null)    
     {
-        $this->host = $config['host'] ?? 'localhost';                     
-        $this->port = $config['port'] ?? 80;
-        $this->debug = $config['debug'] ?? false;              
-        $this->logger = $config['logger'] ?? null;  
+        self::$host = $config['host'] ?? 'localhost';                     
+        self::$port = $config['port'] ?? 80;
+        self::$debug = $config['debug'] ?? false;              
+        self::$logger = $config['logger'] ?? null;  
         
         self::$app = AppFactory::create();   
         
@@ -88,16 +88,14 @@ class Comet
         return $response;
     }
 
-    public function run($init = null)
-    {
-        // Suppress Workerman startup message 
-        global $argv;        
-        $argv[] = '-q';
+    public function run($init = null) use ($argv)
+    {        
+        $argv[] = '-q'; // Suppress Workerman startup message 
         
         // Some more preparations for Windows hosts
         if (DIRECTORY_SEPARATOR === '\\') {              
-            if ($this->host === '0.0.0.0') {
-                $this->host = '127.0.0.1';
+            if (self::$host === '0.0.0.0') {
+                self::$host = '127.0.0.1';
             }                        
             echo "\n-------------------------------------------------------------------------";
             echo "\nServer               Listen                              Workers   Status";
@@ -105,7 +103,7 @@ class Comet
         }    
         
         // TODO Support HTTPS
-        $worker = new Worker('http://' . $this->host . ':' . $this->port);
+        $worker = new Worker('http://' . self::host . ':' . self::port);
         // FIXME What's the optimal count of workers?
         $worker->count = (int) shell_exec('nproc') * 4;
         $worker->name = 'Comet v' . self::VERSION;
@@ -113,7 +111,7 @@ class Comet
         if ($init)
             $worker->onWorkerStart = $init;
 
-        // Main Loop : Request -> Comet -> Response
+        // Main Loop
         $worker->onMessage = static function($connection, WorkermanRequest $request)
         {            
             try {
@@ -122,11 +120,11 @@ class Comet
             } catch(HttpNotFoundException $error) {
                 $connection->send(new WorkermanResponse(404));
             } catch(\Throwable $error) {
-	            if ($this->debug) {
+	            if (self::debug) {
 	                echo $error->getMessage();
 	            }
-            	if ($this->logger) {
-	            	$this->logger->error($error->getMessage());
+            	if (self::logger) {
+	            	self::logger->error($error->getMessage());
 	            }
                 $connection->send(new WorkermanResponse(500));
             }
