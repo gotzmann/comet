@@ -8,7 +8,10 @@ use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
 use Comet\Request;
 use Comet\Response;
+use Comet\Http\Factory\CometPsr17Factory;
+use Comet\Http\Factory\ResponseFactory;
 use Slim\Factory\AppFactory;
+use Slim\Factory\Psr17\Psr17FactoryProvider;
 use Slim\Exception\HttpNotFoundException;
 use Comet\Middleware\JsonBodyParserMiddleware;
 
@@ -30,7 +33,9 @@ class Comet
         self::$debug = $config['debug'] ?? false;              
         self::$logger = $config['logger'] ?? null;  
         
-        self::$app = AppFactory::create();   
+//        setFactories(ResponseFactory::class): void
+
+        self::$app = AppFactory::create(ResponseFactory::class);   
                 
         self::$app->add(new JsonBodyParserMiddleware());
     }
