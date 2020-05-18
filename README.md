@@ -96,7 +96,7 @@ Let's start Comet server listening on custom host:port and returning JSON payloa
 require_once __DIR__ . '/vendor/autoload.php';
 
 $app = new Comet\Comet([
-    'host' => 'localhost',
+    'host' => '127.0.0.1',
     'port' => 8080,
 ]);
 
@@ -110,7 +110,7 @@ $app->get('/json',
 $app->run();
 ```
 
-Start Postman and see the JSON resonse from GET http://localhost:8080
+Start browser or Postman and see the JSON resonse from GET http://127.0.0.1:8080
 
 ## Advanced Topics
 
@@ -120,9 +120,9 @@ Before you proceed with complex examples, be sure that your composer.json contai
 
 ```bash
 {
-	"require": {
-	    "gotzmann/comet": "^0.5",
-	},
+    "require": {
+        "gotzmann/comet": "^0.5",
+    },
     "autoload": {
         "psr-4": { "App\\": "src/" }
     }
