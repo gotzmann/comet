@@ -6,8 +6,8 @@ namespace Comet;
 use Workerman\Worker;
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
-use Nyholm\Psr7\ServerRequest as Request;
-use Nyholm\Psr7\Response;
+use Comet\Request;
+use Comet\Response;
 use Slim\Factory\AppFactory;
 use Slim\Exception\HttpNotFoundException;
 use Comet\Middleware\JsonBodyParserMiddleware;
@@ -16,7 +16,7 @@ use Comet\Middleware\JsonBodyParserMiddleware;
 
 class Comet
 {
-    public const VERSION = '0.4.1';
+    public const VERSION = 'v0.4.4';
 
     private static $app;
     private static $host;
@@ -47,18 +47,19 @@ class Comet
     
     private static function _handle(WorkermanRequest $request)
     {
-		// TODO Implement Comet's own Request with cookies as __construct() param
         $req = new Request(
             $request->method(),
-            $request->path(),
+            $request->uri(),
             $request->header(),
-            $request->rawBody()
+            $request->rawBody(),
+            '1.1',
+            $_SERVER,
+            $request->cookie(),
+            $request->file(),            
+            $request->queryString()
         );
 
-        // FIXME If there no handler for specified route - it does not return any response at all!
-        $ret = self::$app->handle($req
-        	->withCookieParams($request->cookie())
-        );
+   	    $ret = self::$app->handle($req);
 
         $response = new WorkermanResponse(
             $ret->getStatusCode(),
@@ -69,11 +70,11 @@ class Comet
         return $response;
     }
 
-    public function run($init = null)
-    {
-        // Suppress Workerman startup message 
-        global $argv;        
-        $argv[] = '-q';
+    public function run($init = null) 
+    {        
+    	// Suppress Workerman startup message 
+    	global $argv;
+        $argv[] = '-q'; 
         
         // Some more preparations for Windows hosts
         if (DIRECTORY_SEPARATOR === '\\') {              
@@ -85,16 +86,14 @@ class Comet
             echo "\n-------------------------------------------------------------------------\n";        
         }    
         
-        // TODO Support HTTPS
         $worker = new Worker('http://' . self::$host . ':' . self::$port);
-        // FIXME What's the optimal count of workers?
         $worker->count = (int) shell_exec('nproc') * 4;
         $worker->name = 'Comet v' . self::VERSION;
 
         if ($init)
             $worker->onWorkerStart = $init;
 
-        // Main Loop : Request -> Comet -> Response
+        // Main Loop
         $worker->onMessage = static function($connection, WorkermanRequest $request)
         {            
             try {
