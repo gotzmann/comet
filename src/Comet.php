@@ -12,11 +12,9 @@ use Slim\Factory\AppFactory;
 use Slim\Exception\HttpNotFoundException;
 use Comet\Middleware\JsonBodyParserMiddleware;
 
-// TODO Return Comet not workerman in Response Server headers
-
 class Comet
 {
-    public const VERSION = 'v0.4.4';
+    public const VERSION = '0.4.4';
 
     private static $app;
     private static $host;
@@ -33,8 +31,7 @@ class Comet
         self::$logger = $config['logger'] ?? null;  
         
         self::$app = AppFactory::create();   
-        
-        // TODO Load ALL middlewares from /middleware folder OR enable only that was sent via config
+                
         self::$app->add(new JsonBodyParserMiddleware());
     }
 
