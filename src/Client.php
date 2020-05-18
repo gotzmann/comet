@@ -3,9 +3,7 @@ declare(strict_types=1);
 
 namespace Comet;
 
-//use Buzz\Browser;
-//use Buzz\Client\FileGetContents;
-
+// FIXME Absolutely Expreimental! Please do not use it in production
 // TODO Use Comet\Response object with simplified acces like Python Requests objects
 
 class Client {
@@ -17,11 +15,7 @@ class Client {
 
 	// TODO Use file_get_contents
 	static public function get($url, $data = null)
-	{
-//		$client = new FileGetContents(new Psr17ResponseFactory());
-//		$browser = new Browser($client, new Psr17RequestFactory());
-//		$response = $browser->get($url);
-		
+	{		
 		if ($data) {
 			$url .= '?' . http_build_query($data);
 		}
