@@ -6,10 +6,6 @@ namespace Comet;
 use Workerman\Worker;
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
-#use Nyholm\Psr7\ServerRequest as Request;
-#use Nyholm\Psr7\Response;
-#use GuzzleHttp\Psr7\ServerRequest as Request;
-#use GuzzleHttp\Psr7\Response;
 use Comet\Request;
 use Comet\Response;
 use Slim\Factory\AppFactory;
@@ -51,16 +47,6 @@ class Comet
     
     private static function _handle(WorkermanRequest $request)
     {
-/*
-		// TODO Implement Comet's own Request with cookies as __construct() param
-        $req = new Request(
-            $request->method(),
-            $request->path(),
-            $request->header(),
-            $request->rawBody()
-        );
-*/
-
         $req = new Request(
             $request->method(),
             $request->uri(),
@@ -73,10 +59,6 @@ class Comet
             $request->queryString()
         );
 
-//        $ret = self::$app->handle($req
-  //      	->withCookieParams($request->cookie())
-    //    );
-
    	    $ret = self::$app->handle($req);
 
         $response = new WorkermanResponse(
@@ -88,9 +70,11 @@ class Comet
         return $response;
     }
 
-    public function run($init = null) use ($argv)
+    public function run($init = null) 
     {        
-        $argv[] = '-q'; // Suppress Workerman startup message 
+    	// Suppress Workerman startup message 
+    	global $argv;
+        $argv[] = '-q'; 
         
         // Some more preparations for Windows hosts
         if (DIRECTORY_SEPARATOR === '\\') {              
@@ -102,9 +86,7 @@ class Comet
             echo "\n-------------------------------------------------------------------------\n";        
         }    
         
-        // TODO Support HTTPS
         $worker = new Worker('http://' . self::host . ':' . self::port);
-        // FIXME What's the optimal count of workers?
         $worker->count = (int) shell_exec('nproc') * 4;
         $worker->name = 'Comet v' . self::VERSION;
 
