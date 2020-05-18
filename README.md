@@ -89,7 +89,7 @@ Start it from command line:
 $ php app.php start
 ```
 
-Then open browser and type in default address http://localhost - you'll see hello from Comet!
+Then open browser and type in default address http://localhost:8080 - you'll see hello from Comet!
 
 ### Simple JSON Response
 
@@ -152,8 +152,8 @@ Create src/Controllers/SimpleController.php:
 
 namespace App\Controllers;
 
-use Nyholm\Psr7\ServerRequest as Request;
-use Nyholm\Psr7\Response;
+use Comet\Request;
+use Comet\Response;
 
 class SimpleController
 {    

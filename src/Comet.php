@@ -28,7 +28,7 @@ class Comet
     public function __construct(array $config = null)    
     {
         self::$host = $config['host'] ?? 'localhost';                     
-        self::$port = $config['port'] ?? 80;
+        self::$port = $config['port'] ?? 8080;
         self::$debug = $config['debug'] ?? false;              
         self::$logger = $config['logger'] ?? null;  
         
