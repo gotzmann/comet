@@ -8,8 +8,8 @@ use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
 use Comet\Request;
 use Comet\Response;
-use Comet\Http\Factory\CometPsr17Factory;
-use Comet\Http\Factory\ResponseFactory;
+use Comet\Factory\CometPsr17Factory;
+//use Comet\Http\Factory\ResponseFactory;
 use Slim\Factory\AppFactory;
 use Slim\Factory\Psr17\Psr17FactoryProvider;
 use Slim\Exception\HttpNotFoundException;
@@ -34,8 +34,38 @@ class Comet
         self::$logger = $config['logger'] ?? null;  
         
 //        setFactories(ResponseFactory::class): void
+//        self::$app = AppFactory::create(ResponseFactory::class);   
+//        self::$app = AppFactory::create(new CometPsr17Factory());   
 
-        self::$app = AppFactory::create(ResponseFactory::class);   
+//        setFactories(ResponseFactory::class): void
+//        self::$app = AppFactory::create('ResponseFactory');   
+//        self::$app = AppFactory::create(new CometPsr17Factory());   
+
+//        $psr17FactoryProvider = static::$psr17FactoryProvider ?? new Psr17FactoryProvider();
+       
+//        foreach ($psr17FactoryProvider->getFactories() as $psr17factory) {
+//            if ($psr17factory::isResponseFactoryAvailable()) {
+//                $responseFactory = $psr17factory::getResponseFactory();
+
+//                if ($psr17factory::isStreamFactoryAvailable() || static::$streamFactory) {
+//                    $streamFactory = static::$streamFactory ?? $psr17factory::getStreamFactory();
+//                    return static::attemptResponseFactoryDecoration($responseFactory, $streamFactory);
+//                }
+
+//                return $responseFactory;
+
+		$provider = new Psr17FactoryProvider();
+        $provider::setFactories([CometPsr17Factory::class]);
+//var_dump($provider->getFactories());die();
+/////////////////////////////////////////////////        
+//                $responseFactory = $psr17factory::getResponseFactory();
+//		$psr17 = new CometPsr17Factory();
+//		self::$app = AppFactory::create(CometPsr17Factory::getResponseFactory());   
+
+		AppFactory::setPsr17FactoryProvider($provider);
+		self::$app = AppFactory::create();   
+
+
                 
         self::$app->add(new JsonBodyParserMiddleware());
     }

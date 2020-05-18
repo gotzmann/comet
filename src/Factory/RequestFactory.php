@@ -1,6 +1,6 @@
 <?php
 
-namespace Comet\Http\Factory;
+namespace Comet\Factory;
 
 use Comet\Request;
 use Psr\Http\Message\RequestFactoryInterface;
