@@ -6,8 +6,10 @@ namespace Comet;
 use Workerman\Worker;
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
-use Nyholm\Psr7\ServerRequest as Request;
-use Nyholm\Psr7\Response;
+#use Nyholm\Psr7\ServerRequest as Request;
+#use Nyholm\Psr7\Response;
+use GuzzleHttp\Psr7\ServerRequest as Request;
+use GuzzleHttp\Psr7\Response;
 use Slim\Factory\AppFactory;
 use Slim\Exception\HttpNotFoundException;
 use Comet\Middleware\JsonBodyParserMiddleware;
@@ -16,7 +18,7 @@ use Comet\Middleware\JsonBodyParserMiddleware;
 
 class Comet
 {
-    public const VERSION = '0.4.0';
+    public const VERSION = 'v0.4.2-dev';
 
     private static $app;
     private $host;
@@ -47,6 +49,7 @@ class Comet
     
     private static function _handle(WorkermanRequest $request)
     {
+/*
 		// TODO Implement Comet's own Request with cookies as __construct() param
         $req = new Request(
             $request->method(),
@@ -54,6 +57,16 @@ class Comet
             $request->header(),
             $request->rawBody()
         );
+*/
+
+		// TODO Implement Comet's own Request with cookies as __construct() param
+        $req = new Request(
+            $request->method(),
+            $request->path(),
+            $request->header(),
+            $request->rawBody()
+        );
+
 
         // FIXME If there no handler for specified route - it does not return any response at all!
         $ret = self::$app->handle($req
