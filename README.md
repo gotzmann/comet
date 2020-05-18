@@ -66,18 +66,13 @@ Create single app.php file at project root folder with content:
 
 ```php
 <?php
-
-use Comet\Comet;
-
 require_once __DIR__ . '/vendor/autoload.php';
 
-$app = new Comet();
+$app = new Comet\Comet();
 
-$app->get('/hello', function ($request, $response) {
-    $response
-        ->getBody()
-        ->write("Hello, Comet!");      
-    return $response;
+$app->get('/hello', function ($request, $response) {              
+    return $response
+        ->with("Hello, Comet!");
 });
 
 $app->run();
@@ -93,31 +88,21 @@ Then open browser and type in default address http://localhost:8080 - you'll see
 
 ### Simple JSON Response
 
-Let's start Comet server listening on custom port and returning JSON payload.
+Let's start Comet server listening for custom host:port and returning JSON payload.
 
 ```php
 <?php
-
-use Comet\Comet;
-
 require_once __DIR__ . '/vendor/autoload.php';
 
-$app = new Comet([
+$app = new Comet\Comet([
     'host' => 'localhost',
     'port' => 8080,
 ]);
 
 $app->get('/json', function ($request, $response) {        
-    $data = [        
-        "code" => 200, 
-        "message" => "Hello, Comet!",        
-    ];
-    $payload = json_encode($data);
-    $response
-        ->getBody()
-        ->write($payload);
+    $data = [ "message" => "Hello, Comet!" ];
     return $response
-        ->withHeader('Content-Type', 'application/json');
+        ->with($data);
 });
 
 $app->run();
@@ -215,6 +200,35 @@ POST http://localhost:8080/api/v1/counter with body { "counter": 100 } and 'appl
 Any call with mailformed body will be replied with HTTP 500 code, as defined in controller.
 
 ## Deployment
+
+### Debugging and Logging
+
+Comet allows you to debug application showing errors and warnings on the screen console. When you move service to the production it better to use file logs instead. Code snippet below shows you how to enable on-the-screen debug and logging with popular Monolog library: 
+
+```php
+<?php
+declare(strict_types=1);
+
+use Comet\Comet;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use Monolog\Formatter\LineFormatter;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+$formatter = new LineFormatter("\n%datetime% >> %channel%:%level_name% >> %message%", "Y-m-d H:i:s");
+$stream = new StreamHandler(__DIR__ . '/log/app.log', Logger::INFO);
+$stream->setFormatter($formatter);
+$logger = new Logger('app');
+$logger->pushHandler($stream);
+
+$app = new Comet([
+    'debug' => true,
+    'logger' => $logger,
+]);
+
+$app->run();
+```
 
 ### Docker
 
