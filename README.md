@@ -70,9 +70,10 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 $app = new Comet\Comet();
 
-$app->get('/hello', function ($request, $response) {              
-    return $response
-        ->with("Hello, Comet!");
+$app->get('/hello', 
+    function ($request, $response) {              
+        return $response
+            ->with("Hello, Comet!");
 });
 
 $app->run();
@@ -88,7 +89,7 @@ Then open browser and type in default address http://localhost:8080 - you'll see
 
 ### Simple JSON Response
 
-Let's start Comet server listening for custom host:port and returning JSON payload.
+Let's start Comet server listening on custom host:port and returning JSON payload.
 
 ```php
 <?php
@@ -99,10 +100,11 @@ $app = new Comet\Comet([
     'port' => 8080,
 ]);
 
-$app->get('/json', function ($request, $response) {        
-    $data = [ "message" => "Hello, Comet!" ];
-    return $response
-        ->with($data);
+$app->get('/json', 
+    function ($request, $response) {        
+        $data = [ "message" => "Hello, Comet!" ];
+        return $response
+            ->with($data);
 });
 
 $app->run();
@@ -114,18 +116,23 @@ Start Postman and see the JSON resonse from GET http://localhost:8080
 
 ### PSR-4 and Autoloading
 
-Before you proceed with complex examples, be sure that your composer.json contains autoload section like this:
+Before you proceed with complex examples, be sure that your composer.json contains "autoload" section like this:
 
 ```bash
+{
+	"require": {
+	    "gotzmann/comet": "^0.5",
+	},
     "autoload": {
         "psr-4": { "App\\": "src/" }
     }
+}
 ```    
 
 If not, you should add the section mentioned above and update all vendor packages and autoload logic by command:
 
 ```bash
-$ composer install
+$ composer update
 ```    
 
 ### Controllers
@@ -134,6 +141,7 @@ Create src/Controllers/SimpleController.php:
 
 ```php
 <?php
+declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -167,6 +175,7 @@ Then create Comet server app.php at project root folder:
 
 ```php
 <?php
+declare(strict_types=1);
 
 use Comet\Comet;
 use App\Controllers\SimpleController;
