@@ -132,7 +132,7 @@ Before you proceed with complex examples, be sure that your composer.json contai
 ```bash
 {
     "require": {
-        "gotzmann/comet": "^0.5",
+        "gotzmann/comet": "^0.6",
     },
     "autoload": {
         "psr-4": { "App\\": "src/" }
