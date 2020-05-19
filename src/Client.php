@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Comet;
@@ -7,56 +8,55 @@ namespace Comet;
 //use Buzz\Client\FileGetContents;
 
 // TODO Use Comet\Response object with simplified acces like Python Requests objects
+class Client
+{
 
-class Client {
-	
-	// TODO Allow using cURL as HTTP transport lib
-	public function __construct()
-	{
-	}
+    // TODO Allow using cURL as HTTP transport lib
+    public function __construct()
+    {
+    }
 
-	// TODO Use file_get_contents
-	static public function get($url, $data = null)
-	{
-//		$client = new FileGetContents(new Psr17ResponseFactory());
-//		$browser = new Browser($client, new Psr17RequestFactory());
-//		$response = $browser->get($url);
-		
-		if ($data) {
-			$url .= '?' . http_build_query($data);
-		}
+    // TODO Use file_get_contents
+    public static function get($url, $data = null)
+    {
+        //$client = new FileGetContents(new Psr17ResponseFactory());
+        //$browser = new Browser($client, new Psr17RequestFactory());
+        //$response = $browser->get($url);
+        if ($data) {
+            $url .= '?' . http_build_query($data);
+        }
 
-		// TODO Errors?
-		return file_get_contents($url);
-	}
+        // TODO Errors?
+        return file_get_contents($url);
+    }
 
-	static public function post($url, $data)
-	{
-		if (is_array($data)) {
-			$data = json_encode($data);
-		}
+    public static function post($url, $data)
+    {
+        if (is_array($data)) {
+            $data = json_encode($data);
+        }
 
-		$opts = [
+        $opts = [
             'http' => [
                 'method' => "POST",
-                'header' => 
+                'header' =>
                     "Content-type: application/json\r\n" .
                     "Accept: application/json\r\n" .
                     "Connection: close\r\n" .
                     "Content-length: " . strlen($data) . "\r\n",
-                'content'=> $data,
+                'content' => $data,
                 'protocol_version' => 1.1,
-       		],
-     		'ssl' => [
+            ],
+            'ssl' => [
                 'verify_peer' => false,
                 'verify_peer_name' => false,
             ]
         ];
 
-   		$ctx = stream_context_create($opts);
-   		$result = file_get_contents($url, false, $ctx);
+        $ctx = stream_context_create($opts);
+        $result = file_get_contents($url, false, $ctx);
 
-   		// TODO Errors?
-   		return $result;
-	}
+        // TODO Errors?
+        return $result;
+    }
 }

@@ -16,5 +16,9 @@
     },
     "autoload": {
         "psr-4": { "Comet\\": "src/" }
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "3.*",
+        "sensiolabs/security-checker": "^6.0"
     }
 }

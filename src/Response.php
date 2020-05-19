@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Comet;
@@ -13,7 +14,7 @@ class Response extends GuzzleResponse implements ResponseInterface
      * @param array                                $headers Response headers
      * @param string|null|resource|StreamInterface $body    Response body
      * @param string                               $version Protocol version
-     * @param string|null                          $reason  Reason phrase (when empty a default will be used based on the status code)
+     * @param string|null $reason  Reason phrase (when empty a default will be used based on the status code)
      */
     public function __construct(
         $status = 200,
@@ -22,6 +23,6 @@ class Response extends GuzzleResponse implements ResponseInterface
         $version = '1.1',
         $reason = null
     ) {
-		parent::__construct($status, $headers, $body, $version, $reason);    
+        parent::__construct($status, $headers, $body, $version, $reason);
     }
 }

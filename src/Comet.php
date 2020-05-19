@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Comet;
@@ -25,27 +26,27 @@ class Comet
     private static $status;
     private static $debug;
 
-    public function __construct(array $config = null)    
+    public function __construct(array $config = null)
     {
-        self::$host = $config['host'] ?? 'localhost';                     
+        self::$host = $config['host'] ?? 'localhost';
         self::$port = $config['port'] ?? 80;
-        self::$debug = $config['debug'] ?? false;              
-        self::$logger = $config['logger'] ?? null;  
-        
-        self::$app = AppFactory::create();   
-        
+        self::$debug = $config['debug'] ?? false;
+        self::$logger = $config['logger'] ?? null;
+
+        self::$app = AppFactory::create();
+
         // TODO Load ALL middlewares from /middleware folder OR enable only that was sent via config
         self::$app->add(new JsonBodyParserMiddleware());
     }
 
     // Magic call to any of the Slim App methods like add, addMidleware, handle, run, etc...
     // See the full list of available methods: https://github.com/slimphp/Slim/blob/4.x/Slim/App.php
-    public function __call (string $name, array $args) 
+    public function __call(string $name, array $args)
     {
         return self::$app->$name(...$args);
     }
-    
-    private static function _handle(WorkermanRequest $request)
+
+    private static function handle(WorkermanRequest $request)
     {
         $req = new Request(
             $request->method(),
@@ -55,11 +56,11 @@ class Comet
             '1.1',
             $_SERVER,
             $request->cookie(),
-            $request->file(),            
+            $request->file(),
             $request->queryString()
         );
 
-   	    $ret = self::$app->handle($req);
+        $ret = self::$app->handle($req);
 
         $response = new WorkermanResponse(
             $ret->getStatusCode(),
@@ -70,48 +71,48 @@ class Comet
         return $response;
     }
 
-    public function run($init = null) 
-    {        
-    	// Suppress Workerman startup message 
-    	global $argv;
-        $argv[] = '-q'; 
-        
+    public function run($init = null)
+    {
+        // Suppress Workerman startup message
+        global $argv;
+        $argv[] = '-q';
+
         // Some more preparations for Windows hosts
-        if (DIRECTORY_SEPARATOR === '\\') {              
+        if (DIRECTORY_SEPARATOR === '\\') {
             if (self::$host === '0.0.0.0') {
                 self::$host = '127.0.0.1';
-            }                        
+            }
             echo "\n-------------------------------------------------------------------------";
             echo "\nServer               Listen                              Workers   Status";
-            echo "\n-------------------------------------------------------------------------\n";        
-        }    
-        
+            echo "\n-------------------------------------------------------------------------\n";
+        }
+
         $worker = new Worker('http://' . self::$host . ':' . self::$port);
-        $worker->count = (int) shell_exec('nproc') * 4;
+        $worker->count = (int)shell_exec('nproc') * 4;
         $worker->name = 'Comet v' . self::VERSION;
 
-        if ($init)
+        if ($init) {
             $worker->onWorkerStart = $init;
+        }
 
         // Main Loop
-        $worker->onMessage = static function($connection, WorkermanRequest $request)
-        {            
+        $worker->onMessage = static function ($connection, WorkermanRequest $request) {
             try {
-                $response = self::_handle($request);
+                $response = self::handle($request);
                 $connection->send($response);
-            } catch(HttpNotFoundException $error) {
+            } catch (HttpNotFoundException $error) {
                 $connection->send(new WorkermanResponse(404));
-            } catch(\Throwable $error) {
-	            if (self::$debug) {
-	                echo $error->getMessage();
-	            }
-            	if (self::$logger) {
-	            	self::$logger->error($error->getMessage());
-	            }
+            } catch (\Throwable $error) {
+                if (self::$debug) {
+                    echo $error->getMessage();
+                }
+                if (self::$logger) {
+                    self::$logger->error($error->getMessage());
+                }
                 $connection->send(new WorkermanResponse(500));
             }
         };
-        
+
         Worker::runAll();
     }
 }

@@ -1,7 +1,7 @@
 <p align="center">
   <img width="600" height="250" src="docs/logo.png">
 </p>
-
+![GitHub CI](https://github.com/gotzmann/comet/workflows/CI/badge.svg)
 # Comet
 
 Comet is a modern PHP framework for building fast REST APIs and microservices. 
