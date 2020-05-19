@@ -21,9 +21,9 @@ Comet gets all superpowers from Guzzle, Slim and Workerman components as well as
 
 [Guzzle](https://github.com/guzzle) is a set of PHP components to work with HTTP/1.1 and HTTP/2 services.
 
-[Slim](https://github.com/slimphp/Slim) is a micro-framework that helps write simple yet powerful web applications and APIs based on modern PSR standards.
+[Slim](https://github.com/slimphp/Slim) is a micro-framework that helps write web applications and APIs based on modern PSR standards.
 
-[Workerman](https://github.com/walkor/Workerman) is an asynchronous event-driven framework. It delivers high performance to build fast and scalable network applications. 
+[Workerman](https://github.com/walkor/Workerman) is an asynchronous event-driven framework to build fast and scalable network applications. 
 
 Comet allows you natively use all the methods of Slim: http://www.slimframework.com/docs/v4/
 
