@@ -8,7 +8,17 @@ Comet is a modern PHP framework for building fast REST APIs and microservices.
 
 ## Superpowers
 
-Comet gets all superpowers from Slim and Workerman as well as adds its own magic.
+- Blazing fast with 100K HTTP requests per second and ~0.1 ms latency on commodity cloud hardware 
+- Really cross-platform, works like a charm on Linux, MacOS and Windows 7/8/10
+- Based on bullet-proof components from Guzzle, SlimPHP and Workerman
+- PSR compliant with native implementations of all PSR-7 interfaces
+- Has its own HTTP Client with simple interface
+
+## Comet = Guzzle + SlimPHP + Workerman + magic
+
+Comet gets all superpowers from Guzzle, Slim and Workerman components as well as adds its own magic.
+
+[Guzzle](https://github.com/guzzle) is a set of PHP components to work with HTTP/1.1 and HTTP/2 services
 
 [Slim](https://github.com/slimphp/Slim) is a micro-framework that helps write simple yet powerful web applications and APIs based on modern PSR standards.
 
