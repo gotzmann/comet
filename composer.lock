@@ -562,16 +562,16 @@
         },
         {
             "name": "workerman/workerman",
-            "version": "v4.0.4",
+            "version": "v4.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/walkor/Workerman.git",
-                "reference": "88e518903d2f61d6cdfe1d381b40e03be2a9ef94"
+                "reference": "3558e4f590e941bddbc0dc6000f35800d22f79d9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/walkor/Workerman/zipball/88e518903d2f61d6cdfe1d381b40e03be2a9ef94",
-                "reference": "88e518903d2f61d6cdfe1d381b40e03be2a9ef94",
+                "url": "https://api.github.com/repos/walkor/Workerman/zipball/3558e4f590e941bddbc0dc6000f35800d22f79d9",
+                "reference": "3558e4f590e941bddbc0dc6000f35800d22f79d9",
                 "shasum": ""
             },
             "require": {
@@ -604,7 +604,7 @@
                 "asynchronous",
                 "event-loop"
             ],
-            "time": "2020-04-20T02:20:21+00:00"
+            "time": "2020-05-19T07:23:34+00:00"
         }
     ],
     "packages-dev": [],
