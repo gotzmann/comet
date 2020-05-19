@@ -1,17 +1,10 @@
 <?php
-declare(strict_types=1);
-
-use Comet\Comet;
-
 require_once __DIR__ . '/vendor/autoload.php';
 
-$app = new Comet();
+$app = new Comet\Comet([ 'debug' => true ]);
 
 $app->get('/hello', function ($request, $response) {
-    $response
-        ->getBody()
-        ->write("Hello, Comet!");      
-    return $response;
+    return $response->with("Hello, Comet!");
 });
 
 $app->get('/json', function ($request, $response) {        
@@ -25,6 +18,14 @@ $app->get('/json', function ($request, $response) {
         ->write($payload);
     return $response
         ->withHeader('Content-Type', 'application/json');
+});
+
+$app->get('/json2', function ($request, $response) {        
+	return $response
+    	->with([        
+        	"code" => 200, 
+        	"message" => "Hello, Comet!",        
+    	]);
 });
 
 $app->run();

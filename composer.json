@@ -11,8 +11,7 @@
     "require": {
         "workerman/workerman": "^4.0",
         "slim/slim": "^4.5",
-        "guzzlehttp/psr7": "^1.6",
-        "http-interop/http-factory-guzzle": "^1.0"
+        "guzzlehttp/psr7": "^1.6"
     },
     "autoload": {
         "psr-4": { "Comet\\": "src/" }

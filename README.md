@@ -66,18 +66,14 @@ Create single app.php file at project root folder with content:
 
 ```php
 <?php
-
-use Comet\Comet;
-
 require_once __DIR__ . '/vendor/autoload.php';
 
-$app = new Comet();
+$app = new Comet\Comet();
 
-$app->get('/hello', function ($request, $response) {
-    $response
-        ->getBody()
-        ->write("Hello, Comet!");      
-    return $response;
+$app->get('/hello', 
+    function ($request, $response) {              
+        return $response
+            ->with("Hello, Comet!");
 });
 
 $app->run();
@@ -89,58 +85,54 @@ Start it from command line:
 $ php app.php start
 ```
 
-Then open browser and type in default address http://localhost - you'll see hello from Comet!
+Then open browser and type in default address http://localhost:8080 - you'll see hello from Comet!
 
 ### Simple JSON Response
 
-Let's start Comet server listening on custom port and returning JSON payload.
+Let's start Comet server listening on custom host:port and returning JSON payload.
 
 ```php
 <?php
-
-use Comet\Comet;
-
 require_once __DIR__ . '/vendor/autoload.php';
 
-$app = new Comet([
-    'host' => 'localhost',
+$app = new Comet\Comet([
+    'host' => '127.0.0.1',
     'port' => 8080,
 ]);
 
-$app->get('/json', function ($request, $response) {        
-    $data = [        
-        "code" => 200, 
-        "message" => "Hello, Comet!",        
-    ];
-    $payload = json_encode($data);
-    $response
-        ->getBody()
-        ->write($payload);
-    return $response
-        ->withHeader('Content-Type', 'application/json');
+$app->get('/json', 
+    function ($request, $response) {        
+        $data = [ "message" => "Hello, Comet!" ];
+        return $response
+            ->with($data);
 });
 
 $app->run();
 ```
 
-Start Postman and see the JSON resonse from GET http://localhost:8080
+Start browser or Postman and see the JSON resonse from GET http://127.0.0.1:8080
 
 ## Advanced Topics
 
 ### PSR-4 and Autoloading
 
-Before you proceed with complex examples, be sure that your composer.json contains autoload section like this:
+Before you proceed with complex examples, be sure that your composer.json contains "autoload" section like this:
 
 ```bash
+{
+    "require": {
+        "gotzmann/comet": "^0.5",
+    },
     "autoload": {
-        "psr-4": { "\\": "src/" }
+        "psr-4": { "App\\": "src/" }
     }
+}
 ```    
 
 If not, you should add the section mentioned above and update all vendor packages and autoload logic by command:
 
 ```bash
-$ composer install
+$ composer update
 ```    
 
 ### Controllers
@@ -149,11 +141,12 @@ Create src/Controllers/SimpleController.php:
 
 ```php
 <?php
+declare(strict_types=1);
 
-namespace Controllers;
+namespace App\Controllers;
 
-use Nyholm\Psr7\ServerRequest as Request;
-use Nyholm\Psr7\Response;
+use Comet\Request;
+use Comet\Response;
 
 class SimpleController
 {    
@@ -182,9 +175,10 @@ Then create Comet server app.php at project root folder:
 
 ```php
 <?php
+declare(strict_types=1);
 
 use Comet\Comet;
-use Controllers\SimpleController;
+use App\Controllers\SimpleController;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -215,6 +209,35 @@ POST http://localhost:8080/api/v1/counter with body { "counter": 100 } and 'appl
 Any call with mailformed body will be replied with HTTP 500 code, as defined in controller.
 
 ## Deployment
+
+### Debugging and Logging
+
+Comet allows you to debug application showing errors and warnings on the screen console. When you move service to the production it better to use file logs instead. Code snippet below shows you how to enable on-the-screen debug and logging with popular Monolog library: 
+
+```php
+<?php
+declare(strict_types=1);
+
+use Comet\Comet;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use Monolog\Formatter\LineFormatter;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+$formatter = new LineFormatter("\n%datetime% >> %channel%:%level_name% >> %message%", "Y-m-d H:i:s");
+$stream = new StreamHandler(__DIR__ . '/log/app.log', Logger::INFO);
+$stream->setFormatter($formatter);
+$logger = new Logger('app');
+$logger->pushHandler($stream);
+
+$app = new Comet([
+    'debug' => true,
+    'logger' => $logger,
+]);
+
+$app->run();
+```
 
 ### Docker
 

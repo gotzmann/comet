@@ -9,15 +9,15 @@ use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
 use Comet\Request;
 use Comet\Response;
+use Comet\Factory\CometPsr17Factory;
 use Slim\Factory\AppFactory;
+use Slim\Factory\Psr17\Psr17FactoryProvider;
 use Slim\Exception\HttpNotFoundException;
 use Comet\Middleware\JsonBodyParserMiddleware;
 
-// TODO Return Comet not workerman in Response Server headers
-
 class Comet
 {
-    public const VERSION = 'v0.4.2-dev';
+    public const VERSION = '0.5.1';
 
     private static $app;
     private static $host;
@@ -54,10 +54,10 @@ class Comet
             $request->header(),
             $request->rawBody(),
             '1.1',
-            $_SERVER,
+            [], // $_SERVER,
             $request->cookie(),
-            $request->file(),
-            $request->queryString()
+            $request->file(),            
+            [] // $request->queryString()
         );
 
         $ret = self::$app->handle($req);
@@ -102,14 +102,14 @@ class Comet
                 $connection->send($response);
             } catch (HttpNotFoundException $error) {
                 $connection->send(new WorkermanResponse(404));
-            } catch (\Throwable $error) {
-                if (self::$debug) {
-                    echo $error->getMessage();
-                }
-                if (self::$logger) {
-                    self::$logger->error($error->getMessage());
-                }
-                $connection->send(new WorkermanResponse(500));
+            } catch(\Throwable $error) {
+	            if (self::$debug) {
+	                echo "\n[ERR] " . $error->getMessage();
+	            }
+            	if (self::$logger) {
+	                self::$logger->error($error->getMessage());
+	            }
+              $connection->send(new WorkermanResponse(500));
             }
         };
 

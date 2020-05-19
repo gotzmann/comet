@@ -4,39 +4,33 @@ declare(strict_types=1);
 
 namespace Comet;
 
-//use Buzz\Browser;
-//use Buzz\Client\FileGetContents;
-
+// FIXME Absolutely Expreimental! Please do not use it in production
 // TODO Use Comet\Response object with simplified acces like Python Requests objects
-class Client
-{
+class Client {
+	
+	// TODO Allow using cURL as HTTP transport lib
+	public function __construct()
+	{
+	}
 
-    // TODO Allow using cURL as HTTP transport lib
-    public function __construct()
-    {
-    }
+	// TODO Use file_get_contents
+	static public function get($url, $data = null)
+	{		
+		if ($data) {
+			$url .= '?' . http_build_query($data);
+		}
 
-    // TODO Use file_get_contents
-    public static function get($url, $data = null)
-    {
-        //$client = new FileGetContents(new Psr17ResponseFactory());
-        //$browser = new Browser($client, new Psr17RequestFactory());
-        //$response = $browser->get($url);
-        if ($data) {
-            $url .= '?' . http_build_query($data);
-        }
+		// TODO Errors?
+		return file_get_contents($url);
+	}
 
-        // TODO Errors?
-        return file_get_contents($url);
-    }
+	static public function post($url, $data)
+	{
+		if (is_array($data)) {
+			$data = json_encode($data);
+		}
 
-    public static function post($url, $data)
-    {
-        if (is_array($data)) {
-            $data = json_encode($data);
-        }
-
-        $opts = [
+		$opts = [
             'http' => [
                 'method' => "POST",
                 'header' =>
