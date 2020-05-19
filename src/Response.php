@@ -6,10 +6,15 @@ namespace Comet;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use GuzzleHttp\Psr7\Stream;
+use GuzzleHttp\Psr7\MessageTrait;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
+
+// Fast PSR-7 Response implementation
 
 class Response extends GuzzleResponse implements ResponseInterface
 {
+	use MessageTrait;
+
     /**
      * @param int                                  $status  Status code
      * @param array                                $headers Response headers
@@ -24,56 +29,157 @@ class Response extends GuzzleResponse implements ResponseInterface
         $version = '1.1',
         $reason = null
     ) {
-		parent::__construct($status, $headers, $body, $version, $reason);    
+        // $this->assertStatusCodeIsInteger($status);
+        // $this->assertStatusCodeRange($status);
+        $status = (int) $status;
+
+        $this->statusCode = $status;
+
+        if ($body !== '' && $body !== null) {
+            $this->stream = \GuzzleHttp\Psr7\stream_for($body);
+        }
+
+        $this->setHeaders($headers);
+        if ($reason == '' && isset(self::$phrases[$this->statusCode])) {
+            $this->reasonPhrase = self::$phrases[$this->statusCode];
+        } else {
+            $this->reasonPhrase = (string) $reason;
+        }
+
+        $this->protocol = $version;
     }
 
     public function with($body, $status = null)
     {
-    	if (is_string($body)) {
-	  		$stream = fopen('php://memory','r+');
-			fwrite($stream, $body);
-			rewind($stream);
-   			$new = $this->withBody(new Stream($stream));
-			
-   		} elseif (is_array($body)) {
-	        $body = json_encode($body);
-	        
+	    $new = clone $this;        
+
+        if (isset($status)) {
+    	   	$new->statusCode = (int) $status;        
+        	if (isset(self::$phrases[$status])) {
+            	$new->reasonPhrase = self::$phrases[$status];
+        	}
+        }
+
+	    if (is_array($body) || is_object($body)) {
+   	        $body = json_encode($body);	        
 	        if ($body === false) {
     	        throw new \RuntimeException(json_last_error_msg(), json_last_error());        	
         	}        
+   	        $new->setHeaders([ 'Content-Type' => 'application/json' ]);
+	    } else {
+		    $new->setHeaders([ 'Content-Type' => 'text/html' ]);
+	    }
 
-        	$stream = fopen('php://memory','r+');
-			fwrite($stream, $body);
-			fseek($stream, 0); 
-   			$new = $this->withBody(new Stream($stream));
-        	$new = $new->withHeader('Content-Type', 'application/json');                	            
-        }
-
-        if (isset($status)) {
-    	   	$new = $new->withStatus($status);        
-        }
+   	    $new->stream = \GuzzleHttp\Psr7\stream_for($body);
    		
    		return $new;        
     }
 
-    // TODO Optimize for performance
-    // https://gist.github.com/akrabat/807ccfbef25baafe646ba170ac2277fd
-    public function withJson($data, $status = null, $encodingOptions = 0)
-    {
-        $json = json_encode($data, $encodingOptions);
-        if ($json === false) {
-            throw new \RuntimeException(json_last_error_msg(), json_last_error());
-        }
-        
-        $new = $this->withBody(new Stream(fopen('php://temp', 'r+')));
-        $new->getBody()->write($json);
-        //$new = $new->withHeader('Content-Type', 'application/json;charset=utf-8');        
-        $new = $new->withHeader('Content-Type', 'application/json');        
+    /** @var array Map of standard HTTP status code/reason phrases */
+    private static $phrases = [
+        100 => 'Continue',
+        101 => 'Switching Protocols',
+        102 => 'Processing',
+        200 => 'OK',
+        201 => 'Created',
+        202 => 'Accepted',
+        203 => 'Non-Authoritative Information',
+        204 => 'No Content',
+        205 => 'Reset Content',
+        206 => 'Partial Content',
+        207 => 'Multi-status',
+        208 => 'Already Reported',
+        300 => 'Multiple Choices',
+        301 => 'Moved Permanently',
+        302 => 'Found',
+        303 => 'See Other',
+        304 => 'Not Modified',
+        305 => 'Use Proxy',
+        306 => 'Switch Proxy',
+        307 => 'Temporary Redirect',
+        400 => 'Bad Request',
+        401 => 'Unauthorized',
+        402 => 'Payment Required',
+        403 => 'Forbidden',
+        404 => 'Not Found',
+        405 => 'Method Not Allowed',
+        406 => 'Not Acceptable',
+        407 => 'Proxy Authentication Required',
+        408 => 'Request Time-out',
+        409 => 'Conflict',
+        410 => 'Gone',
+        411 => 'Length Required',
+        412 => 'Precondition Failed',
+        413 => 'Request Entity Too Large',
+        414 => 'Request-URI Too Large',
+        415 => 'Unsupported Media Type',
+        416 => 'Requested range not satisfiable',
+        417 => 'Expectation Failed',
+        418 => 'I\'m a teapot',
+        422 => 'Unprocessable Entity',
+        423 => 'Locked',
+        424 => 'Failed Dependency',
+        425 => 'Unordered Collection',
+        426 => 'Upgrade Required',
+        428 => 'Precondition Required',
+        429 => 'Too Many Requests',
+        431 => 'Request Header Fields Too Large',
+        451 => 'Unavailable For Legal Reasons',
+        500 => 'Internal Server Error',
+        501 => 'Not Implemented',
+        502 => 'Bad Gateway',
+        503 => 'Service Unavailable',
+        504 => 'Gateway Time-out',
+        505 => 'HTTP Version not supported',
+        506 => 'Variant Also Negotiates',
+        507 => 'Insufficient Storage',
+        508 => 'Loop Detected',
+        511 => 'Network Authentication Required',
+    ];
 
-        if (isset($status)) {
-        	$new = $new->withStatus($status);        
+    /** @var string */
+    private $reasonPhrase = '';
+
+    /** @var int */
+    private $statusCode = 200;
+
+
+    public function getStatusCode()
+    {
+        return $this->statusCode;
+    }
+
+    public function getReasonPhrase()
+    {
+        return $this->reasonPhrase;
+    }
+
+    public function withStatus($code, $reasonPhrase = '')
+    {
+        $this->assertStatusCodeIsInteger($code);
+        $code = (int) $code;
+        $this->assertStatusCodeRange($code);
+
+        $new = clone $this;
+        $new->statusCode = $code;
+        if ($reasonPhrase == '' && isset(self::$phrases[$new->statusCode])) {
+            $reasonPhrase = self::$phrases[$new->statusCode];
         }
-		
+        $new->reasonPhrase = $reasonPhrase;
         return $new;
+    }
+
+    private function assertStatusCodeIsInteger($statusCode)
+    {
+        if (filter_var($statusCode, FILTER_VALIDATE_INT) === false) {
+            throw new \InvalidArgumentException('Status code must be an integer value.');
+        }
+    }
+
+    private function assertStatusCodeRange($statusCode)
+    {
+        if ($statusCode < 100 || $statusCode >= 600) {
+            throw new \InvalidArgumentException('Status code must be an integer value between 1xx and 5xx.');
+        }
     }
 }
