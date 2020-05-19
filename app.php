@@ -7,7 +7,7 @@ $app->get('/hello', function ($request, $response) {
     return $response->with("Hello, Comet!");
 });
 
-$app->get('/json', function ($request, $response) {        
+$app->get('/jsonold', function ($request, $response) {        
     $data = [        
         "code" => 200, 
         "message" => "Hello, Comet!",        
@@ -20,7 +20,7 @@ $app->get('/json', function ($request, $response) {
         ->withHeader('Content-Type', 'application/json');
 });
 
-$app->get('/json2', function ($request, $response) {        
+$app->get('/json', function ($request, $response) {        
 	return $response
     	->with([        
         	"code" => 200, 
