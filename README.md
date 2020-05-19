@@ -161,7 +161,7 @@ class SimpleController
     public function setCounter(Request $request, Response $response, $args)    
     {        
         $body = (string) $request->getBody();
-        $json = json_decode($json);
+        $json = json_decode($body);
         if (!$json) {
             return $response->withStatus(500);
         }  
@@ -184,16 +184,16 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 $app = new Comet([
     'host' => 'localhost',
-    'port' => 8080,
+    'port' => 8080,    
 ]);
 
 $app->setBasePath("/api/v1"); 
 
 $app->get('/counter',
-    'Controllers\SimpleController:getCounter');
+    'App\Controllers\SimpleController:getCounter');
 
 $app->post('/counter',    
-    'Controllers\SimpleController:setCounter');
+    'App\Controllers\SimpleController:setCounter');
 
 $app->run();
 ```
@@ -206,7 +206,7 @@ You can change counter sending JSON request for POST method:
 
 POST http://localhost:8080/api/v1/counter with body { "counter": 100 } and 'application/json' header.
 
-Any call with mailformed body will be replied with HTTP 500 code, as defined in controller.
+Any call with malformed body will be replied with HTTP 500 code, as defined in controller.
 
 ## Deployment
 
