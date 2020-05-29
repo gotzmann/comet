@@ -51,6 +51,8 @@ class Comet
     
     private static function _handle(WorkermanRequest $request)
     {
+    	parse_str($request->queryString(), $queryParams);
+
         $req = new Request(
             $request->method(),
             $request->uri(),
@@ -60,7 +62,7 @@ class Comet
             [], // $_SERVER,
             $request->cookie(),
             $request->file(),            
-            [] // $request->queryString()
+            $queryParams
         );
 
    	    $ret = self::$app->handle($req);
