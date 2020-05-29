@@ -51,7 +51,11 @@ class Comet
     
     private static function _handle(WorkermanRequest $request)
     {
-    	parse_str($request->queryString(), $queryParams);
+    	if ($request->queryString()) {
+    		parse_str($request->queryString(), $queryParams);
+    	} else {
+    		$queryParams = [];
+    	}
 
         $req = new Request(
             $request->method(),
