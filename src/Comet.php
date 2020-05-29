@@ -16,7 +16,7 @@ use Comet\Middleware\JsonBodyParserMiddleware;
 
 class Comet
 {
-    public const VERSION = '0.6.1';
+    public const VERSION = '0.6.2';
 
     private static $app;
     private static $host;
@@ -65,9 +65,14 @@ class Comet
 
    	    $ret = self::$app->handle($req);
 
+   	    $headers = $ret->getHeaders();
+        if (!isset($headers['Server'])) {
+            $headers['Server'] = "Comet v" . self::VERSION;
+        }
+		
         $response = new WorkermanResponse(
             $ret->getStatusCode(),
-            $ret->getHeaders(),
+            $headers,
             $ret->getBody()
         );
 
