@@ -21,6 +21,7 @@ class Comet
     private static $app;
     private static $host;
     private static $port;
+    private static $workers;
     private static $logger;
     private static $status;
     private static $debug;
@@ -29,6 +30,7 @@ class Comet
     {
         self::$host = $config['host'] ?? 'localhost';                     
         self::$port = $config['port'] ?? 8080;
+        self::$workers = $config['workers'] ?? (int) shell_exec('nproc') * 4;
         self::$debug = $config['debug'] ?? false;              
         self::$logger = $config['logger'] ?? null;  
         
@@ -90,19 +92,24 @@ class Comet
     	// Suppress Workerman startup message 
     	global $argv;
         $argv[] = '-q'; 
+
+        $workers = self::$workers;
         
         // Some more preparations for Windows hosts
         if (DIRECTORY_SEPARATOR === '\\') {              
             if (self::$host === '0.0.0.0') {
                 self::$host = '127.0.0.1';
             }                        
+            
+            $workers = 1; // Windows can't hadnle multiple processes with PHP
+
             echo "\n-------------------------------------------------------------------------";
             echo "\nServer               Listen                              Workers   Status";
             echo "\n-------------------------------------------------------------------------\n";        
         }    
         
         $worker = new Worker('http://' . self::$host . ':' . self::$port);
-        $worker->count = (int) shell_exec('nproc') * 4;
+        $worker->count = $workers;
         $worker->name = 'Comet v' . self::VERSION;
 
         if ($init)
