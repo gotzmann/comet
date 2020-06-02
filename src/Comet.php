@@ -16,7 +16,7 @@ use Comet\Middleware\JsonBodyParserMiddleware;
 
 class Comet
 {
-    public const VERSION = '0.6.2';
+    public const VERSION = '0.6.3';
 
     private static $app;
     private static $host;
@@ -25,10 +25,11 @@ class Comet
     private static $logger;
     private static $status;
     private static $debug;
+    private static $init;    
 
     public function __construct(array $config = null)    
     {
-        self::$host = $config['host'] ?? 'localhost';                     
+        self::$host = $config['host'] ?? '0.0.0.0';                     
         self::$port = $config['port'] ?? 8080;
         self::$workers = $config['workers'] ?? (int) shell_exec('nproc') * 4;
         self::$debug = $config['debug'] ?? false;              
@@ -42,6 +43,11 @@ class Comet
 		self::$app = AppFactory::create();   
                 
         self::$app->add(new JsonBodyParserMiddleware());
+    }
+
+    public function init (callable $init) 
+    {
+		self::$init = $init;        
     }
 
     // Magic call to any of the Slim App methods like add, addMidleware, handle, run, etc...
@@ -112,8 +118,8 @@ class Comet
         $worker->count = $workers;
         $worker->name = 'Comet v' . self::VERSION;
 
-        if ($init)
-            $worker->onWorkerStart = $init;
+        if (self::$init)
+            $worker->onWorkerStart = self::$init;
 
         // Main Loop
         $worker->onMessage = static function($connection, WorkermanRequest $request)
