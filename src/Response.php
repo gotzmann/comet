@@ -65,9 +65,9 @@ class Response extends GuzzleResponse implements ResponseInterface
 	        if ($body === false) {
     	        throw new \RuntimeException(json_last_error_msg(), json_last_error());        	
         	}        
-   	        $new->setHeaders([ 'Content-Type' => 'application/json;charset=utf-8' ]);
+   	        $new->setHeaders([ 'Content-Type' => 'application/json; charset=utf-8' ]);
 	    } else {
-		    $new->setHeaders([ 'Content-Type' => 'text/html;charset=utf-8' ]);
+		    $new->setHeaders([ 'Content-Type' => 'text/html; charset=utf-8' ]);
 	    }
 
    	    $new->stream = \GuzzleHttp\Psr7\stream_for($body);
