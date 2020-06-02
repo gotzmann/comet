@@ -75,6 +75,24 @@ class Response extends GuzzleResponse implements ResponseInterface
    		return $new;        
     }
 
+    public function withText($body, $status = null)
+    {
+        $new = clone $this;
+
+        if (isset($status)) {
+            $new->statusCode = (int) $status;
+            if (isset(self::$phrases[$status])) {
+                $new->reasonPhrase = self::$phrases[$status];
+            }
+        }
+
+        $new->setHeaders([ 'Content-Type' => 'text/plain; charset=utf-8' ]);
+
+        $new->stream = \GuzzleHttp\Psr7\stream_for($body);
+
+        return $new;
+    }
+
     /** @var array Map of standard HTTP status code/reason phrases */
     private static $phrases = [
         100 => 'Continue',
