@@ -29,28 +29,6 @@ class Validator extends \Rakit\Validation\Validator
     }
 
     /**
-     * Return errors from ErrorBag as array 
-     *
-     * @return array
-     */
-    public function errors(): ErrorBag
-    {
-
-    	echo "!!!";
-
-    	$arr = [];
-
-		foreach ($this->errors->messages as $key => $error) {
-			foreach ($error as $rule => $message) {
-//			$errors[$key][] = $message;
-				$errors[$key] = $message;
-			}
-		}
-
-        return $arr;
-    }
-
-    /**
      * Validate $inputs
      *
      * @param array $inputs
@@ -66,7 +44,8 @@ class Validator extends \Rakit\Validation\Validator
     }
 
     /**
-     * Given $inputs, $rules and $messages to make the Validation class instance
+     * Given $inputs, $rules and $messages to make the Comet Validation class instance
+     * NB! Output type declared as \Rakit\Validation\Validation to conform OOP rules
      *
      * @param array $inputs
      * @param array $rules

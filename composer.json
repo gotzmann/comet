@@ -12,8 +12,7 @@
         "workerman/workerman": "^4.0",
         "slim/slim": "^4.5",
         "guzzlehttp/psr7": "^1.6",
-        "rakit/validation": "^1.2",
-        "monolog/monolog": "^2.1"
+        "rakit/validation": "^1.2"
     },
     "autoload": {
         "psr-4": { "Comet\\": "src/" }
