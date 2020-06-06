@@ -2,7 +2,7 @@
 
 namespace Comet\Validation;
 
-class Uuid extends Rakit\Validation\Rule
+class Uuid extends \Rakit\Validation\Rule
 {
     protected $message = ":attribute :value has been used";   
     
