@@ -131,7 +131,7 @@ class Comet
                 $connection->send(new WorkermanResponse(404));
             } catch(\Throwable $error) {
 	            if (self::$debug) {
-	                echo "\n[ERR] " . $error->getMessage();
+	                echo "\n[ERR] " . $error->getFile() . ':' . $error->getLine() . ' >> ' . $error->getMessage();
 	            }
             	if (self::$logger) {
 	            	self::$logger->error($error->getMessage());

@@ -5,3 +5,5 @@
 /temp/
 /tmp/
 out
+debug.php
+debug.log
