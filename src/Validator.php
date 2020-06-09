@@ -19,7 +19,7 @@ class Validator extends \Rakit\Validation\Validator
 	{
 		parent::__construct($messages);
 		$this->useHumanizedKeys = false;
-		$this->setValidator('uuid', new Validation\Uuid);
+		$this->setValidator('uuid', new Validation\Rules\Uuid);
 	}
 
 	// Magic call to any of the parent methods

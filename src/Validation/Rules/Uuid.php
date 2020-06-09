@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Comet\Validation;
+namespace Comet\Validation\Rules;
 
 class Uuid extends \Rakit\Validation\Rule
 {
