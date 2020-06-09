@@ -136,7 +136,7 @@ class Comet
         $argv[] = '-q'; 
 
         // Write Comet startup message to log file and show on screen
-      	$hello = $worker->name . " starts on http://" . self::$host . ':' . self::$port . " with $workers workers";
+      	$hello = $worker->name . " starts with $workers workers on http://" . self::$host . ':' . self::$port;
        	if (self::$logger) {
         	self::$logger->info($hello);
        	}
@@ -146,7 +146,7 @@ class Comet
     	    echo "\nServer               Listen                              Workers   Status";
         	echo "\n-------------------------------------------------------------------------\n";        
         } else {        	            	
-        	echo $hello;
+        	echo $hello . "\n";
         }
 
         Worker::runAll();
