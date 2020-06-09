@@ -24,7 +24,7 @@ class Validator extends \Rakit\Validation\Validator
 
 	// Magic call to any of the parent methods
     public function __call (string $name, array $args) 
-    {	echo "call parent";
+    {	
         return parent::$name(...$args);
     }
 
@@ -47,13 +47,20 @@ class Validator extends \Rakit\Validation\Validator
      * Given $inputs, $rules and $messages to make the Comet Validation class instance
      * NB! Output type declared as \Rakit\Validation\Validation to conform OOP rules
      *
-     * @param array $inputs
+     * @param $inputs
      * @param array $rules
      * @param array $messages
      * @return Validation
      */
-    public function make(array $inputs, array $rules, array $messages = []): \Rakit\Validation\Validation
+    public function make($inputs, array $rules, array $messages = []): \Rakit\Validation\Validation
     {
+    	// We should convert any input into array 
+    	if (is_object($inputs)) {
+    		$inputs = $inputs->toArray(); // TODO Expect errors!
+    	} else if (is_string($inputs)) {
+	        $inputs = json_decode($inputs, true); // TODO Expect errors!
+    	}
+
         $messages = array_merge($this->messages, $messages);
         $validation = new \Comet\Validation\Validation($this, $inputs, $rules, $messages);
         $validation->setTranslations($this->getTranslations());
