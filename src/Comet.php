@@ -95,23 +95,14 @@ class Comet
 
     public function run($init = null) 
     {        
-    	// Suppress Workerman startup message 
-    	global $argv;
-        $argv[] = '-q'; 
-
         $workers = self::$workers;
         
         // Some more preparations for Windows hosts
         if (DIRECTORY_SEPARATOR === '\\') {              
             if (self::$host === '0.0.0.0') {
                 self::$host = '127.0.0.1';
-            }                        
-            
+            }                                    
             $workers = 1; // Windows can't hadnle multiple processes with PHP
-
-            echo "\n-------------------------------------------------------------------------";
-            echo "\nServer               Listen                              Workers   Status";
-            echo "\n-------------------------------------------------------------------------\n";        
         }    
         
         $worker = new Worker('http://' . self::$host . ':' . self::$port);
@@ -140,6 +131,24 @@ class Comet
             }
         };
         
+       	// Suppress Workerman startup message 
+    	global $argv;
+        $argv[] = '-q'; 
+
+        // Write Comet startup message to log file and show on screen
+      	$hello = $worker->name . " starts on http://" . self::$host . ':' . self::$port . " with $workers workers";
+       	if (self::$logger) {
+        	self::$logger->info($hello);
+       	}
+
+        if (DIRECTORY_SEPARATOR === '\\') {              
+	        echo "\n-------------------------------------------------------------------------";
+    	    echo "\nServer               Listen                              Workers   Status";
+        	echo "\n-------------------------------------------------------------------------\n";        
+        } else {        	            	
+        	echo $hello;
+        }
+
         Worker::runAll();
     }
 }
