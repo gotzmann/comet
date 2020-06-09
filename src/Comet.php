@@ -16,7 +16,7 @@ use Comet\Middleware\JsonBodyParserMiddleware;
 
 class Comet
 {
-    public const VERSION = '0.6.6';
+    public const VERSION = '0.6.7';
 
     private static $app;
     private static $host;
@@ -134,7 +134,7 @@ class Comet
 	                echo "\n[ERR] " . $error->getFile() . ':' . $error->getLine() . ' >> ' . $error->getMessage();
 	            }
             	if (self::$logger) {
-	            	self::$logger->error($error->getMessage());
+	            	self::$logger->error($error->getFile() . ':' . $error->getLine() . ' >> ' . $error->getMessage());
 	            }
                 $connection->send(new WorkermanResponse(500));
             }
