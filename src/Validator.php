@@ -31,12 +31,12 @@ class Validator extends \Rakit\Validation\Validator
     /**
      * Validate $inputs
      *
-     * @param array $inputs
+     * @param $inputs
      * @param array $rules
      * @param array $messages
      * @return Validation
      */
-    public function validate(array $inputs, array $rules, array $messages = []): \Rakit\Validation\Validation
+    public function validate($inputs, array $rules, array $messages = []): \Rakit\Validation\Validation
     {
         $validation = $this->make($inputs, $rules, $messages);
         $validation->validate();
