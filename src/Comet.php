@@ -16,7 +16,7 @@ use Comet\Middleware\JsonBodyParserMiddleware;
 
 class Comet
 {
-    public const VERSION = '0.6.8';
+    public const VERSION = '0.7.0';
 
     private static $app;
     private static $host;
