@@ -115,6 +115,8 @@ class Response extends GuzzleResponse implements ResponseInterface
 
     /**
      * Smart method returns right type of Response for any type of content
+     * NB! We expect that 'Content-Type' => 'text/plain' will be set up 
+     * by Comet at the last step of the response emitting if needed
      *
      * @param $body Response body as array, object or string
      * @param null $status Optional HTTP Status
@@ -138,9 +140,7 @@ class Response extends GuzzleResponse implements ResponseInterface
                 throw new \RuntimeException(json_last_error_msg(), json_last_error());
             }
             $new->setHeaders([ 'Content-Type' => 'application/json; charset=utf-8' ]);
-        } else {
-            $new->setHeaders([ 'Content-Type' => 'text/plain; charset=utf-8' ]);
-        }
+        } 
 
         $new->stream = \GuzzleHttp\Psr7\stream_for($body);
 

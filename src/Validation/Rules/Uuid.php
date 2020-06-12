@@ -5,7 +5,7 @@ namespace Comet\Validation\Rules;
 
 class Uuid extends \Rakit\Validation\Rule
 {
-    protected $message = ":attribute :value has been used";   
+    protected $message = ':attribute :value has been used';   
     
     public function check($value): bool
     {        

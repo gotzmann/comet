@@ -101,8 +101,13 @@ class Comet
    	    $ret = self::$app->handle($req);
 
    	    $headers = $ret->getHeaders();
+
         if (!isset($headers['Server'])) {
-            $headers['Server'] = "Comet v" . self::VERSION;
+            $headers['Server'] = 'Comet v' . self::VERSION;
+        }
+
+        if (!isset($headers['Content-Type'])) {
+            $headers['Content-Type'] = 'text/plain; charset=utf-8';
         }
 		
         return new WorkermanResponse(
