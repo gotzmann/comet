@@ -15,83 +15,11 @@ class Response extends GuzzleResponse implements ResponseInterface
 {
 	use MessageTrait;
 
-    /**
-     * @param int                                  $status  Status code
-     * @param array                                $headers Response headers
-     * @param string|null|resource|StreamInterface $body    Response body
-     * @param string                               $version Protocol version
-     * @param string|null                          $reason  Reason phrase 
-     */
-    public function __construct(
-        $status = 200,
-        array $headers = [],
-        $body = null,
-        $version = '1.1',
-        $reason = null
-    ) {
-        // $this->assertStatusCodeIsInteger($status);
-        // $this->assertStatusCodeRange($status);
-        $status = (int) $status;
+    /** @var int */
+    private $statusCode = 200;
 
-        $this->statusCode = $status;
-
-        if ($body !== '' && $body !== null) {
-            $this->stream = \GuzzleHttp\Psr7\stream_for($body);
-        }
-
-        $this->setHeaders($headers);
-        if ($reason == '' && isset(self::$phrases[$this->statusCode])) {
-            $this->reasonPhrase = self::$phrases[$this->statusCode];
-        } else {
-            $this->reasonPhrase = (string) $reason;
-        }
-
-        $this->protocol = $version;
-    }
-
-    public function with($body, $status = null)
-    {
-	    $new = clone $this;        
-
-        if (isset($status)) {
-    	   	$new->statusCode = (int) $status;        
-        	if (isset(self::$phrases[$status])) {
-            	$new->reasonPhrase = self::$phrases[$status];
-        	}
-        }
-
-	    if (is_array($body) || is_object($body)) {
-   	        $body = json_encode($body);	        
-	        if ($body === false) {
-    	        throw new \RuntimeException(json_last_error_msg(), json_last_error());        	
-        	}        
-   	        $new->setHeaders([ 'Content-Type' => 'application/json; charset=utf-8' ]);
-	    } else {
-		    $new->setHeaders([ 'Content-Type' => 'text/html; charset=utf-8' ]);
-	    }
-
-   	    $new->stream = \GuzzleHttp\Psr7\stream_for($body);
-   		
-   		return $new;        
-    }
-
-    public function withText($body, $status = null)
-    {
-        $new = clone $this;
-
-        if (isset($status)) {
-            $new->statusCode = (int) $status;
-            if (isset(self::$phrases[$status])) {
-                $new->reasonPhrase = self::$phrases[$status];
-            }
-        }
-
-        $new->setHeaders([ 'Content-Type' => 'text/plain; charset=utf-8' ]);
-
-        $new->stream = \GuzzleHttp\Psr7\stream_for($body);
-
-        return $new;
-    }
+    /** @var string */
+    private $reasonPhrase = '';
 
     /** @var array Map of standard HTTP status code/reason phrases */
     private static $phrases = [
@@ -155,12 +83,100 @@ class Response extends GuzzleResponse implements ResponseInterface
         511 => 'Network Authentication Required',
     ];
 
-    /** @var string */
-    private $reasonPhrase = '';
+    /**
+     * @param int                                  $status  Status code
+     * @param array                                $headers Response headers
+     * @param string|null|resource|StreamInterface $body    Response body
+     * @param string                               $version Protocol version
+     * @param string|null                          $reason  Reason phrase
+     */
+    public function __construct(
+        $status = 200,
+        array $headers = [],
+        $body = null,
+        $version = '1.1',
+        $reason = null
+    ) {
+        $this->statusCode = (int) $status;
+        $this->setHeaders($headers);
 
-    /** @var int */
-    private $statusCode = 200;
+        if ($body !== '' && $body !== null) {
+            $this->stream = \GuzzleHttp\Psr7\stream_for($body);
+        }
 
+        $this->protocol = $version;
+
+        if (!$reason && isset(self::$phrases[$this->statusCode])) {
+            $this->reasonPhrase = self::$phrases[$this->statusCode];
+        } else {
+            $this->reasonPhrase = $reason;
+        }
+    }
+
+    /**
+     * Smart method returns right type of Response for any type of content
+     *
+     * @param $body Response body as array, object or string
+     * @param null $status Optional HTTP Status
+     * @param null $headers Optional HTTP Headers
+     * @return Response Comet PSR-7 HTTP Response
+     */
+    public function with($body, $status = null)
+    {
+        $new = clone $this;
+
+        if ($status) {
+            $new->statusCode = (int) $status;
+            if (isset(self::$phrases[$status])) {
+                $new->reasonPhrase = self::$phrases[$status];
+            }
+        }
+
+        if (is_array($body) || is_object($body)) {
+            $body = json_encode($body);
+            if ($body === false) {
+                throw new \RuntimeException(json_last_error_msg(), json_last_error());
+            }
+            $new->setHeaders([ 'Content-Type' => 'application/json; charset=utf-8' ]);
+        } else {
+            $new->setHeaders([ 'Content-Type' => 'text/plain; charset=utf-8' ]);
+        }
+
+        $new->stream = \GuzzleHttp\Psr7\stream_for($body);
+
+        return $new;
+    }
+
+    /**
+     * Set ALL responce headers at once
+     *
+     * @param $headers
+     * @return Response
+     */
+    public function withHeaders($headers)
+    {
+        $new = clone $this;
+        $new->setHeaders($headers);
+        return $new;
+    }
+
+    public function withText($body, $status = null)
+    {
+        $new = clone $this;
+
+        if (isset($status)) {
+            $new->statusCode = (int) $status;
+            if (isset(self::$phrases[$status])) {
+                $new->reasonPhrase = self::$phrases[$status];
+            }
+        }
+
+        $new->setHeaders([ 'Content-Type' => 'text/plain; charset=utf-8' ]);
+
+        $new->stream = \GuzzleHttp\Psr7\stream_for($body);
+
+        return $new;
+    }
 
     public function getStatusCode()
     {

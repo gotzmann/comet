@@ -3,22 +3,27 @@ declare(strict_types=1);
 
 namespace Comet;
 
-use Workerman\Worker;
-use Workerman\Protocols\Http\Request as WorkermanRequest;
-use Workerman\Protocols\Http\Response as WorkermanResponse;
 use Comet\Request;
 use Comet\Response;
 use Comet\Factory\CometPsr17Factory;
+use Comet\Middleware\JsonBodyParserMiddleware;
 use Slim\Factory\AppFactory;
 use Slim\Factory\Psr17\Psr17FactoryProvider;
 use Slim\Exception\HttpNotFoundException;
-use Comet\Middleware\JsonBodyParserMiddleware;
+use Workerman\Worker;
+use Workerman\Protocols\Http\Request as WorkermanRequest;
+use Workerman\Protocols\Http\Response as WorkermanResponse;
 
 class Comet
 {
     public const VERSION = '0.7.0';
 
+    /**
+     * @property Slim\App $app
+     */
     private static $app;
+
+    // TODO Store set up variables within single Config struct
     private static $host;
     private static $port;
     private static $workers;
@@ -40,23 +45,39 @@ class Comet
         $provider::setFactories([ CometPsr17Factory::class ]);
 		AppFactory::setPsr17FactoryProvider($provider);
 
-		self::$app = AppFactory::create();   
-                
+		self::$app = AppFactory::create();
         self::$app->add(new JsonBodyParserMiddleware());
     }
 
+    /**
+     * Set up worker initialization code if needed
+     *
+     * @param callable $init
+     */
     public function init (callable $init) 
     {
 		self::$init = $init;        
     }
 
-    // Magic call to any of the Slim App methods like add, addMidleware, handle, run, etc...
-    // See the full list of available methods: https://github.com/slimphp/Slim/blob/4.x/Slim/App.php
-    public function __call (string $name, array $args) 
+    /**
+     * Magic call to any of the Slim App methods like add, addMidleware, handle, run, etc...
+     * See the full list of available methods: https://github.com/slimphp/Slim/blob/4.x/Slim/App.php
+     *
+     * @param string $name
+     * @param array $args
+     * @return mixed
+     */
+    public function __call (string $name, array $args)
     {
         return self::$app->$name(...$args);
     }
-    
+
+    /**
+     * Handle Workerman request to return Workerman response
+     *
+     * @param WorkermanRequest $request
+     * @return WorkermanResponse
+     */
     private static function _handle(WorkermanRequest $request)
     {
     	if ($request->queryString()) {
@@ -84,17 +105,18 @@ class Comet
             $headers['Server'] = "Comet v" . self::VERSION;
         }
 		
-        $response = new WorkermanResponse(
+        return new WorkermanResponse(
             $ret->getStatusCode(),
             $headers,
             $ret->getBody()
         );
-
-        return $response;
     }
 
-    public function run($init = null) 
-    {        
+    /**
+     * Run Comet server
+     */
+    public function run()
+    {
         $workers = self::$workers;
         
         // Some more preparations for Windows hosts
@@ -102,7 +124,7 @@ class Comet
             if (self::$host === '0.0.0.0') {
                 self::$host = '127.0.0.1';
             }                                    
-            $workers = 1; // Windows can't hadnle multiple processes with PHP
+            //$workers = 1; // Windows can't hadnle multiple processes with PHP
         }    
         
         $worker = new Worker('http://' . self::$host . ':' . self::$port);
@@ -136,7 +158,7 @@ class Comet
         $argv[] = '-q'; 
 
         // Write Comet startup message to log file and show on screen
-      	$hello = $worker->name . " starts with $workers workers on http://" . self::$host . ':' . self::$port;
+      	$hello = $worker->name . " [$workers workers] starts on http://" . self::$host . ':' . self::$port;
        	if (self::$logger) {
         	self::$logger->info($hello);
        	}
