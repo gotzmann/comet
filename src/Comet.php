@@ -188,7 +188,7 @@ class Comet
         $argv[] = '-q';
 
         // Write Comet startup message to log file and show on screen
-      	$hello = $worker->name . ' [ ' . self::$config['workers'] . 'workers] starts on http://' . self::$host . ':' . self::$port;
+      	$hello = $worker->name . ' [' . self::$config['workers'] . ' workers] starts on http://' . self::$host . ':' . self::$port;
        	if (self::$logger) {
             self::$logger->info($hello);
        	}
