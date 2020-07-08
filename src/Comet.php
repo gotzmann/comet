@@ -16,7 +16,7 @@ use Workerman\Protocols\Http\Response as WorkermanResponse;
 
 class Comet
 {
-    public const VERSION = '0.7.0';
+    public const VERSION = '0.7.1';
 
     /**
      * @property Slim\App $app
@@ -26,21 +26,33 @@ class Comet
     // TODO Store set up variables within single Config struct
     private static $host;
     private static $port;
-    private static $workers;
+    //private static $workers;
     private static $logger;
     private static $status;
     private static $debug;
-    private static $init;    
+    private static $init;
 
-    public function __construct(array $config = null)    
+    private static $config = [];
+
+    public function __construct(array $config = null)
     {
-        self::$host = $config['host'] ?? '0.0.0.0';                     
+        self::$host = $config['host'] ?? '0.0.0.0';
         self::$port = $config['port'] ?? 8080;
-        self::$workers = $config['workers'] ?? (int) shell_exec('nproc') * 4;
-        self::$debug = $config['debug'] ?? false;              
-        self::$logger = $config['logger'] ?? null;  
-        
-        // Using Comet PSR-7 and PSR-17 
+        //self::$workers = $config['workers'] ?? (int) shell_exec('nproc') * 4;
+        self::$debug = $config['debug'] ?? false;
+        self::$logger = $config['logger'] ?? null;
+
+		self::$config['workers'] = $config['workers'] ?? (int) shell_exec('nproc') * 4;
+
+        // Some more preparations for Windows hosts
+        if (DIRECTORY_SEPARATOR === '\\') {
+            if (self::$host === '0.0.0.0') {
+                self::$host = '127.0.0.1';
+            }
+            self::$config['workers'] = 1; // Windows can't hadnle multiple processes with PHP
+        }
+
+        // Using Comet PSR-7 and PSR-17
 		$provider = new Psr17FactoryProvider();
         $provider::setFactories([ CometPsr17Factory::class ]);
 		AppFactory::setPsr17FactoryProvider($provider);
@@ -50,13 +62,28 @@ class Comet
     }
 
     /**
+     * Return config param value or the config at whole
+     *
+     * @param string $key
+     */
+    public function getConfig(string $key = null) {
+    	if (!$key) {
+    		return self::$config;
+    	} else if (array_key_exists($key, self::$config)) {
+    		return self::$config[$key];
+    	} else {
+    		return null;
+    	}
+    }
+
+    /**
      * Set up worker initialization code if needed
      *
      * @param callable $init
      */
-    public function init (callable $init) 
+    public function init (callable $init)
     {
-		self::$init = $init;        
+		self::$init = $init;
     }
 
     /**
@@ -94,7 +121,7 @@ class Comet
             '1.1',
             [], // $_SERVER,
             $request->cookie(),
-            $request->file(),            
+            $request->file(),
             $queryParams
         );
 
@@ -109,7 +136,7 @@ class Comet
         if (!isset($headers['Content-Type'])) {
             $headers['Content-Type'] = 'text/plain; charset=utf-8';
         }
-		
+
         return new WorkermanResponse(
             $ret->getStatusCode(),
             $headers,
@@ -122,18 +149,18 @@ class Comet
      */
     public function run()
     {
-        $workers = self::$workers;
-        
-        // Some more preparations for Windows hosts
-        if (DIRECTORY_SEPARATOR === '\\') {              
-            if (self::$host === '0.0.0.0') {
-                self::$host = '127.0.0.1';
-            }                                    
-            //$workers = 1; // Windows can't hadnle multiple processes with PHP
-        }    
-        
+        // Write worker output to log file if exists
+        if (self::$logger) {
+            foreach(self::$logger->getHandlers() as $handler) {
+                if ($handler->getUrl()) {
+                    Worker::$stdoutFile = $handler->getUrl();
+                    break;
+                }
+            }
+        }
+
         $worker = new Worker('http://' . self::$host . ':' . self::$port);
-        $worker->count = $workers;
+        $worker->count = self::$config['workers'];
         $worker->name = 'Comet v' . self::VERSION;
 
         if (self::$init)
@@ -141,7 +168,7 @@ class Comet
 
         // Main Loop
         $worker->onMessage = static function($connection, WorkermanRequest $request)
-        {            
+        {
             try {
                 $response = self::_handle($request);
                 $connection->send($response);
@@ -157,22 +184,22 @@ class Comet
                 $connection->send(new WorkermanResponse(500));
             }
         };
-        
-       	// Suppress Workerman startup message 
+
+       	// Suppress Workerman startup message
     	global $argv;
-        $argv[] = '-q'; 
+        $argv[] = '-q';
 
         // Write Comet startup message to log file and show on screen
-      	$hello = $worker->name . " [$workers workers] starts on http://" . self::$host . ':' . self::$port;
+      	$hello = $worker->name . ' [ ' . self::$config['workers'] . 'workers] starts on http://' . self::$host . ':' . self::$port;
        	if (self::$logger) {
         	self::$logger->info($hello);
        	}
 
-        if (DIRECTORY_SEPARATOR === '\\') {              
+        if (DIRECTORY_SEPARATOR === '\\') {
 	        echo "\n-------------------------------------------------------------------------";
     	    echo "\nServer               Listen                              Workers   Status";
-        	echo "\n-------------------------------------------------------------------------\n";        
-        } else {        	            	
+        	echo "\n-------------------------------------------------------------------------\n";
+        } else {
         	echo $hello . "\n";
         }
 
