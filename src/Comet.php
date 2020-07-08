@@ -16,7 +16,7 @@ use Workerman\Protocols\Http\Response as WorkermanResponse;
 
 class Comet
 {
-    public const VERSION = '0.7.1';
+    public const VERSION = '0.7.2';
 
     /**
      * @property Slim\App $app
@@ -25,8 +25,7 @@ class Comet
 
     // TODO Store set up variables within single Config struct
     private static $host;
-    private static $port;
-    //private static $workers;
+    private static $port;    
     private static $logger;
     private static $status;
     private static $debug;
@@ -37,8 +36,7 @@ class Comet
     public function __construct(array $config = null)
     {
         self::$host = $config['host'] ?? '0.0.0.0';
-        self::$port = $config['port'] ?? 8080;
-        //self::$workers = $config['workers'] ?? (int) shell_exec('nproc') * 4;
+        self::$port = $config['port'] ?? 8080;        
         self::$debug = $config['debug'] ?? false;
         self::$logger = $config['logger'] ?? null;
 
@@ -119,15 +117,15 @@ class Comet
             $request->header(),
             $request->rawBody(),
             '1.1',
-            [], // $_SERVER,
+            $_SERVER,
             $request->cookie(),
             $request->file(),
             $queryParams
         );
 
-   	    $ret = self::$app->handle($req);
+        $ret = self::$app->handle($req);
 
-   	    $headers = $ret->getHeaders();
+        $headers = $ret->getHeaders();
 
         if (!isset($headers['Server'])) {
             $headers['Server'] = 'Comet v' . self::VERSION;
@@ -192,7 +190,7 @@ class Comet
         // Write Comet startup message to log file and show on screen
       	$hello = $worker->name . ' [ ' . self::$config['workers'] . 'workers] starts on http://' . self::$host . ':' . self::$port;
        	if (self::$logger) {
-        	self::$logger->info($hello);
+            self::$logger->info($hello);
        	}
 
         if (DIRECTORY_SEPARATOR === '\\') {
