@@ -83,7 +83,7 @@ class Comet
      */
     public function init (callable $init)
     {
-		self::$init = $init;
+        self::$init = $init;
     }
 
     /**
@@ -108,9 +108,9 @@ class Comet
     private static function _handle(WorkermanRequest $request)
     {
     	if ($request->queryString()) {
-    		parse_str($request->queryString(), $queryParams);
+            parse_str($request->queryString(), $queryParams);
     	} else {
-    		$queryParams = [];
+            $queryParams = [];
     	}
 
         $req = new Request(
@@ -175,12 +175,12 @@ class Comet
             } catch(HttpNotFoundException $error) {
                 $connection->send(new WorkermanResponse(404));
             } catch(\Throwable $error) {
-	            if (self::$debug) {
-	                echo "\n[ERR] " . $error->getFile() . ':' . $error->getLine() . ' >> ' . $error->getMessage();
-	            }
-            	if (self::$logger) {
-	            	self::$logger->error($error->getFile() . ':' . $error->getLine() . ' >> ' . $error->getMessage());
-	            }
+                if (self::$debug) {
+                    echo "\n[ERR] " . $error->getFile() . ':' . $error->getLine() . ' >> ' . $error->getMessage();
+                }
+                if (self::$logger) {
+                    self::$logger->error($error->getFile() . ':' . $error->getLine() . ' >> ' . $error->getMessage());
+                }
                 $connection->send(new WorkermanResponse(500));
             }
         };
@@ -196,11 +196,11 @@ class Comet
        	}
 
         if (DIRECTORY_SEPARATOR === '\\') {
-	        echo "\n-------------------------------------------------------------------------";
-    	    echo "\nServer               Listen                              Workers   Status";
-        	echo "\n-------------------------------------------------------------------------\n";
+            echo "\n-------------------------------------------------------------------------";
+            echo "\nServer               Listen                              Workers   Status";
+            echo "\n-------------------------------------------------------------------------\n";
         } else {
-        	echo $hello . "\n";
+            echo $hello . "\n";
         }
 
         Worker::runAll();
