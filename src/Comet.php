@@ -42,7 +42,7 @@ class Comet
         self::$debug = $config['debug'] ?? false;
         self::$logger = $config['logger'] ?? null;
 
-		self::$config['workers'] = $config['workers'] ?? (int) shell_exec('nproc') * 4;
+        self::$config['workers'] = $config['workers'] ?? (int) shell_exec('nproc') * 4;
 
         // Some more preparations for Windows hosts
         if (DIRECTORY_SEPARATOR === '\\') {
@@ -53,9 +53,9 @@ class Comet
         }
 
         // Using Comet PSR-7 and PSR-17
-		$provider = new Psr17FactoryProvider();
+        $provider = new Psr17FactoryProvider();
         $provider::setFactories([ CometPsr17Factory::class ]);
-		AppFactory::setPsr17FactoryProvider($provider);
+        AppFactory::setPsr17FactoryProvider($provider);
 
 		self::$app = AppFactory::create();
         self::$app->add(new JsonBodyParserMiddleware());
@@ -67,13 +67,13 @@ class Comet
      * @param string $key
      */
     public function getConfig(string $key = null) {
-    	if (!$key) {
-    		return self::$config;
-    	} else if (array_key_exists($key, self::$config)) {
-    		return self::$config[$key];
-    	} else {
-    		return null;
-    	}
+        if (!$key) {
+    	    return self::$config;
+        } else if (array_key_exists($key, self::$config)) {
+    	    return self::$config[$key];
+        } else {
+    	    return null;
+        }
     }
 
     /**
@@ -186,7 +186,7 @@ class Comet
         };
 
        	// Suppress Workerman startup message
-    	global $argv;
+        global $argv;
         $argv[] = '-q';
 
         // Write Comet startup message to log file and show on screen
