@@ -57,7 +57,7 @@ class Comet
         $provider::setFactories([ CometPsr17Factory::class ]);
         AppFactory::setPsr17FactoryProvider($provider);
 
-		self::$app = AppFactory::create();
+        self::$app = AppFactory::create();
         self::$app->add(new JsonBodyParserMiddleware());
     }
 
