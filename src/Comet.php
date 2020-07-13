@@ -196,7 +196,7 @@ class Comet
 	        $w = new Worker('http://' . self::$host . ':' . 65432);
     	    $w->count = $job['workers'];
         	$w->name = 'Job:' . $job['name'];
-        	$w->onWorkerStart = function() {
+        	$w->onWorkerStart = function() use ($job) {
             	Timer::add($job['interval'], $job['job']);            		
         	};
         }
