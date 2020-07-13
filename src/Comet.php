@@ -16,7 +16,7 @@ use Workerman\Protocols\Http\Response as WorkermanResponse;
 
 class Comet
 {
-    public const VERSION = '0.7.2';
+    public const VERSION = '0.8.1';
 
     /**
      * @property Slim\App $app
@@ -85,6 +85,11 @@ class Comet
         self::$init = $init;
     }
 
+    /* 	TODO
+    	@@@ Error: multi workers init in one php file are not support @@@
+		@@@ See http://doc.workerman.net/faq/multi-woker-for-windows.html @@@
+	*/
+
     /**
      * Add periodic job executed every $interval of seconds
      *
@@ -95,7 +100,7 @@ class Comet
      */
     public function addJob(int $interval, callable $job, string $name = '', int $workers = 1) 
     {
-    	$jobs[] = [ 
+    	self::$jobs[] = [ 
     		'interval' => $interval, 
     		'job'      => $job, 
     		'name'     => $name, 
@@ -188,7 +193,7 @@ class Comet
         // FIXME We should use real free random port not fixed 65432
         // Init JOB workers
         foreach (self::$jobs as $job) {
-	        $w = new Worker('job://' . self::$host . ':' . 65432);
+	        $w = new Worker('http://' . self::$host . ':' . 65432);
     	    $w->count = $job['workers'];
         	$w->name = 'Job:' . $job['name'];
         	$w->onWorkerStart = function() {
@@ -216,11 +221,11 @@ class Comet
         };
 
        	// Suppress Workerman startup message
-//        global $argv;
-//        $argv[] = '-q';
+        global $argv;
+        $argv[] = '-q';
 
         // Write Comet startup message to log file and show on screen
-      	$hello = $worker->name . '[ ' . self::$config['workers'] . ' workers] starts on http://' . self::$host . ':' . self::$port;
+      	$hello = $worker->name . '[ ' . self::$config['workers'] . ' workers / ' . count(self::$jobs). ' jobs] starts on http://' . self::$host . ':' . self::$port;
        	if (self::$logger) {
             self::$logger->info($hello);
        	}
