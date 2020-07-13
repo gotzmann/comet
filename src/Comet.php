@@ -32,6 +32,7 @@ class Comet
     private static $init;
 
     private static $config = [];
+    private static $jobs = [];
 
     public function __construct(array $config = null)
     {
@@ -82,6 +83,24 @@ class Comet
     public function init (callable $init)
     {
         self::$init = $init;
+    }
+
+    /**
+     * Add periodic job executed every $interval of seconds
+     *
+     * @param int      $interval
+     * @param callable $job
+     * @param int      $workers
+     * @param string   $name
+     */
+    public function addJob(int $interval, callable $job, string $name = '', int $workers = 1) 
+    {
+    	$jobs[] = [ 
+    		'interval' => $interval, 
+    		'job'      => $job, 
+    		'name'     => $name, 
+    		'workers'  => $workers,
+    	];
     }
 
     /**
@@ -157,12 +176,25 @@ class Comet
             }
         }
 
+        // Init HTTP workers
         $worker = new Worker('http://' . self::$host . ':' . self::$port);
         $worker->count = self::$config['workers'];
         $worker->name = 'Comet v' . self::VERSION;
 
         if (self::$init)
             $worker->onWorkerStart = self::$init;
+
+        // TODO Add timers to the single main worker for Windows hosts!
+        // FIXME We should use real free random port not fixed 65432
+        // Init JOB workers
+        foreach (self::$jobs as $job) {
+	        $w = new Worker('job://' . self::$host . ':' . 65432);
+    	    $w->count = $job['workers'];
+        	$w->name = 'Job:' . $job['name'];
+        	$w->onWorkerStart = function() {
+            	Timer::add($job['interval'], $job['job']);            		
+        	};
+        }
 
         // Main Loop
         $worker->onMessage = static function($connection, WorkermanRequest $request)
@@ -184,11 +216,11 @@ class Comet
         };
 
        	// Suppress Workerman startup message
-        global $argv;
-        $argv[] = '-q';
+//        global $argv;
+//        $argv[] = '-q';
 
         // Write Comet startup message to log file and show on screen
-      	$hello = $worker->name . ' [' . self::$config['workers'] . ' workers] starts on http://' . self::$host . ':' . self::$port;
+      	$hello = $worker->name . '[ ' . self::$config['workers'] . ' workers] starts on http://' . self::$host . ':' . self::$port;
        	if (self::$logger) {
             self::$logger->info($hello);
        	}
