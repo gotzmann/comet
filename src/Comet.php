@@ -16,7 +16,7 @@ use Workerman\Protocols\Http\Response as WorkermanResponse;
 
 class Comet
 {
-    public const VERSION = '0.8.2';
+    public const VERSION = '0.8.3';
 
     /**
      * @property Slim\App $app
@@ -89,20 +89,35 @@ class Comet
     	@@@ Error: multi workers init in one php file are not support @@@
 		@@@ See http://doc.workerman.net/faq/multi-woker-for-windows.html @@@
 	*/
+	// TODO Return Job ID
+	/*
+		Windows Hack
+        Timer::add(INTERVAL,
+        function() use ($app, $logger) {
+            $id = rand(1, $app->getConfig('workers'));
+            if ($id == 1) 
+                Job::run();            
+        });
+
+	*/
 
     /**
-     * Add periodic job executed every $interval of seconds
+     * Add periodic $job executed every $interval of seconds
      *
      * @param int      $interval
      * @param callable $job
+     * @param array    $params
+     * @param callable $init
      * @param int      $workers
      * @param string   $name
      */
-    public function addJob(int $interval, callable $job, string $name = '', int $workers = 1) 
+    public function addJob(int $interval, callable $job, array $params = [], callable $init = null, string $name = '', int $workers = 1) 
     {
     	self::$jobs[] = [ 
     		'interval' => $interval, 
     		'job'      => $job, 
+    		'params'   => $params,
+    		'init'     => $init,     		 
     		'name'     => $name, 
     		'workers'  => $workers,
     	];
@@ -193,10 +208,12 @@ class Comet
         // FIXME We should use real free random port not fixed 65432
         // Init JOB workers
         foreach (self::$jobs as $job) {
-	        $w = new Worker('http://' . self::$host . ':' . 65432);
+	        $w = new Worker('text://' . self::$host . ':' . 65432);
     	    $w->count = $job['workers'];
-        	$w->name = 'Job:' . $job['name'];
+        	$w->name = 'Comet v' . self::VERSION .' [job] ' . $job['name'];
         	$w->onWorkerStart = function() use ($job) {
+      	        if (self::$init)
+					call_user_func(self::$init);
             	Timer::add($job['interval'], $job['job']);            		
         	};
         }
@@ -225,7 +242,8 @@ class Comet
         $argv[] = '-q';
 
         // Write Comet startup message to log file and show on screen
-      	$hello = $worker->name . '[ ' . self::$config['workers'] . ' workers / ' . count(self::$jobs). ' jobs] starts on http://' . self::$host . ':' . self::$port;
+        $jobsInfo = count(self::$jobs) ? ' / ' . count(self::$jobs) . ' jobs' : ''; 
+      	$hello = $worker->name . ' [' . self::$config['workers'] . ' workers' . $jobsInfo . '] ready on http://' . self::$host . ':' . self::$port;
        	if (self::$logger) {
             self::$logger->info($hello);
        	}
