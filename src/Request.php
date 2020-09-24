@@ -4,6 +4,10 @@ declare(strict_types=1);
 namespace Comet;
 
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
+use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\Stream\CachingStream;
+use GuzzleHttp\Stream\LazyOpenStream;
+use GuzzleHttp\Psr7\ServerRequest;
 use InvalidArgumentException;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
