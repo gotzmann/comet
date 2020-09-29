@@ -123,6 +123,50 @@ $app->run();
 
 Start browser or Postman and see the JSON resonse from GET http://127.0.0.1:8080
 
+## Validation
+
+Comet validation engine is based on clean yet powerful [Rakit Validation](https://github.com/rakit/validation) library.
+
+To start using Comet Validation in your own project, specify use statement:
+
+```php
+use Comet\Validator;
+```
+
+You can use different predefined and user-defined rules, custom error messages and controller logic to deal with errors. Look at this example:  
+
+```php
+$payload = (string) $request->getBody();
+
+// Prior to 7.3 PHP does not support RFC3339_EXTENDED (milliseconds are broken)
+$version = explode('.', PHP_VERSION);
+$dateFormat = ($version[0] == 7 && $version[1] >= 3) ? \DateTime::RFC3339_EXTENDED : "Y-m-d?H:i:s.???P";
+
+$rules = [
+    'paymentOrderId' => 'required',
+    'customerId'     => 'required|uuid',
+    'clientKey'      => 'required|alpha_dash',
+    'paymentDate'    => 'required|date:' . $dateFormat,
+];
+
+$messages = [
+    'required'   => 'field is required',
+    'alpha_num'  => 'only alphabet and digits allowed',
+    'alpha_dash' => 'only alphabet chars, digits and dashes are allowed',
+    'uuid'       => 'UUID is wrong',
+    'date'       => 'should be RFC3339 date',
+];        
+
+$validator = new Validator;
+$validation = $validator->validate($payload, $rules, $messages);        
+if (count($validation->getErrors())) {
+    return $response
+        ->with($validation->getErrors(), 400);
+}        
+```
+
+Please refer to the docs about [Rakit Validation](https://github.com/rakit/validation) for more information on available rules and possibilities.
+
 ## Advanced Topics
 
 ### PSR-4 and Autoloading
