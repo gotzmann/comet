@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "020eaaffe3361d687c641e37196ea02d",
+    "content-hash": "b367cb25d8ec95ea2620e75e4ca82d9d",
     "packages": [
         {
             "name": "guzzlehttp/psr7",
@@ -429,16 +429,16 @@
         },
         {
             "name": "rakit/validation",
-            "version": "v1.2.0",
+            "version": "v1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/rakit/validation.git",
-                "reference": "d7710a2c8133d89b5640b79e832f370ad2d58767"
+                "reference": "ff003a35cdf5030a5f2482299f4c93f344a35b29"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rakit/validation/zipball/d7710a2c8133d89b5640b79e832f370ad2d58767",
-                "reference": "d7710a2c8133d89b5640b79e832f370ad2d58767",
+                "url": "https://api.github.com/repos/rakit/validation/zipball/ff003a35cdf5030a5f2482299f4c93f344a35b29",
+                "reference": "ff003a35cdf5030a5f2482299f4c93f344a35b29",
                 "shasum": ""
             },
             "require": {
@@ -446,6 +446,7 @@
                 "php": ">=7.0"
             },
             "require-dev": {
+                "php-coveralls/php-coveralls": "^2.2",
                 "phpunit/phpunit": "^6.5",
                 "squizlabs/php_codesniffer": "^3"
             },
@@ -466,7 +467,7 @@
                 }
             ],
             "description": "PHP Laravel like standalone validation library",
-            "time": "2019-07-10T03:20:16+00:00"
+            "time": "2020-08-27T05:07:01+00:00"
         },
         {
             "name": "ralouphie/getallheaders",
@@ -603,16 +604,16 @@
         },
         {
             "name": "workerman/workerman",
-            "version": "v4.0.5",
+            "version": "v4.0.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/walkor/Workerman.git",
-                "reference": "3558e4f590e941bddbc0dc6000f35800d22f79d9"
+                "reference": "132a277b1836464c8fb99e9146ca161de8d7199f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/walkor/Workerman/zipball/3558e4f590e941bddbc0dc6000f35800d22f79d9",
-                "reference": "3558e4f590e941bddbc0dc6000f35800d22f79d9",
+                "url": "https://api.github.com/repos/walkor/Workerman/zipball/132a277b1836464c8fb99e9146ca161de8d7199f",
+                "reference": "132a277b1836464c8fb99e9146ca161de8d7199f",
                 "shasum": ""
             },
             "require": {
@@ -645,7 +646,7 @@
                 "asynchronous",
                 "event-loop"
             ],
-            "time": "2020-05-19T07:23:34+00:00"
+            "time": "2020-09-15T09:22:45+00:00"
         }
     ],
     "packages-dev": [],
