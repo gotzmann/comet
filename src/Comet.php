@@ -40,15 +40,15 @@ class Comet
         self::$port = $config['port'] ?? 8080;        
         self::$debug = $config['debug'] ?? false;
         self::$logger = $config['logger'] ?? null;
-
-        self::$config['workers'] = $config['workers'] ?? (int) shell_exec('nproc') * 4;
-
+        
         // Some more preparations for Windows hosts
         if (DIRECTORY_SEPARATOR === '\\') {
             if (self::$host === '0.0.0.0') {
                 self::$host = '127.0.0.1';
             }
-            self::$config['workers'] = 1; // Windows can't hadnle multiple processes with PHP
+            self::$config['workers'] = 1; // Windows can't hadnle multiple processes with PHP and have no "nproc" command
+        } else {
+        	self::$config['workers'] = $config['workers'] ?? (int) shell_exec('nproc') * 4;
         }
 
         // Using Comet PSR-7 and PSR-17
