@@ -16,7 +16,7 @@ use Workerman\Protocols\Http\Response as WorkermanResponse;
 
 class Comet
 {
-    public const VERSION = '0.8.3';
+    public const VERSION = '0.8.4';
 
     /**
      * @property Slim\App $app
