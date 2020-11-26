@@ -1,6 +1,6 @@
 {
     "name": "gotzmann/comet",
-    "description": "Modern PHP framework for building REST APIs",
+    "description": "Modern PHP framework for building blazing fast REST APIs and microservices",
   	"license": "MIT",
     "keywords": ["comet", "php", "api", "framework", "rest-api", "slimphp", "workerman", "psr-7", "psr-15", "psr-17", "psr-18"],
     "homepage": "https://github.com/gotzmann/comet",
@@ -10,8 +10,8 @@
     }],
     "require": {
         "workerman/workerman": "^4.0",
-        "slim/slim": "^4.5",
-        "guzzlehttp/psr7": "^1.6",
+        "slim/slim": "^4.6",
+        "guzzlehttp/psr7": "^1.7",
         "rakit/validation": "^1.4"
     },
     "autoload": {
