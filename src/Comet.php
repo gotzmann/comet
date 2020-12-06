@@ -16,7 +16,7 @@ use Workerman\Protocols\Http\Response as WorkermanResponse;
 
 class Comet
 {
-    public const VERSION = '1.0.0';
+    public const VERSION = '1.1.0';
 
     /**
      * @property Slim\App $app
@@ -31,6 +31,12 @@ class Comet
     private static $debug;
     private static $init;
 
+    private static $rootDir;
+    private static $mimeTypeMap;
+    private static $serveStatic = false;
+    private static $staticDir;
+    private static $staticExtensions;
+
     private static $config = [];
     private static $jobs = [];
 
@@ -40,7 +46,19 @@ class Comet
         self::$port = $config['port'] ?? 8080;        
         self::$debug = $config['debug'] ?? false;
         self::$logger = $config['logger'] ?? null;
-        
+
+        // Compute right root dir of project
+        $parts = pathinfo(__DIR__);
+//var_dump($parts);
+		self::$rootDir = str_replace("\\", '/', $parts['dirname']);
+//var_dump($rootDir);
+		$pos = mb_strpos(self::$rootDir, 'vendor/gotzmann/comet');
+//var_dump($pos);
+        if ($pos !== false) {
+//        	$rootDir = __DIR__ . '/../../../..';
+        	self::$rootDir = rtrim(mb_substr(self::$rootDir, 0, $pos), '/');
+		}        
+//var_dump($rootDir);        
         // Some more preparations for Windows hosts
         if (DIRECTORY_SEPARATOR === '\\') {
             if (self::$host === '0.0.0.0') {
@@ -121,6 +139,13 @@ class Comet
     		'name'     => $name, 
     		'workers'  => $workers,
     	];
+    }
+
+    public function serveStatic(string $dir, array $extensions = null)
+    {
+    	self::$serveStatic = true;
+    	self::$staticDir = $dir;
+    	self::$staticExtensions = $extensions;
     }
 
     /**
@@ -222,8 +247,50 @@ class Comet
         $worker->onMessage = static function($connection, WorkermanRequest $request)
         {
             try {
-                $response = self::_handle($request);
-                $connection->send($response);
+            	// Serve static first
+            	// https://github.com/walkor/workerman-queue/blob/master/Workerman/WebServer.php
+            	// TODO Refactor web-server as standalone component
+            	// TODO Distinguish relative and absolute directories
+            	// TODO HTTP Cache, MIME Types, Multiple Domains, Check Extensions
+                if (self::$serveStatic) {
+var_dump($request->uri());
+                	$parts = \pathinfo($request->uri());
+var_dump(self::$rootDir);
+var_dump(self::$rootDir . $parts['dirname'] . '/' . $parts['basename']); 
+//die();
+                	if (self::$staticDir == trim($parts['dirname'], '/')) {
+
+                		$filename = self::$rootDir . $parts['dirname'] . '/' . $parts['basename'];
+	                	if (is_file($filename)) {
+var_dump($filename);
+	                		$filename = realpath($filename);
+var_dump($filename);
+
+	                		// TODO Security check (do not allow transfer of files outside of static dir)
+	                		/* if (...)
+             				{
+				                Http::header('HTTP/1.1 400 Bad Request');
+				                $connection->close('<h1>400 Bad Request</h1>');
+				                return;
+				            } */
+
+				            return self::sendFile($connection, $workerman_file);
+
+				        // File not found
+	                	} else {
+		                	throw new HttpNotFoundException();
+	                		// 404
+				            // Http::header("HTTP/1.1 404 Not Found");
+            				// $connection->close('<html><head><title>404 File not found</title></head><body><center><h3>404 Not Found</h3></center></body></html>');
+            				// return;
+	                	}
+                	}
+					
+                // Go for all other handlers next
+            	} else {
+                    $response = self::_handle($request);
+                    $connection->send($response);
+                }
             } catch(HttpNotFoundException $error) {
                 $connection->send(new WorkermanResponse(404));
             } catch(\Throwable $error) {
@@ -257,5 +324,105 @@ class Comet
         }
 
         Worker::runAll();
+    }
+
+    // TODO PHPDoc
+    public static function sendFile($connection, $file_name)
+    {
+
+    	// TODO Move MIME initialization to class constructor
+
+//	    $mime_file = Http::getMimeTypesFile();
+	    $mime_file = __DIR__ . 'mime.types';
+
+        if (!is_file($mime_file)) {
+//            $this->log("$mime_file mime.type file not fond");
+echo "\n[ERR] $mime_file mime.type file not fond";
+            return;
+        }
+
+        $items = file($mime_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if (!is_array($items)) {
+            $this->log("get $mime_file mime.type content fail");
+            return;
+        }
+
+        foreach ($items as $content) {
+            if (preg_match("/\s*(\S+)\s+(\S.+)/", $content, $match)) {
+                $mime_type                      = $match[1];
+                $workerman_file_extension_var   = $match[2];
+                $workerman_file_extension_array = explode(' ', substr($workerman_file_extension_var, 0, -1));
+                foreach ($workerman_file_extension_array as $workerman_file_extension) {
+                    self::$mimeTypeMap[$workerman_file_extension] = $mime_type;
+                }
+            }
+        }
+
+var_dump(self::$mimeTypeMap);
+
+/*
+        // Check 304.
+        $info = stat($file_name);
+        $modified_time = $info ? date('D, d M Y H:i:s', $info['mtime']) . ' GMT' : '';
+        if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $info) {
+            // Http 304.
+            if ($modified_time === $_SERVER['HTTP_IF_MODIFIED_SINCE']) {
+                // 304
+                Http::header('HTTP/1.1 304 Not Modified');
+                // Send nothing but http headers..
+                $connection->close('');
+                return;
+            }
+        }
+*/
+/*
+        // Http header.
+        if ($modified_time) {
+            $modified_time = "Last-Modified: $modified_time\r\n";
+        }
+*/
+        $file_size = filesize($file_name);
+        $extension = pathinfo($file_name, PATHINFO_EXTENSION);
+        $content_type = isset(self::$mimeTypeMap[$extension]) ? self::$mimeTypeMap[$extension] : self::$defaultMimeType;
+        $header = "HTTP/1.1 200 OK\r\n";
+        $header .= "Content-Type: $content_type\r\n";
+        $header .= "Connection: keep-alive\r\n";
+        $header .= $modified_time;
+        $header .= "Content-Length: $file_size\r\n\r\n";
+        $trunk_limit_size = 1024*1024;
+        if ($file_size < $trunk_limit_size) {
+            return $connection->send($header.file_get_contents($file_name), true);
+        }
+        $connection->send($header, true);
+
+        // Read file content from disk piece by piece and send to client.
+        $connection->fileHandler = fopen($file_name, 'r');
+        $do_write = function()use($connection)
+        {
+            // Send buffer not full.
+            while(empty($connection->bufferFull))
+            {
+                // Read from disk.
+                $buffer = fread($connection->fileHandler, 8192);
+                // Read eof.
+                if($buffer === '' || $buffer === false)
+                {
+                    return;
+                }
+                $connection->send($buffer, true);
+            }
+        };
+        // Send buffer full.
+        $connection->onBufferFull = function($connection)
+        {
+            $connection->bufferFull = true;
+        };
+        // Send buffer drain.
+        $connection->onBufferDrain = function($connection)use($do_write)
+        {
+            $connection->bufferFull = false;
+            $do_write();
+        };
+        $do_write();
     }
 }
