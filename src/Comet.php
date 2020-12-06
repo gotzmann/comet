@@ -31,6 +31,7 @@ class Comet
     private static $debug;
     private static $init;
 
+    private static $defaultMimeType = 'text/html; charset=utf-8';
     private static $rootDir;
     private static $mimeTypeMap;
     private static $serveStatic = false;
@@ -252,15 +253,20 @@ class Comet
             	// TODO Refactor web-server as standalone component
             	// TODO Distinguish relative and absolute directories
             	// TODO HTTP Cache, MIME Types, Multiple Domains, Check Extensions
+
+            	$processInComet = false;
+
                 if (self::$serveStatic) {
+echo "\nGO STATIC ROUTE...";
 var_dump($request->uri());
                 	$parts = \pathinfo($request->uri());
-var_dump(self::$rootDir);
-var_dump(self::$rootDir . $parts['dirname'] . '/' . $parts['basename']); 
+//var_dump(self::$rootDir);
+//var_dump(self::$rootDir . $parts['dirname'] . '/' . $parts['basename']); 
 //die();
-                	if (self::$staticDir == trim($parts['dirname'], '/')) {
+					// TODO Check requested dir exists in static dir
+//                	if (self::$staticDir == trim($parts['dirname'], '/')) {
 
-                		$filename = self::$rootDir . $parts['dirname'] . '/' . $parts['basename'];
+                		$filename = self::$rootDir . '/' . self::$staticDir . '/' . $parts['dirname'] . '/' . $parts['basename'];
 	                	if (is_file($filename)) {
 var_dump($filename);
 	                		$filename = realpath($filename);
@@ -273,24 +279,34 @@ var_dump($filename);
 				                $connection->close('<h1>400 Bad Request</h1>');
 				                return;
 				            } */
-
-				            return self::sendFile($connection, $workerman_file);
+echo "\nRETRUNING FILE! $filename";
+				            return self::sendFile($connection, $filename);
 
 				        // File not found
 	                	} else {
-		                	throw new HttpNotFoundException();
+		                	// TODO Some Problems here with exception format
+		                	//throw new HttpNotFoundException($request);
+
+		                	// TODO Sometimes go for 404, sometimes for next processing loop
+		                	// $connection->send(new WorkermanResponse(404));
+		                	$processInComet = true;
+
 	                		// 404
 				            // Http::header("HTTP/1.1 404 Not Found");
             				// $connection->close('<html><head><title>404 File not found</title></head><body><center><h3>404 Not Found</h3></center></body></html>');
             				// return;
 	                	}
-                	}
-					
-                // Go for all other handlers next
-            	} else {
+                	//}
+					                
+            	} 
+
+
+            	// Go for all other handlers next
+            	if (!self::$serveStatic || $processInComet) {
                     $response = self::_handle($request);
                     $connection->send($response);
                 }
+
             } catch(HttpNotFoundException $error) {
                 $connection->send(new WorkermanResponse(404));
             } catch(\Throwable $error) {
@@ -333,7 +349,7 @@ var_dump($filename);
     	// TODO Move MIME initialization to class constructor
 
 //	    $mime_file = Http::getMimeTypesFile();
-	    $mime_file = __DIR__ . 'mime.types';
+	    $mime_file = __DIR__ . '\mime.types';
 
         if (!is_file($mime_file)) {
 //            $this->log("$mime_file mime.type file not fond");
@@ -358,7 +374,7 @@ echo "\n[ERR] $mime_file mime.type file not fond";
             }
         }
 
-var_dump(self::$mimeTypeMap);
+//var_dump(self::$mimeTypeMap);
 
 /*
         // Check 304.
@@ -387,7 +403,7 @@ var_dump(self::$mimeTypeMap);
         $header = "HTTP/1.1 200 OK\r\n";
         $header .= "Content-Type: $content_type\r\n";
         $header .= "Connection: keep-alive\r\n";
-        $header .= $modified_time;
+//        $header .= $modified_time;
         $header .= "Content-Length: $file_size\r\n\r\n";
         $trunk_limit_size = 1024*1024;
         if ($file_size < $trunk_limit_size) {
