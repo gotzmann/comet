@@ -248,64 +248,39 @@ class Comet
         $worker->onMessage = static function($connection, WorkermanRequest $request)
         {
             try {
-            	// Serve static first
+
             	// https://github.com/walkor/workerman-queue/blob/master/Workerman/WebServer.php
             	// TODO Refactor web-server as standalone component
             	// TODO Distinguish relative and absolute directories
             	// TODO HTTP Cache, MIME Types, Multiple Domains, Check Extensions
 
-            	$processInComet = false;
+                // Serve static files first
+                if (self::$serveStatic && $request->method() === 'GET') {
 
-                if (self::$serveStatic) {
-echo "\nGO STATIC ROUTE...";
-var_dump($request->uri());
+                    $publicDir = self::$rootDir . '/' . self::$staticDir;
                 	$parts = \pathinfo($request->uri());
-//var_dump(self::$rootDir);
-//var_dump(self::$rootDir . $parts['dirname'] . '/' . $parts['basename']); 
-//die();
-					// TODO Check requested dir exists in static dir
-//                	if (self::$staticDir == trim($parts['dirname'], '/')) {
+                    $filename = $publicDir . '/' . $parts['dirname'] . '/' . $parts['basename'];
+                    $fileparts = pathinfo($parts['basename']);
+                    $extension = $fileparts['extension'];
+                    $path = str_replace("\\", '/', realpath($filename));
 
-                		$filename = self::$rootDir . '/' . self::$staticDir . '/' . $parts['dirname'] . '/' . $parts['basename'];
-	                	if (is_file($filename)) {
-var_dump($filename);
-	                		$filename = realpath($filename);
-var_dump($filename);
+                    // Do security checks first!
+                    // Requested file MUST EXISTS, be inside of public root,
+                    // do not have PHP extension or be hidden (starts with dot)
 
-	                		// TODO Security check (do not allow transfer of files outside of static dir)
-	                		/* if (...)
-             				{
-				                Http::header('HTTP/1.1 400 Bad Request');
-				                $connection->close('<h1>400 Bad Request</h1>');
-				                return;
-				            } */
-echo "\nRETRUNING FILE! $filename";
-				            return self::sendFile($connection, $filename);
-
-				        // File not found
-	                	} else {
-		                	// TODO Some Problems here with exception format
-		                	//throw new HttpNotFoundException($request);
-
-		                	// TODO Sometimes go for 404, sometimes for next processing loop
-		                	// $connection->send(new WorkermanResponse(404));
-		                	$processInComet = true;
-
-	                		// 404
-				            // Http::header("HTTP/1.1 404 Not Found");
-            				// $connection->close('<html><head><title>404 File not found</title></head><body><center><h3>404 Not Found</h3></center></body></html>');
-            				// return;
-	                	}
-                	//}
-					                
+                    if (strpos($path, $publicDir) === 0 &&
+                        strlen($path) >= strlen($publicDir) &&
+                        strpos($parts['basename'], '.') !== 0 &&
+                        $extension != 'php' &&
+                        is_file($filename)
+                    ) {
+                        return self::sendFile($connection, $filename);
+                    }
             	} 
 
-
-            	// Go for all other handlers next
-            	if (!self::$serveStatic || $processInComet) {
-                    $response = self::_handle($request);
-                    $connection->send($response);
-                }
+                // Proceed with other handlers
+                $response = self::_handle($request);
+                $connection->send($response);
 
             } catch(HttpNotFoundException $error) {
                 $connection->send(new WorkermanResponse(404));
@@ -359,7 +334,8 @@ echo "\n[ERR] $mime_file mime.type file not fond";
 
         $items = file($mime_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         if (!is_array($items)) {
-            $this->log("get $mime_file mime.type content fail");
+//            $this->log("get $mime_file mime.type content fail");
+echo "\n[ERR] get $mime_file mime.type content fail";
             return;
         }
 
