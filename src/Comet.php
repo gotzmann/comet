@@ -30,6 +30,7 @@ class Comet
     private static $status;
     private static $debug;
     private static $init;
+    private static $container;
 
     private static $defaultMimeType = 'text/html; charset=utf-8';
     private static $rootDir;
@@ -44,9 +45,10 @@ class Comet
     public function __construct(array $config = null)
     {
         self::$host = $config['host'] ?? '0.0.0.0';
-        self::$port = $config['port'] ?? 8080;        
+        self::$port = $config['port'] ?? 8080;    
         self::$debug = $config['debug'] ?? false;
         self::$logger = $config['logger'] ?? null;
+        self::$container = $config['container'] ?? null;
 
         // Construct correct root dir of the project
         $parts = pathinfo(__DIR__);
@@ -70,6 +72,11 @@ class Comet
         $provider = new Psr17FactoryProvider();
         $provider::setFactories([ CometPsr17Factory::class ]);
         AppFactory::setPsr17FactoryProvider($provider);
+	
+        // Using Container
+        if (self::$container) {
+            AppFactory::setContainer(self::$container);
+        }
 
         self::$app = AppFactory::create();
         self::$app->add(new JsonBodyParserMiddleware());
