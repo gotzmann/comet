@@ -153,17 +153,14 @@ class Request extends GuzzleRequest implements ServerRequestInterface
     }
 
     /**
-     * Return a ServerRequest populated with superglobals:
-     * $_GET
-     * $_POST
-     * $_COOKIE
-     * $_FILES
-     * $_SERVER
+     * We should not allow creating requests from GLOBALS with Workerman-based framework
      *
-     * @return ServerRequestInterface
+     * @throws InvalidArgumentException 
      */
     public static function fromGlobals()
     {
+    	throw new InvalidArgumentException('Do not use fromGlobals() method for Comet\Request objects!');
+/*
         $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
         $headers = getallheaders();
         $uri = self::getUriFromGlobals();
@@ -177,6 +174,7 @@ class Request extends GuzzleRequest implements ServerRequestInterface
             ->withQueryParams($_GET)
             ->withParsedBody($_POST)
             ->withUploadedFiles(self::normalizeFiles($_FILES));
+*/
     }
 
     private static function extractHostAndPortFromAuthority($authority)
