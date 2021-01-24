@@ -48,18 +48,14 @@ class Comet
         self::$debug = $config['debug'] ?? false;
         self::$logger = $config['logger'] ?? null;
 
-        // Compute right root dir of project
+        // Construct correct root dir of the project
         $parts = pathinfo(__DIR__);
-//var_dump($parts);
 		self::$rootDir = str_replace("\\", '/', $parts['dirname']);
-//var_dump($rootDir);
 		$pos = mb_strpos(self::$rootDir, 'vendor/gotzmann/comet');
-//var_dump($pos);
         if ($pos !== false) {
-//        	$rootDir = __DIR__ . '/../../../..';
         	self::$rootDir = rtrim(mb_substr(self::$rootDir, 0, $pos), '/');
 		}        
-//var_dump($rootDir);        
+
         // Some more preparations for Windows hosts
         if (DIRECTORY_SEPARATOR === '\\') {
             if (self::$host === '0.0.0.0') {
@@ -142,6 +138,12 @@ class Comet
     	];
     }
 
+    /**
+     * Set folder to serve as root for static files
+     *
+     * @param string $dir
+     * @param array|null $extensions
+     */
     public function serveStatic(string $dir, array $extensions = null)
     {
     	self::$serveStatic = true;
@@ -248,8 +250,6 @@ class Comet
         $worker->onMessage = static function($connection, WorkermanRequest $request)
         {
             try {
-
-            	// https://github.com/walkor/workerman-queue/blob/master/Workerman/WebServer.php
             	// TODO Refactor web-server as standalone component
             	// TODO Distinguish relative and absolute directories
             	// TODO HTTP Cache, MIME Types, Multiple Domains, Check Extensions
@@ -317,25 +317,29 @@ class Comet
         Worker::runAll();
     }
 
-    // TODO PHPDoc
+    /**
+     * Transfer file contents with HTTP protocol
+     * https://github.com/walkor/workerman-queue/blob/master/Workerman/WebServer.php
+     *
+     * @param $connection
+     * @param $file_name
+     */
     public static function sendFile($connection, $file_name)
     {
-
     	// TODO Move MIME initialization to class constructor
+        // TODO Enable trunk transfer for BIG files
+        // TODO Dig into 304 status processing
 
-//	    $mime_file = Http::getMimeTypesFile();
 	    $mime_file = __DIR__ . '\mime.types';
 
         if (!is_file($mime_file)) {
-//            $this->log("$mime_file mime.type file not fond");
-echo "\n[ERR] $mime_file mime.type file not fond";
+            echo "\n[ERR] $mime_file mime.type file not fond";
             return;
         }
 
         $items = file($mime_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         if (!is_array($items)) {
-//            $this->log("get $mime_file mime.type content fail");
-echo "\n[ERR] get $mime_file mime.type content fail";
+            echo "\n[ERR] get $mime_file mime.type content fail";
             return;
         }
 
@@ -349,9 +353,6 @@ echo "\n[ERR] get $mime_file mime.type content fail";
                 }
             }
         }
-
-//var_dump(self::$mimeTypeMap);
-
 /*
         // Check 304.
         $info = stat($file_name);
@@ -366,8 +367,7 @@ echo "\n[ERR] get $mime_file mime.type content fail";
                 return;
             }
         }
-*/
-/*
+
         // Http header.
         if ($modified_time) {
             $modified_time = "Last-Modified: $modified_time\r\n";
@@ -381,12 +381,12 @@ echo "\n[ERR] get $mime_file mime.type content fail";
         $header .= "Connection: keep-alive\r\n";
 //        $header .= $modified_time;
         $header .= "Content-Length: $file_size\r\n\r\n";
-        $trunk_limit_size = 1024*1024;
-        if ($file_size < $trunk_limit_size) {
-            return $connection->send($header.file_get_contents($file_name), true);
-        }
-        $connection->send($header, true);
-
+//        $trunk_limit_size = 1024*1024;
+//        if ($file_size < $trunk_limit_size) {
+            return $connection->send($header . file_get_contents($file_name), true);
+//        }
+//        $connection->send($header, true);
+/*
         // Read file content from disk piece by piece and send to client.
         $connection->fileHandler = fopen($file_name, 'r');
         $do_write = function()use($connection)
@@ -416,5 +416,6 @@ echo "\n[ERR] get $mime_file mime.type content fail";
             $do_write();
         };
         $do_write();
+*/
     }
 }
