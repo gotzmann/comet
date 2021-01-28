@@ -192,7 +192,7 @@ class Comet
             $request->rawBody(),
             '1.1',
             [
-                'REMOTE_ADDR' => $request->connection->getRemoteAddress(),
+                'REMOTE_ADDR' => $request->connection->getRemoteIp(),
             ],
             $request->cookie(),
             $request->file(),
