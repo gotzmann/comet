@@ -191,7 +191,9 @@ class Comet
             $request->header(),
             $request->rawBody(),
             '1.1',
-            $_SERVER,
+            [
+                'REMOTE_ADDR' => $request->connection->getRemoteAddress(),
+            ],
             $request->cookie(),
             $request->file(),
             $queryParams
@@ -268,7 +270,7 @@ class Comet
                 	$parts = \pathinfo($request->uri());
                     $filename = $publicDir . '/' . $parts['dirname'] . '/' . $parts['basename'];
                     $fileparts = pathinfo($parts['basename']);
-                    $extension = $fileparts['extension'];
+                    $extension = key_exists('extension', $fileparts) ? $fileparts['extension'] : '';
                     $path = str_replace("\\", '/', realpath($filename));
 
                     // Do security checks first!

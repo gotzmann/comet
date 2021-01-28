@@ -240,7 +240,6 @@ class Request extends GuzzleRequest implements ServerRequestInterface
         return $uri;
     }
 
-
     /**
      * {@inheritdoc}
      */
