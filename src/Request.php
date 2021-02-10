@@ -15,36 +15,6 @@ use Psr\Http\Message\UploadedFileInterface;
 class Request extends GuzzleRequest implements ServerRequestInterface
 {
     /**
-     * @param string                               $method       HTTP method
-     * @param string|UriInterface                  $uri          URI
-     * @param array                                $headers      Request headers
-     * @param string|null|resource|StreamInterface $body         Request body
-     * @param string                               $version      Protocol version
-     * @param array                                $serverParams Typically the $_SERVER superglobal
-     * @param array                                $cookies      Request cookies
-     * @param array                                $files        Request files
-     * @param array                                $query        Query Params
-     */
-    public function __construct(
-        $method,
-        $uri,
-        array $headers = [],
-        $body = null,
-        $version = '1.1',
-        array $serverParams = [],
-        array $cookies = [],
-        array $files = [],
-        array $query = []
-    ) {
-        $this->serverParams = $serverParams;
-        $this->cookieParams = $cookies;
-        $this->uploadedFiles = $files;
-        $this->queryParams = $query;
-
-        parent::__construct($method, $uri, $headers, $body, $version);
-    }
-
-    /**
      * @var array
      */
     private $attributes = [];
@@ -73,6 +43,44 @@ class Request extends GuzzleRequest implements ServerRequestInterface
      * @var array
      */
     private $uploadedFiles = [];
+
+    /**
+     * @param string                               $method       HTTP method
+     * @param string|UriInterface                  $uri          URI
+     * @param array                                $headers      Request headers
+     * @param string|null|resource|StreamInterface $body         Request body
+     * @param string                               $version      Protocol version
+     * @param array                                $serverParams Typically the $_SERVER superglobal
+     * @param array                                $cookies      Request cookies
+     * @param array                                $files        Request files
+     * @param array                                $query        Query Params
+     */
+    public function __construct(
+        $method,
+        $uri,
+        array $headers = [],
+        $body = null,
+        $version = '1.1',
+        array $serverParams = [],
+        array $cookies = [],
+        array $files = [],
+        array $query = []
+    ) {
+        $this->serverParams = $serverParams;
+        $this->cookieParams = $cookies;
+        $this->uploadedFiles = $files;
+        $this->queryParams = $query;
+
+        // Parse body of POST request with form data
+
+        if (array_key_exists('content-type', $headers)) {
+            if ($headers['content-type'] == 'application/x-www-form-urlencoded') {
+                \parse_str($body, $this->parsedBody);
+            }
+        }
+
+        parent::__construct($method, $uri, $headers, $body, $version);
+    }
 
     /**
      * Return an UploadedFile instance array.
