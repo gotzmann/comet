@@ -418,21 +418,25 @@ class Request extends GuzzleRequest implements ServerRequestInterface
     {
         if (!isset($this->_data['sid'])) {
             $session_name = Session::sessionName();
-            $sid = $this->cookie($session_name);
+            // TODO Test it
+            // $sid = $this->cookie($session_name);
+            $sid = $this->cookieParams[$session_name];
             if ($sid === '' || $sid === null) {
-                if ($this->connection === null) {
-                    Worker::safeEcho('Request->session() fail, header already send');
-                    return false;
-                }
+            	// TODO Connection ?
+                // if ($this->connection === null) {
+                //     Worker::safeEcho('Request->session() fail, header already send');
+                //     return false;
+                // }
                 $sid = static::createSessionId();
                 $cookie_params = \session_get_cookie_params();
-                $this->connection->__header['Set-Cookie'] = array($session_name . '=' . $sid
-                    . (empty($cookie_params['domain']) ? '' : '; Domain=' . $cookie_params['domain'])
-                    . (empty($cookie_params['lifetime']) ? '' : '; Max-Age=' . ($cookie_params['lifetime'] + \time()))
-                    . (empty($cookie_params['path']) ? '' : '; Path=' . $cookie_params['path'])
-                    . (empty($cookie_params['samesite']) ? '' : '; SameSite=' . $cookie_params['samesite'])
-                    . (!$cookie_params['secure'] ? '' : '; Secure')
-                    . (!$cookie_params['httponly'] ? '' : '; HttpOnly'));
+                // TODO Move Set-Cookie to appropriate place
+                //$this->connection->__header['Set-Cookie'] = array($session_name . '=' . $sid
+                //    . (empty($cookie_params['domain']) ? '' : '; Domain=' . $cookie_params['domain'])
+                //    . (empty($cookie_params['lifetime']) ? '' : '; Max-Age=' . ($cookie_params['lifetime'] + \time()))
+                //    . (empty($cookie_params['path']) ? '' : '; Path=' . $cookie_params['path'])
+                //    . (empty($cookie_params['samesite']) ? '' : '; SameSite=' . $cookie_params['samesite'])
+                //    . (!$cookie_params['secure'] ? '' : '; Secure')
+                //    . (!$cookie_params['httponly'] ? '' : '; HttpOnly'));
             }
             $this->_data['sid'] = $sid;
         }

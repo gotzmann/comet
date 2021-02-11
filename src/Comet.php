@@ -23,6 +23,7 @@ class Comet
     // TODO Clean FromGlobals method
     // TODO Suppress Workerman output on forkWorkersForWindows
     // TODO Default HTML vs TEXT Response
+    // Use Worker::safeEcho for console out?
 
     /**
      * @property Slim\App $app
