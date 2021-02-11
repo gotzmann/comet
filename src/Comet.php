@@ -16,7 +16,13 @@ use Workerman\Protocols\Http\Response as WorkermanResponse;
 
 class Comet
 {
-    public const VERSION = '1.1.0';
+    public const VERSION = '1.1.3';
+
+    // TODO Implement Redirect Helper
+    // TODO Move both Form and JSON Body parsers to Request constructor or Middleware
+    // TODO Clean FromGlobals method
+    // TODO Suppress Workerman output on forkWorkersForWindows
+    // TODO Default HTML vs TEXT Response
 
     /**
      * @property Slim\App $app
