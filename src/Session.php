@@ -84,7 +84,7 @@ class Session
     public function __construct($session_id = null)
     {
         if (!$session_id) {
-            $session_id = createSessionId();
+            $session_id = self::createSessionId();
         }
 
         static::checkSessionId($session_id);

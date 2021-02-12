@@ -78,7 +78,8 @@ class FileSessionHandler implements \SessionHandlerInterface
      */
     public function write($session_id, $session_data)
     {
-        $temp_file = static::$_sessionSavePath.uniqid(mt_rand(), true);
+        $temp_file = static::$_sessionSavePath . uniqid(strval(mt_rand()), true);
+echo "\ntemp file for session = " . $temp_file;
         if (!\file_put_contents($temp_file, $session_data)) {
             return false;
         }

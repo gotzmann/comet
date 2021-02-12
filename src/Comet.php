@@ -16,6 +16,7 @@ class Comet
 {
     public const VERSION = '1.1.3';
 
+    // TODO Save Cookie with PHPSESSID if new session was created!
     // TODO withHeaders should ADD new headers NOT replace them
     // TODO Implement Redirect Helper
     // TODO Move both Form and JSON Body parsers to Request constructor or Middleware
@@ -185,6 +186,8 @@ class Comet
      */
     private static function _handle(WorkermanRequest $request)
     {
+echo "\n--- WORKERMAN COOKIE";
+var_dump($request->cookie());
     	if ($request->queryString()) {
             parse_str($request->queryString(), $queryParams);
     	} else {
