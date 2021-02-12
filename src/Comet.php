@@ -221,12 +221,40 @@ var_dump($request->cookie());
         if (!isset($headers['Content-Type'])) {
             $headers['Content-Type'] = 'text/html; charset=utf-8';
         }
-/*
+echo "\n-- Req Session ID = " . $req->session->getId();
+echo "\n-- Req Session ALL : \n";
+var_dump($req->session->all());
+echo "\n-- ORIGINAL COOKIES : \n";
+var_dump($request->cookie());
+
         // Save session data to disk if needed
         if ($req->session) {
-            $req->session->save();
+            if (count($req->session->all())) {
+                // If there no PHPSESSID between request cookies AND response headers, we should send session cookie to browser
+                // TODO What to do if request cookie PHPSESSID is not equal to response?
+                $defaultSessionName = Session::sessionName();
+                if (!array_key_exists($defaultSessionName, $request->cookie()) &&
+                    (!array_key_exists('cookie', $headers) ||
+                        (array_key_exists('cookie', $headers) &&
+                            strpos($headers['cookie'], $defaultSessionName) === false))) {
+                    $cookie_params = \session_get_cookie_params();
+                    $session_id = $req->session->getId();
+                    $cookie = 'PHPSESSID' . '=' . $session_id
+                        . (empty($cookie_params['domain']) ? '' : '; Domain=' . $cookie_params['domain'])
+                        . (empty($cookie_params['lifetime']) ? '' : '; Max-Age=' . ($cookie_params['lifetime'] + \time()))
+                        . (empty($cookie_params['path']) ? '' : '; Path=' . $cookie_params['path'])
+                        . (empty($cookie_params['samesite']) ? '' : '; SameSite=' . $cookie_params['samesite'])
+                        . (!$cookie_params['secure'] ? '' : '; Secure')
+                        . (!$cookie_params['httponly'] ? '' : '; HttpOnly');
+echo "\n--- SESS_COOKIE\n";
+var_dump($cookie);
+                    $headers['Set-Cookie'] = $cookie;
+                }
+                // Save session to storage otherwise it would be saved on destruct()
+                $req->session->save();
+            }
         }
-*/
+
         return new WorkermanResponse(
             $ret->getStatusCode(),
             $headers,
