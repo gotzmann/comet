@@ -81,16 +81,31 @@ class Session
      *
      * @param $session_id
      */
-    public function __construct($session_id)
+    public function __construct($session_id = null)
     {
+        if (!$session_id) {
+            $session_id = createSessionId();
+        }
+
         static::checkSessionId($session_id);
         if (static::$_handler === null) {
             static::initHandler();
         }
+
         $this->_sessionId = $session_id;
         if ($data = static::$_handler->read($session_id)) {
             $this->_data = \unserialize($data);
         }
+    }
+
+    /**
+     * Create session id.
+     *
+     * @return string
+     */
+    protected static function createSessionId()
+    {
+        return \bin2hex(\pack('d', \microtime(true)) . \pack('N', \mt_rand()));
     }
 
     /**
@@ -255,6 +270,8 @@ class Session
      */
     public function save()
     {
+echo "\nSession:save()";
+var_dump($this->_needSave);
         if ($this->_needSave) {
             if (empty($this->_data)) {
                 static::$_handler->destroy($this->_sessionId);

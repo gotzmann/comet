@@ -115,7 +115,7 @@ class Response extends GuzzleResponse implements ResponseInterface
 
     /**
      * Smart method returns right type of Response for any type of content
-     * NB! We expect that 'Content-Type' => 'text/plain' will be set up 
+     * NB! We expect that 'Content-Type' => 'text/html' will be set up 
      * by Comet at the last step of the response emitting if needed
      *
      * @param $body Response body as array, object or string

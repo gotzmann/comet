@@ -15,13 +15,6 @@ use Psr\Http\Message\UploadedFileInterface;
 class Request extends GuzzleRequest implements ServerRequestInterface
 {
     /**
-     * Request data.
-     *
-     * @var array
-     */
-    protected $_data = null;
-
-    /**
      * @var array
      */
     private $attributes = [];
@@ -91,6 +84,18 @@ class Request extends GuzzleRequest implements ServerRequestInterface
             if ($headers['content-type'] == 'application/x-www-form-urlencoded') {
                 \parse_str($body, $this->parsedBody);
             }
+        }
+
+        // Wake up active or create new shadow session
+
+        $defaultSessionName = Session::sessionName();
+        if (array_key_exists($defaultSessionName, $this->cookieParams)) {
+            $session_id = $this->cookieParams[$defaultSessionName];
+echo "\nWake up session with session_id = " . $session_id;
+            $this->session = new Session($session_id);
+        } else {
+            $this->session = new Session();
+echo "\nCreate nes session with session_id = " . $this->session->getId();
         }
 
         parent::__construct($method, $uri, $headers, $body, $version);
@@ -367,6 +372,18 @@ class Request extends GuzzleRequest implements ServerRequestInterface
     }
 
     /**
+     * Efficient way to set up attributes without cloning request
+     *
+     * @param $attribute
+     * @param $value
+     * @return Request
+     */
+    public function setAttribute($attribute, $value)
+    {
+        $this->attributes[$attribute] = $value;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function withAttribute($attribute, $value)
@@ -414,21 +431,33 @@ class Request extends GuzzleRequest implements ServerRequestInterface
      *
      * @return bool|mixed
      */
+/*
     public function sessionId()
     {
-        if (!isset($this->_data['sid'])) {
-            $session_name = Session::sessionName();
+//echo "\nsessionId()";
+//        if (!isset($this->_data['sid'])) {
+        if (!isset($this->session)) {
+//echo "\n!isset";
+            $this->session = new Session();
+        }
+
+        return $this->session->getId();
+            //$session_name = Session::sessionName();
+//echo "\nname = " . $session_name;
             // TODO Test it
             // $sid = $this->cookie($session_name);
-            $sid = $this->cookieParams[$session_name];
-            if ($sid === '' || $sid === null) {
+            //$sid = $this->cookieParams[$session_name];
+//echo "\n-- Cookie Params:\n";
+//var_dump($this->cookieParams);
+//echo "\nsid = " . $sid;
+       //     if ($sid === '' || $sid === null) {
             	// TODO Connection ?
                 // if ($this->connection === null) {
                 //     Worker::safeEcho('Request->session() fail, header already send');
                 //     return false;
                 // }
-                $sid = static::createSessionId();
-                $cookie_params = \session_get_cookie_params();
+         //       $sid = static::createSessionId();
+           //     $cookie_params = \session_get_cookie_params();
                 // TODO Move Set-Cookie to appropriate place
                 //$this->connection->__header['Set-Cookie'] = array($session_name . '=' . $sid
                 //    . (empty($cookie_params['domain']) ? '' : '; Domain=' . $cookie_params['domain'])
@@ -437,21 +466,10 @@ class Request extends GuzzleRequest implements ServerRequestInterface
                 //    . (empty($cookie_params['samesite']) ? '' : '; SameSite=' . $cookie_params['samesite'])
                 //    . (!$cookie_params['secure'] ? '' : '; Secure')
                 //    . (!$cookie_params['httponly'] ? '' : '; HttpOnly'));
-            }
-            $this->_data['sid'] = $sid;
-        }
-        return $this->_data['sid'];
-    }
-
-    /**
-     * Create session id.
-     *
-     * @return string
-     */
-    protected static function createSessionId()
-    {
-        return \bin2hex(\pack('d', \microtime(true)) . \pack('N', \mt_rand()));
-    }
-
+//            }
+  //          $this->_data['sid'] = $sid;
+    //    }
+      //  return $this->_data['sid'];
+    } */
 
 }

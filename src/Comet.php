@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace Comet;
 
-use Comet\Request;
-use Comet\Response;
 use Comet\Factory\CometPsr17Factory;
 use Comet\Middleware\JsonBodyParserMiddleware;
 use Slim\Factory\AppFactory;
@@ -18,15 +16,16 @@ class Comet
 {
     public const VERSION = '1.1.3';
 
+    // TODO withHeaders should ADD new headers NOT replace them
     // TODO Implement Redirect Helper
     // TODO Move both Form and JSON Body parsers to Request constructor or Middleware
     // TODO Clean FromGlobals method
     // TODO Suppress Workerman output on forkWorkersForWindows
     // TODO Default HTML vs TEXT Response
-    // Use Worker::safeEcho for console out?
+    // TODO Use Worker::safeEcho for console out?
 
     /**
-     * @property Slim\App $app
+     * @property \Slim\App $app
      */
     private static $app;
 
@@ -206,6 +205,8 @@ class Comet
             $queryParams
         );
 
+    	$req->setAttribute('connection', $request->connection);
+
         $ret = self::$app->handle($req);
 
         $headers = $ret->getHeaders();
@@ -215,9 +216,14 @@ class Comet
         }
 
         if (!isset($headers['Content-Type'])) {
-            $headers['Content-Type'] = 'text/plain; charset=utf-8';
+            $headers['Content-Type'] = 'text/html; charset=utf-8';
         }
-
+/*
+        // Save session data to disk if needed
+        if ($req->session) {
+            $req->session->save();
+        }
+*/
         return new WorkermanResponse(
             $ret->getStatusCode(),
             $headers,
