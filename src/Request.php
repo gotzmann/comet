@@ -87,16 +87,12 @@ class Request extends GuzzleRequest implements ServerRequestInterface
         }
 
         // Wake up active or create new shadow session
-echo "\n-- Request with cookies:";
-var_dump($this->cookieParams);
         $defaultSessionName = Session::sessionName();
         if (array_key_exists($defaultSessionName, $this->cookieParams)) {
             $session_id = $this->cookieParams[$defaultSessionName];
-echo "\nWake up session with session_id = " . $session_id;
             $this->session = new Session($session_id);
         } else {
             $this->session = new Session();
-echo "\nCreate nes session with session_id = " . $this->session->getId();
         }
 
         parent::__construct($method, $uri, $headers, $body, $version);

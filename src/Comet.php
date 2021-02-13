@@ -16,13 +16,10 @@ class Comet
 {
     public const VERSION = '1.1.3';
 
-    // TODO Save Cookie with PHPSESSID if new session was created!
-    // TODO withHeaders should ADD new headers NOT replace them
     // TODO Implement Redirect Helper
     // TODO Move both Form and JSON Body parsers to Request constructor or Middleware
     // TODO Clean FromGlobals method
     // TODO Suppress Workerman output on forkWorkersForWindows
-    // TODO Default HTML vs TEXT Response
     // TODO Use Worker::safeEcho for console out?
 
     /**
@@ -186,8 +183,6 @@ class Comet
      */
     private static function _handle(WorkermanRequest $request)
     {
-echo "\n--- WORKERMAN COOKIE";
-var_dump($request->cookie());
     	if ($request->queryString()) {
             parse_str($request->queryString(), $queryParams);
     	} else {
@@ -221,11 +216,6 @@ var_dump($request->cookie());
         if (!isset($headers['Content-Type'])) {
             $headers['Content-Type'] = 'text/html; charset=utf-8';
         }
-echo "\n-- Req Session ID = " . $req->session->getId();
-echo "\n-- Req Session ALL : \n";
-var_dump($req->session->all());
-echo "\n-- ORIGINAL COOKIES : \n";
-var_dump($request->cookie());
 
         // Save session data to disk if needed
         if ($req->session) {
@@ -241,13 +231,11 @@ var_dump($request->cookie());
                     $session_id = $req->session->getId();
                     $cookie = 'PHPSESSID' . '=' . $session_id
                         . (empty($cookie_params['domain']) ? '' : '; Domain=' . $cookie_params['domain'])
-                        . (empty($cookie_params['lifetime']) ? '' : '; Max-Age=' . ($cookie_params['lifetime'] + \time()))
+                        . (empty($cookie_params['lifetime']) ? '' : '; Max-Age=' . ($cookie_params['lifetime']))
                         . (empty($cookie_params['path']) ? '' : '; Path=' . $cookie_params['path'])
                         . (empty($cookie_params['samesite']) ? '' : '; SameSite=' . $cookie_params['samesite'])
                         . (!$cookie_params['secure'] ? '' : '; Secure')
                         . (!$cookie_params['httponly'] ? '' : '; HttpOnly');
-echo "\n--- SESS_COOKIE\n";
-var_dump($cookie);
                     $headers['Set-Cookie'] = $cookie;
                 }
                 // Save session to storage otherwise it would be saved on destruct()

@@ -270,8 +270,6 @@ class Session
      */
     public function save()
     {
-echo "\nSession:save()";
-var_dump($this->_needSave);
         if ($this->_needSave) {
             if (empty($this->_data)) {
                 static::$_handler->destroy($this->_sessionId);
