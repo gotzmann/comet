@@ -126,6 +126,12 @@ $app->run();
 
 Start browser or Postman and see the JSON resonse from GET http://127.0.0.1:8080
 
+## Authorization, authentication, ACL and users management
+
+There special full featured [Comet/Auth](https://github.com/gotzmann/auth) library which allows you to create secure and sofisticated scenarios for user registration, email checking, password management, role-based access and so on.
+
+Please refer for the corresponging documentation on how to use Comet\Auth in your own projects.
+
 ## Validation
 
 Comet validation engine is based on clean yet powerful [Rakit Validation](https://github.com/rakit/validation) library.
@@ -265,12 +271,6 @@ You can change counter sending JSON request for POST method:
 POST http://localhost:8080/api/v1/counter with body { "counter": 100 } and 'application/json' header.
 
 Any call with malformed body will be replied with HTTP 500 code, as defined in controller.
-
-### Authorization, authentication, ACL and users management
-
-There special full featured [Comet/Auth](https://github.com/gotzmann/auth) library which allows you to create secure and sofisticated scenarios for user registration, email checking, password management, role-based access and so on.  
-
-Please refer for the corresponging documentation on how to use Comet\Auth in your own projects.
 
 ## Deployment
 
