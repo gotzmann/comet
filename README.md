@@ -4,28 +4,31 @@
 
 # Comet
 
-Comet is a modern PHP framework for building fast REST APIs and microservices. 
+Comet is a modern PHP framework for building blazing fast REST APIs, CRUDs, admin panels and microservices. 
 
 ## Superpowers
 
-- Blazing fast with 100K HTTP requests per second and ~0.1 ms latency on commodity cloud hardware 
-- Really cross-platform, works like a charm on Linux, MacOS and Windows 7/8/10
+- Blazing fast with 100K HTTP requests per second and ~0.1 ms latency on commodity cloud hardware
+- Really cross-platform, works like a charm on Linux, MacOS and Windows 7/10
+- Embedded web-server to serve static content like CSS/JS and images  
+- Integration with full-featured auth library [Comet\Auth](https://github.com/gotzmann/auth) for users management
+- Embedded validation and testing features you could use with easy to create robust software  
 - Based on bullet-proof components from Guzzle, SlimPHP and Workerman
-- Extendable with Composer: use ORM and templating engine of your choice
-- PSR compliant with native implementations of all PSR-7 interfaces
-- Has its own HTTP client with simple interface
+- Extendable with Composer: use ORM and templating engine of your choice (Eloquent and Twig are recommended)
+- PSR compliant with native implementations of all PSR-7 interfaces and PHP sessions abstraction
+- Has its own efficient HTTP client with simple programming interface 
 
 ## Comet = Guzzle + SlimPHP + Workerman + magic
 
-Comet gets all superpowers from Guzzle, Slim and Workerman components as well as adds its own magic.
-
-[Guzzle](https://github.com/guzzle) is a set of PHP components to work with HTTP/1.1 and HTTP/2 services.
+Comet combines all superpowers of Slim PHP, Guzzle and Workerman and mix its own magic to achieve 10x speed up.
 
 [Slim](https://github.com/slimphp/Slim) is a micro-framework that helps write web applications and APIs based on modern PSR standards.
 
+[Guzzle](https://github.com/guzzle) is a set of PHP components to work with HTTP/1.1 and HTTP/2 services.
+
 [Workerman](https://github.com/walkor/Workerman) is an asynchronous event-driven framework to build fast and scalable network applications. 
 
-Comet allows you natively use all the methods of Slim: http://www.slimframework.com/docs/v4/
+Comet allows you natively use all the classes and methods of Slim framework: http://www.slimframework.com/docs/v4/
 
 ### Performance
 
@@ -262,6 +265,12 @@ You can change counter sending JSON request for POST method:
 POST http://localhost:8080/api/v1/counter with body { "counter": 100 } and 'application/json' header.
 
 Any call with malformed body will be replied with HTTP 500 code, as defined in controller.
+
+### Authorization, authentication, ACL and users management
+
+There special full featured [Comet/Auth](https://github.com/gotzmann/auth) library which allows you to create secure and sofisticated scenarios for user registration, email checking, password management, role-based access and so on.  
+
+Please refer for the corresponging documentation on how to use Comet\Auth in your own projects.
 
 ## Deployment
 
