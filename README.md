@@ -6,7 +6,7 @@
 
 Comet is a modern PHP framework for building blazing fast REST APIs, CRUDs, admin panels and microservices. 
 
-## Superpowers
+## Superpowers at your disposal
 
 - Blazing fast with 100K HTTP requests per second and ~0.1 ms latency on commodity cloud hardware
 - Really cross-platform, works like a charm on Linux, MacOS and Windows 7/10
@@ -18,7 +18,7 @@ Comet is a modern PHP framework for building blazing fast REST APIs, CRUDs, admi
 - PSR compliant with native implementations of all PSR-7 interfaces and PHP sessions abstraction
 - Has its own efficient HTTP client with simple programming interface 
 
-## Comet = Guzzle + SlimPHP + Workerman + magic
+## Standing on the shoulders of giants
 
 Comet combines all superpowers of Slim PHP, Guzzle and Workerman and mix its own magic to achieve 10x speed up.
 
@@ -72,7 +72,7 @@ It is recommended that you use [Composer](https://getcomposer.org/) to install C
 $ composer require gotzmann/comet
 ```
 
-This will install framework itself and all required dependencies. Comet requires PHP 7.1 or newer.
+This will install framework itself and all required dependencies. Comet requires PHP 7.2 or newer.
 
 ### Hello Comet
 
