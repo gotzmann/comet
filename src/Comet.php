@@ -218,8 +218,8 @@ class Comet
         }
 
         // Save session data to disk if needed
-        if ($req->session) {
-            if (count($req->session->all())) {
+        if ($req->getSession()) {
+            if (count($req->getSession()->all())) {
                 // If there no PHPSESSID between request cookies AND response headers, we should send session cookie to browser
                 // TODO What to do if request cookie PHPSESSID is not equal to response?
                 $defaultSessionName = Session::sessionName();
@@ -228,7 +228,7 @@ class Comet
                         (array_key_exists('cookie', $headers) &&
                             strpos($headers['cookie'], $defaultSessionName) === false))) {
                     $cookie_params = \session_get_cookie_params();
-                    $session_id = $req->session->getId();
+                    $session_id = $req->getSession()->getId();
                     $cookie = 'PHPSESSID' . '=' . $session_id
                         . (empty($cookie_params['domain']) ? '' : '; Domain=' . $cookie_params['domain'])
                         . (empty($cookie_params['lifetime']) ? '' : '; Max-Age=' . ($cookie_params['lifetime']))
@@ -239,7 +239,7 @@ class Comet
                     $headers['Set-Cookie'] = $cookie;
                 }
                 // Save session to storage otherwise it would be saved on destruct()
-                $req->session->save();
+                $req->getSession()->save();
             }
         }
 
