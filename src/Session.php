@@ -378,5 +378,4 @@ class SessionException extends \RuntimeException
 }
 
 // Init session.
-// TODO
 Session::init();

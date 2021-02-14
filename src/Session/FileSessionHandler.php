@@ -28,7 +28,7 @@ class FileSessionHandler implements \SessionHandlerInterface
      *
      * @var string
      */
-    protected static $_sessionFilePrefix = 'session_';
+    protected static $_sessionFilePrefix = 'sess_';
 
     /**
      * Init.
@@ -147,5 +147,4 @@ class FileSessionHandler implements \SessionHandlerInterface
     }
 }
 
-// TODO
 FileSessionHandler::init();

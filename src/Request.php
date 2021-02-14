@@ -49,7 +49,7 @@ class Request extends GuzzleRequest implements ServerRequestInterface
      *
      * @var Session
      */
-    public $session = null;
+    private $session = null;
 
     /**
      * @param string                               $method       HTTP method
@@ -409,64 +409,14 @@ class Request extends GuzzleRequest implements ServerRequestInterface
     /**
      * Get session.
      *
-     * @return bool|\Comet\Session
+     * @return \Comet\Session
      */
-    public function session()
+    public function getSession()
     {
         if ($this->session === null) {
-            $session_id = $this->sessionId();
-            if ($session_id === false) {
-                return false;
-            }
-            $this->session = new Session($session_id);
+            $this->session = new Session();
         }
         return $this->session;
     }
-
-    /**
-     * Get session id.
-     *
-     * @return bool|mixed
-     */
-/*
-    public function sessionId()
-    {
-//echo "\nsessionId()";
-//        if (!isset($this->_data['sid'])) {
-        if (!isset($this->session)) {
-//echo "\n!isset";
-            $this->session = new Session();
-        }
-
-        return $this->session->getId();
-            //$session_name = Session::sessionName();
-//echo "\nname = " . $session_name;
-            // TODO Test it
-            // $sid = $this->cookie($session_name);
-            //$sid = $this->cookieParams[$session_name];
-//echo "\n-- Cookie Params:\n";
-//var_dump($this->cookieParams);
-//echo "\nsid = " . $sid;
-       //     if ($sid === '' || $sid === null) {
-            	// TODO Connection ?
-                // if ($this->connection === null) {
-                //     Worker::safeEcho('Request->session() fail, header already send');
-                //     return false;
-                // }
-         //       $sid = static::createSessionId();
-           //     $cookie_params = \session_get_cookie_params();
-                // TODO Move Set-Cookie to appropriate place
-                //$this->connection->__header['Set-Cookie'] = array($session_name . '=' . $sid
-                //    . (empty($cookie_params['domain']) ? '' : '; Domain=' . $cookie_params['domain'])
-                //    . (empty($cookie_params['lifetime']) ? '' : '; Max-Age=' . ($cookie_params['lifetime'] + \time()))
-                //    . (empty($cookie_params['path']) ? '' : '; Path=' . $cookie_params['path'])
-                //    . (empty($cookie_params['samesite']) ? '' : '; SameSite=' . $cookie_params['samesite'])
-                //    . (!$cookie_params['secure'] ? '' : '; Secure')
-                //    . (!$cookie_params['httponly'] ? '' : '; HttpOnly'));
-//            }
-  //          $this->_data['sid'] = $sid;
-    //    }
-      //  return $this->_data['sid'];
-    } */
 
 }
