@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b367cb25d8ec95ea2620e75e4ca82d9d",
+    "content-hash": "32453a0ea2a2c4b45fb551c166d8be89",
     "packages": [
         {
             "name": "guzzlehttp/psr7",
@@ -75,6 +75,10 @@
                 "uri",
                 "url"
             ],
+            "support": {
+                "issues": "https://github.com/guzzle/psr7/issues",
+                "source": "https://github.com/guzzle/psr7/tree/1.7.0"
+            },
             "time": "2020-09-30T07:37:11+00:00"
         },
         {
@@ -121,6 +125,10 @@
                 "router",
                 "routing"
             ],
+            "support": {
+                "issues": "https://github.com/nikic/FastRoute/issues",
+                "source": "https://github.com/nikic/FastRoute/tree/master"
+            },
             "time": "2018-02-13T20:26:39+00:00"
         },
         {
@@ -170,6 +178,10 @@
                 "container-interop",
                 "psr"
             ],
+            "support": {
+                "issues": "https://github.com/php-fig/container/issues",
+                "source": "https://github.com/php-fig/container/tree/master"
+            },
             "time": "2017-02-14T16:28:37+00:00"
         },
         {
@@ -222,6 +234,9 @@
                 "request",
                 "response"
             ],
+            "support": {
+                "source": "https://github.com/php-fig/http-factory/tree/master"
+            },
             "time": "2019-04-30T12:38:16+00:00"
         },
         {
@@ -272,6 +287,9 @@
                 "request",
                 "response"
             ],
+            "support": {
+                "source": "https://github.com/php-fig/http-message/tree/master"
+            },
             "time": "2016-08-06T14:39:51+00:00"
         },
         {
@@ -325,6 +343,10 @@
                 "response",
                 "server"
             ],
+            "support": {
+                "issues": "https://github.com/php-fig/http-server-handler/issues",
+                "source": "https://github.com/php-fig/http-server-handler/tree/master"
+            },
             "time": "2018-10-30T16:46:14+00:00"
         },
         {
@@ -378,6 +400,10 @@
                 "request",
                 "response"
             ],
+            "support": {
+                "issues": "https://github.com/php-fig/http-server-middleware/issues",
+                "source": "https://github.com/php-fig/http-server-middleware/tree/master"
+            },
             "time": "2018-10-30T17:12:04+00:00"
         },
         {
@@ -425,6 +451,9 @@
                 "psr",
                 "psr-3"
             ],
+            "support": {
+                "source": "https://github.com/php-fig/log/tree/1.1.3"
+            },
             "time": "2020-03-23T09:12:05+00:00"
         },
         {
@@ -467,6 +496,10 @@
                 }
             ],
             "description": "PHP Laravel like standalone validation library",
+            "support": {
+                "issues": "https://github.com/rakit/validation/issues",
+                "source": "https://github.com/rakit/validation/tree/v1.4.0"
+            },
             "time": "2020-08-27T05:07:01+00:00"
         },
         {
@@ -507,26 +540,30 @@
                 }
             ],
             "description": "A polyfill for getallheaders.",
+            "support": {
+                "issues": "https://github.com/ralouphie/getallheaders/issues",
+                "source": "https://github.com/ralouphie/getallheaders/tree/develop"
+            },
             "time": "2019-03-08T08:55:37+00:00"
         },
         {
             "name": "slim/slim",
-            "version": "4.6.0",
+            "version": "4.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/slimphp/Slim.git",
-                "reference": "9f6a54f70438655f8c4be63b2b442d34a0c8a142"
+                "reference": "0905e0775f8c1cfb3bbcfabeb6588dcfd8b82d3f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/slimphp/Slim/zipball/9f6a54f70438655f8c4be63b2b442d34a0c8a142",
-                "reference": "9f6a54f70438655f8c4be63b2b442d34a0c8a142",
+                "url": "https://api.github.com/repos/slimphp/Slim/zipball/0905e0775f8c1cfb3bbcfabeb6588dcfd8b82d3f",
+                "reference": "0905e0775f8c1cfb3bbcfabeb6588dcfd8b82d3f",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
                 "nikic/fast-route": "^1.3",
-                "php": "^7.2",
+                "php": "^7.2 || ^8.0",
                 "psr/container": "^1.0",
                 "psr/http-factory": "^1.0",
                 "psr/http-message": "^1.0",
@@ -541,13 +578,14 @@
                 "http-interop/http-factory-guzzle": "^1.0",
                 "laminas/laminas-diactoros": "^2.4",
                 "nyholm/psr7": "^1.3",
-                "nyholm/psr7-server": "^1.0.0",
+                "nyholm/psr7-server": "^1.0.1",
                 "phpspec/prophecy": "^1.12",
-                "phpstan/phpstan": "^0.12.54",
-                "phpunit/phpunit": "^8.5",
-                "slim/http": "^1.1",
-                "slim/psr7": "^1.2",
-                "squizlabs/php_codesniffer": "^3.5"
+                "phpstan/phpstan": "^0.12.58",
+                "phpunit/phpunit": "^8.5.13",
+                "slim/http": "^1.2",
+                "slim/psr7": "^1.3",
+                "squizlabs/php_codesniffer": "^3.5",
+                "weirdan/prophecy-shim": "^1.0 || ^2.0.2"
             },
             "suggest": {
                 "ext-simplexml": "Needed to support XML format in BodyParsingMiddleware",
@@ -600,20 +638,40 @@
                 "micro",
                 "router"
             ],
-            "time": "2020-11-15T16:14:14+00:00"
+            "support": {
+                "docs": "https://www.slimframework.com/docs/v4/",
+                "forum": "https://discourse.slimframework.com/",
+                "irc": "irc://irc.freenode.net:6667/slimphp",
+                "issues": "https://github.com/slimphp/Slim/issues",
+                "rss": "https://www.slimframework.com/blog/feed.rss",
+                "slack": "https://slimphp.slack.com/",
+                "source": "https://github.com/slimphp/Slim",
+                "wiki": "https://github.com/slimphp/Slim/wiki"
+            },
+            "funding": [
+                {
+                    "url": "https://opencollective.com/slimphp",
+                    "type": "open_collective"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/slim/slim",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2020-12-01T19:41:22+00:00"
         },
         {
             "name": "workerman/workerman",
-            "version": "v4.0.16",
+            "version": "v4.0.18",
             "source": {
                 "type": "git",
                 "url": "https://github.com/walkor/Workerman.git",
-                "reference": "5ea330083d2824196914a3a27e9e98892226010e"
+                "reference": "02930876526479c7e4123ef1dc8d23d509d40e72"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/walkor/Workerman/zipball/5ea330083d2824196914a3a27e9e98892226010e",
-                "reference": "5ea330083d2824196914a3a27e9e98892226010e",
+                "url": "https://api.github.com/repos/walkor/Workerman/zipball/02930876526479c7e4123ef1dc8d23d509d40e72",
+                "reference": "02930876526479c7e4123ef1dc8d23d509d40e72",
                 "shasum": ""
             },
             "require": {
@@ -646,7 +704,14 @@
                 "asynchronous",
                 "event-loop"
             ],
-            "time": "2020-11-16T02:48:15+00:00"
+            "support": {
+                "email": "walkor@workerman.net",
+                "forum": "http://wenda.workerman.net/",
+                "issues": "https://github.com/walkor/workerman/issues",
+                "source": "https://github.com/walkor/workerman",
+                "wiki": "http://doc.workerman.net/"
+            },
+            "time": "2021-01-02T06:14:59+00:00"
         }
     ],
     "packages-dev": [],
@@ -656,5 +721,6 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "2.0.0"
 }
