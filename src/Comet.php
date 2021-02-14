@@ -14,7 +14,7 @@ use Workerman\Protocols\Http\Response as WorkermanResponse;
 
 class Comet
 {
-    public const VERSION = '1.1.3';
+    public const VERSION = '1.2.0';
 
     // TODO Implement Redirect Helper
     // TODO Move both Form and JSON Body parsers to Request constructor or Middleware
