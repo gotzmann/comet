@@ -3,9 +3,10 @@ declare(strict_types=1);
 
 namespace Comet;
 
+//use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
-use GuzzleHttp\Psr7\Stream;
+//use GuzzleHttp\Psr7\Stream;
 //use GuzzleHttp\Psr7\MessageTrait;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 
@@ -101,7 +102,8 @@ class Response extends GuzzleResponse implements ResponseInterface
         $this->setHeaders($headers);
 
         if ($body !== '' && $body !== null) {
-            $this->stream = \GuzzleHttp\Psr7\stream_for($body);
+            // EXP $this->stream = \GuzzleHttp\Psr7\stream_for($body);
+            $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
         }
 
         $this->protocol = $version;
@@ -125,6 +127,7 @@ class Response extends GuzzleResponse implements ResponseInterface
      */
     public function with($body, $status = null)
     {
+/*  EXP
         $new = clone $this;
 
         if ($status) {
@@ -142,9 +145,31 @@ class Response extends GuzzleResponse implements ResponseInterface
             $new->setHeaders([ 'Content-Type' => 'application/json; charset=utf-8' ]);
         } 
 
+        // TODO $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
         $new->stream = \GuzzleHttp\Psr7\stream_for($body);
 
         return $new;
+*/
+        if ($status) {
+            $this->statusCode = (int) $status;
+            if (isset(self::$phrases[$status])) {
+                $this->reasonPhrase = self::$phrases[$status];
+            }
+        }
+
+        if (is_array($body) || is_object($body)) {
+            $body = json_encode($body);
+            if ($body === false) {
+                throw new \RuntimeException(json_last_error_msg(), json_last_error());
+            }
+            $this->setHeaders([ 'Content-Type' => 'application/json; charset=utf-8' ]);
+        }
+
+        // EXP $this->stream = \GuzzleHttp\Psr7\stream_for($body);
+        $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
+
+        return $this;
+
     }
 
     /**
@@ -155,13 +180,18 @@ class Response extends GuzzleResponse implements ResponseInterface
      */
     public function withHeaders($headers)
     {
+/*  EXP
         $new = clone $this;
         $new->setHeaders($headers);
         return $new;
+*/
+        $this->setHeaders($headers);
+        return $this;
     }
 
     public function withText($body, $status = null)
     {
+/*  EXP
         $new = clone $this;
 
         if (isset($status)) {
@@ -173,9 +203,25 @@ class Response extends GuzzleResponse implements ResponseInterface
 
         $new->setHeaders([ 'Content-Type' => 'text/plain; charset=utf-8' ]);
 
+        // TODO $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
         $new->stream = \GuzzleHttp\Psr7\stream_for($body);
 
         return $new;
+*/
+        if (isset($status)) {
+            $this->statusCode = (int) $status;
+            if (isset(self::$phrases[$status])) {
+                $this->reasonPhrase = self::$phrases[$status];
+            }
+        }
+
+        $this->setHeaders([ 'Content-Type' => 'text/plain; charset=utf-8' ]);
+
+        // EXP $this->stream = \GuzzleHttp\Psr7\stream_for($body);
+        $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
+
+        return $this;
+
     }
 
     public function getStatusCode()
@@ -193,7 +239,7 @@ class Response extends GuzzleResponse implements ResponseInterface
         $this->assertStatusCodeIsInteger($code);
         $code = (int) $code;
         $this->assertStatusCodeRange($code);
-
+/*  EXP
         $new = clone $this;
         $new->statusCode = $code;
         if ($reasonPhrase == '' && isset(self::$phrases[$new->statusCode])) {
@@ -201,6 +247,14 @@ class Response extends GuzzleResponse implements ResponseInterface
         }
         $new->reasonPhrase = $reasonPhrase;
         return $new;
+*/
+        $this->statusCode = $code;
+        if ($reasonPhrase == '' && isset(self::$phrases[$new->statusCode])) {
+            $reasonPhrase = self::$phrases[$this->statusCode];
+        }
+        $this->reasonPhrase = $reasonPhrase;
+
+        return $this;
     }
 
     private function assertStatusCodeIsInteger($statusCode)
@@ -225,29 +279,36 @@ class Response extends GuzzleResponse implements ResponseInterface
 
 }
 
-// EXP
+// EXP https://github.com/walkor/psr7/commit/8f163224ed5bb93fb210da9211651fcd88acb97b#diff-fe65dcdace9cc44252b537bee79dd574edd1bccf6cee646cc860006a6ec50e8b
 function response_to_string(ResponseInterface $message)
 {
     $msg = 'HTTP/' . $message->getProtocolVersion() . ' '
         . $message->getStatusCode() . ' '
         . $message->getReasonPhrase();
+
     $headers = $message->getHeaders();
+
     if (empty($headers)) {
         $msg .= "\r\nContent-Length: " . $message->getBody()->getSize() .
             "\r\nContent-Type: text/html\r\nConnection: keep-alive\r\nServer: workerman";
     } else {
+
         if ('' === $message->getHeaderLine('Transfer-Encoding') && '' === $message->getHeaderLine('Content-Length')) {
             $msg .= "\r\nContent-Length: " . $message->getBody()->getSize();
         }
+
         if ('' === $message->getHeaderLine('Content-Type')) {
             $msg .= "\r\nContent-Type: text/html";
         }
+
         if ('' === $message->getHeaderLine('Connection')) {
             $msg .= "\r\nConnection: keep-alive";
         }
+
         if ('' === $message->getHeaderLine('Server')) {
             $msg .= "\r\nServer: workerman";
         }
+
         foreach ($headers as $name => $values) {
             $msg .= "\r\n{$name}: " . implode(', ', $values);
         }
