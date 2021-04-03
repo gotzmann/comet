@@ -296,7 +296,11 @@ class Comet
 // EXP        $worker->onMessage = static function($connection, WorkermanRequest $request)
         $worker->onMessage = static function($connection, Request $request)
         {
+            // TODO Try to handle request first, and search for static file in case of 404 error
+            //      This helps optimize regular API calls execution speed
+
             try {
+/*  EXP:ME
             	// TODO Refactor web-server as standalone component
             	// TODO Distinguish relative and absolute directories
             	// TODO HTTP Cache, MIME Types, Multiple Domains, Check Extensions
@@ -327,7 +331,7 @@ class Comet
                         return self::sendFile($connection, $filename);
                     }
             	} 
-
+*/
                 // Proceed with other handlers
                 $response = self::_handle($request);
                 $connection->send($response);
