@@ -8,8 +8,9 @@ use Comet\Middleware\JsonBodyParserMiddleware;
 use Slim\Factory\AppFactory;
 use Slim\Factory\Psr17\Psr17FactoryProvider;
 use Slim\Exception\HttpNotFoundException;
+use Workerman\Protocols\Http;
 use Workerman\Worker;
-use Workerman\Protocols\Http\Request as WorkermanRequest;
+//use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
 
 class Comet
@@ -181,9 +182,10 @@ class Comet
      * @param WorkermanRequest $request
      * @return WorkermanResponse
      */
-    private static function _handle(WorkermanRequest $request)
+//    private static function _handle(WorkermanRequest $request)
+    private static function _handle(Request $request)
     {
-    	if ($request->queryString()) {
+/*    	if ($request->queryString()) {
             parse_str($request->queryString(), $queryParams);
     	} else {
             $queryParams = [];
@@ -204,9 +206,9 @@ class Comet
         );
 
     	$req->setAttribute('connection', $request->connection);
-
+*/ $req = $request;
         $ret = self::$app->handle($req);
-
+/* EXP
         $headers = $ret->getHeaders();
 
         if (!isset($headers['Server'])) {
@@ -215,8 +217,8 @@ class Comet
 
         if (!isset($headers['Content-Type'])) {
             $headers['Content-Type'] = 'text/html; charset=utf-8';
-        }
-
+        } */
+/* EXP
         // Save session data to disk if needed
         if ($req->getSession()) {
             if (count($req->getSession()->all())) {
@@ -241,13 +243,15 @@ class Comet
                 // Save session to storage otherwise it would be saved on destruct()
                 $req->getSession()->save();
             }
-        }
-
+        } */
+/* EXP
         return new WorkermanResponse(
             $ret->getStatusCode(),
             $headers,
             $ret->getBody()
-        );
+        ); */
+
+        return $ret;
     }
 
     /**
@@ -288,7 +292,9 @@ class Comet
         }
 
         // Main Loop
-        $worker->onMessage = static function($connection, WorkermanRequest $request)
+        Http::requestClass(Request::class); // EXP
+// EXP        $worker->onMessage = static function($connection, WorkermanRequest $request)
+        $worker->onMessage = static function($connection, Request $request)
         {
             try {
             	// TODO Refactor web-server as standalone component
@@ -296,10 +302,13 @@ class Comet
             	// TODO HTTP Cache, MIME Types, Multiple Domains, Check Extensions
 
                 // Serve static files first
-                if (self::$serveStatic && $request->method() === 'GET') {
+// EXP                if (self::$serveStatic && $request->method() === 'GET') {
+                if (self::$serveStatic && $request->getMethod() === 'GET') {
 
                     $publicDir = self::$rootDir . '/' . self::$staticDir;
-                	$parts = \pathinfo($request->uri());
+// EXP                	$parts = \pathinfo($request->uri());
+// EXP                    $parts = \pathinfo($request->getUri());
+                    $parts = \pathinfo($request->getUri()->getPath());
                     $filename = $publicDir . '/' . $parts['dirname'] . '/' . $parts['basename'];
                     $fileparts = pathinfo($parts['basename']);
                     $extension = key_exists('extension', $fileparts) ? $fileparts['extension'] : '';

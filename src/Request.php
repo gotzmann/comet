@@ -9,6 +9,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
+use Workerman\Protocols\Http\Request as WorkermanRequest;
 
 // Fast PSR-7 ServerRequest implementation
 
@@ -44,14 +45,19 @@ class Request extends GuzzleRequest implements ServerRequestInterface
      */
     private $uploadedFiles = [];
 
+    // EXP
+    // FIXME Comet\Session vs Workerman\Protocols\Http\Session !!!
+
     /**
      * Session instance.
      *
      * @var Session
      */
-    private $session = null;
+    // EXP private $session = null;
+    public $session = null;
 
-    /**
+/* EXP
+    / **
      * @param string                               $method       HTTP method
      * @param string|UriInterface                  $uri          URI
      * @param array                                $headers      Request headers
@@ -61,7 +67,7 @@ class Request extends GuzzleRequest implements ServerRequestInterface
      * @param array                                $cookies      Request cookies
      * @param array                                $files        Request files
      * @param array                                $query        Query Params
-     */
+     * /
     public function __construct(
         $method,
         $uri,
@@ -96,6 +102,22 @@ class Request extends GuzzleRequest implements ServerRequestInterface
         }
 
         parent::__construct($method, $uri, $headers, $body, $version);
+    }
+*/
+
+    /**
+    // EXP
+    * ServerRequest constructor.
+    * @param string $http_buffer
+    */
+    public function __construct($http_buffer) {
+        $request = new WorkermanRequest($http_buffer);
+        $this->serverParams = $_SERVER;
+        $this->uploadedFiles = $request->file();
+        $this->queryParams = $request->get();
+        $this->cookieParams = $request->cookie();
+        parent::__construct($request->method(), $request->uri(), $request->header(),
+            $request->rawBody(), $request->protocolVersion());
     }
 
     /**

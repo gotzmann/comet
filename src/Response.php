@@ -6,7 +6,7 @@ namespace Comet;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use GuzzleHttp\Psr7\Stream;
-use GuzzleHttp\Psr7\MessageTrait;
+//use GuzzleHttp\Psr7\MessageTrait;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 
 // Fast PSR-7 Response implementation
@@ -216,4 +216,42 @@ class Response extends GuzzleResponse implements ResponseInterface
             throw new \InvalidArgumentException('Status code must be an integer value between 1xx and 5xx.');
         }
     }
+
+    // EXP DO we need this?
+    public function __toString()
+    {
+        return response_to_string($this);
+    }
+
+}
+
+// EXP
+function response_to_string(ResponseInterface $message)
+{
+    $msg = 'HTTP/' . $message->getProtocolVersion() . ' '
+        . $message->getStatusCode() . ' '
+        . $message->getReasonPhrase();
+    $headers = $message->getHeaders();
+    if (empty($headers)) {
+        $msg .= "\r\nContent-Length: " . $message->getBody()->getSize() .
+            "\r\nContent-Type: text/html\r\nConnection: keep-alive\r\nServer: workerman";
+    } else {
+        if ('' === $message->getHeaderLine('Transfer-Encoding') && '' === $message->getHeaderLine('Content-Length')) {
+            $msg .= "\r\nContent-Length: " . $message->getBody()->getSize();
+        }
+        if ('' === $message->getHeaderLine('Content-Type')) {
+            $msg .= "\r\nContent-Type: text/html";
+        }
+        if ('' === $message->getHeaderLine('Connection')) {
+            $msg .= "\r\nConnection: keep-alive";
+        }
+        if ('' === $message->getHeaderLine('Server')) {
+            $msg .= "\r\nServer: workerman";
+        }
+        foreach ($headers as $name => $values) {
+            $msg .= "\r\n{$name}: " . implode(', ', $values);
+        }
+    }
+
+    return "{$msg}\r\n\r\n" . $message->getBody();
 }

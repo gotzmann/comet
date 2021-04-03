@@ -3,15 +3,16 @@ declare(strict_types=1);
 
 namespace Comet;
 
+class SessionException extends \RuntimeException {}
+
 class Session
 {
-   /**
+    /**
      * Session name.
      *
      * @var string
      */
     protected static $_sessionName = 'PHPSESSID';
-
 
     /**
      * Session handler class which implements SessionHandlerInterface.
@@ -25,7 +26,7 @@ class Session
      *
      * @var null
      */
-    protected static $_handlerConfig = null;
+     protected static $_handlerConfig = null;
 
     /**
      * Session.gc_probability
@@ -76,11 +77,11 @@ class Session
      */
     protected $_sessionId = null;
 
-    /**
-     * Session constructor.
-     *
-     * @param $session_id
-     */
+   /**
+    * Session constructor.
+    *
+    * @param $session_id
+    */
     public function __construct($session_id = null)
     {
         if (!$session_id) {
@@ -280,6 +281,8 @@ class Session
         $this->_needSave = false;
     }
 
+   // TODO FIXME Does it performant enough to check \ini_get ?
+
     /**
      * Init.
      *
@@ -369,13 +372,7 @@ class Session
     }
 }
 
-/**
- * Class SessionException
- */
-class SessionException extends \RuntimeException
-{
-
-}
+// FIXME Set all GC vars as static class globals once at Comet start!
 
 // Init session.
 Session::init();
