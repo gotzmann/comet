@@ -69,7 +69,7 @@ trait MessageTrait
 
     public function withHeader($header, $value)
     {
-        $this->assertHeader($header);
+        // EXP ME $this->assertHeader($header);
         $value = $this->normalizeHeaderValue($value);
         $normalized = strtolower($header);
 /* EXP
@@ -100,7 +100,7 @@ trait MessageTrait
                 $value = [$value];
             }
 
-            $value = $this->trimHeaderValues($value);
+            // EXP:ME $value = $this->trimHeaderValues($value);
             $normalized = strtolower($header);
             if (isset($this->headerNames[$normalized])) {
                 $header = $this->headerNames[$normalized];
@@ -115,8 +115,8 @@ trait MessageTrait
 
     public function withAddedHeader($header, $value)
     {
-        $this->assertHeader($header);
-        $value = $this->normalizeHeaderValue($value);
+        // EXP:ME $this->assertHeader($header);
+        // EXP:ME $value = $this->normalizeHeaderValue($value);
         $normalized = strtolower($header);
 /* EXP
         $new = clone $this;
@@ -187,16 +187,16 @@ trait MessageTrait
     // EXP FIXME!!! What the right code here?
     private function setHeaders(array $headers)
     {
-/* EXP */
-        $this->headerNames = $this->headers = [];
+        // EXP:ME $this->headerNames = $this->headers = [];
         foreach ($headers as $header => $value) {
+/* EXP:ME
             if (is_int($header)) {
                 // Numeric array keys are converted to int by PHP but having a header name '123' is not forbidden by the spec
                 // and also allowed in withHeader(). So we need to cast it to string again for the following assertion to pass.
                 $header = (string) $header;
-            }
-            $this->assertHeader($header);
-            $value = $this->normalizeHeaderValue($value);
+            } */
+            // EXP:ME $this->assertHeader($header);
+            // EXP:ME $value = $this->normalizeHeaderValue($value);
             $normalized = strtolower($header);
             if (isset($this->headerNames[$normalized])) {
                 $header = $this->headerNames[$normalized];
@@ -210,6 +210,7 @@ trait MessageTrait
 // EXP        return $this->withHeaders($headers);
     }
 
+    // TODO Do we need this?
     private function normalizeHeaderValue($value)
     {
         if (!is_array($value)) {
@@ -237,6 +238,7 @@ trait MessageTrait
      *
      * @see https://tools.ietf.org/html/rfc7230#section-3.2.4
      */
+    // TODO Do we need this?
     private function trimHeaderValues(array $values)
     {
         return array_map(function ($value) {
@@ -251,6 +253,7 @@ trait MessageTrait
         }, array_values($values));
     }
 
+    // TODO Do we need this?
     private function assertHeader($header)
     {
         if (!is_string($header)) {

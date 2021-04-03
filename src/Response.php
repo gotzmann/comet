@@ -169,7 +169,6 @@ class Response extends GuzzleResponse implements ResponseInterface
         $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
 
         return $this;
-
     }
 
     /**
@@ -221,7 +220,6 @@ class Response extends GuzzleResponse implements ResponseInterface
         $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
 
         return $this;
-
     }
 
     public function getStatusCode()

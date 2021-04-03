@@ -112,12 +112,19 @@ class Request extends GuzzleRequest implements ServerRequestInterface
     */
     public function __construct($http_buffer) {
         $request = new WorkermanRequest($http_buffer);
-        $this->serverParams = $_SERVER;
+
+        $this->serverParams = $_SERVER; // TODO Check again : https://github.com/gotzmann/comet/issues/10
         $this->uploadedFiles = $request->file();
         $this->queryParams = $request->get();
         $this->cookieParams = $request->cookie();
-        parent::__construct($request->method(), $request->uri(), $request->header(),
-            $request->rawBody(), $request->protocolVersion());
+
+        parent::__construct(
+            $request->method(),
+            $request->uri(),
+            $request->header(),
+            $request->rawBody(),
+            $request->protocolVersion()
+        );
     }
 
     /**
