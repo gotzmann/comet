@@ -373,16 +373,16 @@ class Comet
         // TODO Enable trunk transfer for BIG files
         // TODO Dig into 304 status processing
 
-	    $mime_file = __DIR__ . '\mime.types';
+	    $mime_file = __DIR__ . '/mime.types';
 
         if (!is_file($mime_file)) {
-            echo "\n[ERR] $mime_file mime.type file not fond";
+            echo "\n[ERR] mime.type file not found!";
             return;
         }
 
         $items = file($mime_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         if (!is_array($items)) {
-            echo "\n[ERR] get $mime_file mime.type content fail";
+            echo "\n[ERR] mime.type content fails!";
             return;
         }
 
