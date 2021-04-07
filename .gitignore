@@ -14,3 +14,4 @@ Makefile
 Dockerfile.wrk
 Dockerfile.comet
 docker-compose.yml
+php_errors.log

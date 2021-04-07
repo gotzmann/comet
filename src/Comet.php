@@ -14,7 +14,7 @@ use Workerman\Protocols\Http\Response as WorkermanResponse;
 
 class Comet
 {
-    public const VERSION = '1.2.0';
+    public const VERSION = '1.2.1';
 
     // TODO Implement Redirect Helper
     // TODO Move both Form and JSON Body parsers to Request constructor or Middleware
@@ -274,10 +274,12 @@ class Comet
             $worker->onWorkerStart = self::$init;
 
         // TODO Add timers to the single main worker for Windows hosts!
-        // FIXME We should use real free random port not fixed 65432
+        // FIXME We should use 1) free and maybe 2) random port, not fixed 65432.
+        //       That also allow start more than 104 jobs 
         // Init JOB workers
+        $counter = 0;
         foreach (self::$jobs as $job) {
-	        $w = new Worker('text://' . self::$host . ':' . 65432);
+	        $w = new Worker('text://' . self::$host . ':' . strval(65432 + $counter++));
     	    $w->count = $job['workers'];
         	$w->name = 'Comet v' . self::VERSION .' [job] ' . $job['name'];
         	$w->onWorkerStart = function() use ($job) {
