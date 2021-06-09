@@ -10,12 +10,12 @@ use Slim\Factory\Psr17\Psr17FactoryProvider;
 use Slim\Exception\HttpNotFoundException;
 use Workerman\Protocols\Http;
 use Workerman\Worker;
-//use Workerman\Protocols\Http\Request as WorkermanRequest;
+use Workerman\Protocols\Http\Request as WorkermanRequest;
 use Workerman\Protocols\Http\Response as WorkermanResponse;
 
 class Comet
 {
-    public const VERSION = '1.2.0';
+    public const VERSION = '1.9.0';
 
     // TODO Implement Redirect Helper
     // TODO Move both Form and JSON Body parsers to Request constructor or Middleware
@@ -23,9 +23,7 @@ class Comet
     // TODO Suppress Workerman output on forkWorkersForWindows
     // TODO Use Worker::safeEcho for console out?
 
-    /**
-     * @property \Slim\App $app
-     */
+    /** @property \Slim\App $app */
     private static $app;
 
     // TODO Store set up variables within single Config struct
@@ -37,9 +35,12 @@ class Comet
     private static $init;
     private static $container;
 
-    private static $defaultMimeType = 'text/html; charset=utf-8';
-    private static $rootDir;
+    private static $mimeFile;
     private static $mimeTypeMap;
+    private static $defaultMimeType = 'text/html; charset=utf-8';
+    private static $trunkLimitSize = 10 * 1024 * 1024; // Split static content to parts if file size more than limit
+
+    private static $rootDir;
     private static $serveStatic = false;
     private static $staticDir;
     private static $staticExtensions;
@@ -81,6 +82,12 @@ class Comet
         // Using Container
         if (self::$container) {
             AppFactory::setContainer(self::$container);
+        }
+
+        // Know MIME types for embedded web server
+        self::$mimeFile = __DIR__ . '/mime.types';
+        if (!is_file(self::$mimeFile)) {
+            echo "\n[ERR] mime.type file not found!";
         }
 
         self::$app = AppFactory::create();
@@ -380,20 +387,12 @@ class Comet
      */
     public static function sendFile($connection, $file_name)
     {
-    	// TODO Move MIME initialization to class constructor
         // TODO Enable trunk transfer for BIG files
         // TODO Dig into 304 status processing
 
-	    $mime_file = __DIR__ . '/mime.types';
-
-        if (!is_file($mime_file)) {
-            echo "\n[ERR] mime.type file not found!";
-            return;
-        }
-
-        $items = file($mime_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $items = file(self::$mimeFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         if (!is_array($items)) {
-            echo "\n[ERR] get $mime_file mime.type content fail";
+            echo "\n[ERR] Failed to get [mime.type] file content";
             return;
         }
 
@@ -435,41 +434,45 @@ class Comet
         $header .= "Connection: keep-alive\r\n";
 //        $header .= $modified_time;
         $header .= "Content-Length: $file_size\r\n\r\n";
-//        $trunk_limit_size = 1024*1024;
-//        if ($file_size < $trunk_limit_size) {
+
+        // Send the whole file if size is less than limit
+        if ($file_size < self::$trunkLimitSize) {
             return $connection->send($header . file_get_contents($file_name), true);
-//        }
-//        $connection->send($header, true);
-/*
-        // Read file content from disk piece by piece and send to client.
+        }
+
+        // Otherwise, send it part by part
+
         $connection->fileHandler = fopen($file_name, 'r');
-        $do_write = function()use($connection)
+
+        $do_write = function() use ($connection)
         {
-            // Send buffer not full.
-            while(empty($connection->bufferFull))
-            {
-                // Read from disk.
+            // Send buffer not full
+            while (empty($connection->bufferFull)) {
+                // Read from disk
                 $buffer = fread($connection->fileHandler, 8192);
-                // Read eof.
-                if($buffer === '' || $buffer === false)
-                {
+
+                // Read EOF
+                if($buffer === '' || $buffer === false) {
                     return;
                 }
+
                 $connection->send($buffer, true);
             }
         };
-        // Send buffer full.
+
+        // Send buffer full
         $connection->onBufferFull = function($connection)
         {
             $connection->bufferFull = true;
         };
-        // Send buffer drain.
-        $connection->onBufferDrain = function($connection)use($do_write)
+
+        // Send buffer drain
+        $connection->onBufferDrain = function($connection) use ($do_write)
         {
             $connection->bufferFull = false;
             $do_write();
         };
+
         $do_write();
-*/
     }
 }

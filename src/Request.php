@@ -11,48 +11,34 @@ use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 
-// Fast PSR-7 ServerRequest implementation
-
+/**
+ * Fast PSR-7 ServerRequest implementation
+ * @package Comet
+ */
 class Request extends GuzzleRequest implements ServerRequestInterface
 {
-    /**
-     * @var array
-     */
+    /** @var array */
     private $attributes = [];
 
-    /**
-     * @var array
-     */
+    /** @var array */
     private $cookieParams = [];
 
-    /**
-     * @var null|array|object
-     */
+    /** @var null|array|object */
     private $parsedBody;
 
-    /**
-     * @var array
-     */
+    /** @var array */
     private $queryParams = [];
 
-    /**
-     * @var array
-     */
+    /** @var array */
     private $serverParams;
 
-    /**
-     * @var array
-     */
+    /** @var array */
     private $uploadedFiles = [];
 
     // EXP
     // FIXME Comet\Session vs Workerman\Protocols\Http\Session !!!
 
-    /**
-     * Session instance.
-     *
-     * @var Session
-     */
+    /** @var Session */
     // EXP private $session = null;
     public $session = null;
 

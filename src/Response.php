@@ -3,15 +3,14 @@ declare(strict_types=1);
 
 namespace Comet;
 
-//use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
-//use GuzzleHttp\Psr7\Stream;
-//use GuzzleHttp\Psr7\MessageTrait;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 
-// Fast PSR-7 Response implementation
-
+/**
+ * Fast PSR-7 Response implementation
+ * @package Comet
+ */
 class Response extends GuzzleResponse implements ResponseInterface
 {
 	use MessageTrait;
