@@ -178,6 +178,7 @@ class Response extends GuzzleResponse implements ResponseInterface
      */
     public function withHeaders($headers)
     {
+//echo "\n[[[[[ RESPONSE : WITH HEADERS ]]]]\n"; // DEBUG
 /*  EXP
         $new = clone $this;
         $new->setHeaders($headers);
@@ -233,9 +234,9 @@ class Response extends GuzzleResponse implements ResponseInterface
 
     public function withStatus($code, $reasonPhrase = '')
     {
-        $this->assertStatusCodeIsInteger($code);
-        $code = (int) $code;
-        $this->assertStatusCodeRange($code);
+// EXP        $this->assertStatusCodeIsInteger($code);
+// EXP        $code = (int) $code;
+// EXP        $this->assertStatusCodeRange($code);
 /*  EXP
         $new = clone $this;
         $new->statusCode = $code;
@@ -246,28 +247,30 @@ class Response extends GuzzleResponse implements ResponseInterface
         return $new;
 */
         $this->statusCode = $code;
-        if ($reasonPhrase == '' && isset(self::$phrases[$new->statusCode])) {
+// EXP        if ($reasonPhrase == '' && isset(self::$phrases[$new->statusCode])) {
+        if ($reasonPhrase == '' && isset(self::$phrases[$this->statusCode])) {
             $reasonPhrase = self::$phrases[$this->statusCode];
         }
         $this->reasonPhrase = $reasonPhrase;
 
         return $this;
     }
-
+/* EXP
     private function assertStatusCodeIsInteger($statusCode)
     {
         if (filter_var($statusCode, FILTER_VALIDATE_INT) === false) {
             throw new \InvalidArgumentException('Status code must be an integer value.');
         }
     }
-
+*/
+/* EXP
     private function assertStatusCodeRange($statusCode)
     {
         if ($statusCode < 100 || $statusCode >= 600) {
             throw new \InvalidArgumentException('Status code must be an integer value between 1xx and 5xx.');
         }
     }
-
+*/
     // EXP DO we need this?
     public function __toString()
     {
@@ -302,6 +305,7 @@ function response_to_string(ResponseInterface $message)
             $msg .= "\r\nConnection: keep-alive";
         }
 
+        // FIXME Name!
         if ('' === $message->getHeaderLine('Server')) {
             $msg .= "\r\nServer: workerman";
         }

@@ -213,8 +213,11 @@ class Comet
         );
 
     	$req->setAttribute('connection', $request->connection);
-*/ $req = $request;
-        $ret = self::$app->handle($req);
+*/ /////$req = $request;
+        /////$ret = self::$app->handle($req);
+
+        $ret = self::$app->handle($request);
+
 /* EXP
         $headers = $ret->getHeaders();
 
@@ -389,7 +392,7 @@ class Comet
     {
         // TODO Enable trunk transfer for BIG files
         // TODO Dig into 304 status processing
-
+echo "\n[DBG] SendFile"; // DEBUG
         $items = file(self::$mimeFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         if (!is_array($items)) {
             echo "\n[ERR] Failed to get [mime.type] file content";

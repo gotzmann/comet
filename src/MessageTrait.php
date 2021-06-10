@@ -28,13 +28,14 @@ trait MessageTrait
 
     public function withProtocolVersion($version)
     {
-        if ($this->protocol === $version) {
-            return $this;
-        }
-/* EXP
-        $new = clone $this;
-        $new->protocol = $version;
-        return $new; */
+        /* EXP
+                if ($this->protocol === $version) {
+                    return $this;
+                }
+
+                $new = clone $this;
+                $new->protocol = $version;
+                return $new; */
         $this->protocol = $version;
         return $this;
     }
@@ -49,8 +50,33 @@ trait MessageTrait
         return isset($this->headerNames[strtolower($header)]);
     }
 
+/*
+
+WAS
+
+headers = array(14) {
+    ["host"] => array(1) {
+        [0] => string(9) "localhost"
+    }
+    ...
+}
+
+headerNames = array(14) {
+    ["host"] => string(4) "host"
+}
+
+NOW
+
+
+ */
+
     public function getHeader($header)
     {
+//echo "\n\n --- getHeader COMET\n"; // DEBUG
+//echo "\n headers = \n"; // DEBUG
+//var_dump($this->headers); // DEBUG
+//echo "\n headerNames = \n"; // DEBUG//
+//var_dump($this->headerNames); // DEBUG
         $header = strtolower($header);
 
         if (!isset($this->headerNames[$header])) {
@@ -64,6 +90,8 @@ trait MessageTrait
 
     public function getHeaderLine($header)
     {
+//echo "\n\n === getHeaderLine COMET\n";
+//var_dump($header); // DEBUG
         return implode(', ', $this->getHeader($header));
     }
 
@@ -95,6 +123,7 @@ trait MessageTrait
     // EXP FIXME!!! Do we need this?
     public function withHeaders(array $headers)
     {
+//echo "\n[[[[[ MESSAGE TRAIT : WITH HEADERS ]]]]\n"; // DEBUG
         foreach ($headers as $header => $value) {
             if (!is_array($value)) {
                 $value = [$value];
@@ -164,7 +193,7 @@ trait MessageTrait
     public function getBody()
     {
         if (!$this->stream) {
-            $this->stream = Utils::streamFor('');
+            $this->stream = \GuzzleHttp\Psr7\Utils::streamFor('');
         }
 
         return $this->stream;
@@ -188,6 +217,9 @@ trait MessageTrait
     private function setHeaders(array $headers)
     {
         // EXP:ME $this->headerNames = $this->headers = [];
+        $this->headers = [];
+        $this->headerNames = [];
+
         foreach ($headers as $header => $value) {
 /* EXP:ME
             if (is_int($header)) {
@@ -195,8 +227,29 @@ trait MessageTrait
                 // and also allowed in withHeader(). So we need to cast it to string again for the following assertion to pass.
                 $header = (string) $header;
             } */
+
+            // EXP:ME Double the code before
+///            if (is_int($header)) {
+                // Numeric array keys are converted to int by PHP but having a header name '123' is not forbidden by the spec
+                // and also allowed in withHeader(). So we need to cast it to string again for the following assertion to pass.
+///                $header = (string) $header;
+///            }
+
             // EXP:ME $this->assertHeader($header);
             // EXP:ME $value = $this->normalizeHeaderValue($value);
+
+            // EXP:ME Try to double code before
+            // EXP:ME $this->assertHeader($header);
+//echo "\n*** VALUE BEFORE\n"; // DEBUG
+//var_dump($value);
+            // string(24) "text/html; charset=utf=8" ===> array(1) { [0] => string(24) "text/html; charset=utf=8" }
+            // EXP:ME $value = $this->normalizeHeaderValue($value);
+            // Simplify [normalizeHeaderValue] here with just an [array_values] call
+            $value = is_array($value) ? array_values($value) : array_values([$value]);
+//echo "\n*** VALUE AFTER\n"; // DEBUG
+//var_dump($value);
+
+
             $normalized = strtolower($header);
             if (isset($this->headerNames[$normalized])) {
                 $header = $this->headerNames[$normalized];
@@ -208,6 +261,10 @@ trait MessageTrait
         }
 //*/
 // EXP        return $this->withHeaders($headers);
+
+        // EXP:ME Try to return code - NO LOOP!
+//        return $this->withHeaders($headers);
+
     }
 
     // TODO Do we need this?
