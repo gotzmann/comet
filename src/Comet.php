@@ -310,7 +310,7 @@ class Comet
             //      This helps optimize regular API calls execution speed
 
             try {
-/*  EXP:ME
+/////*  EXP:ME
             	// TODO Refactor web-server as standalone component
             	// TODO Distinguish relative and absolute directories
             	// TODO HTTP Cache, MIME Types, Multiple Domains, Check Extensions
@@ -341,10 +341,13 @@ class Comet
                         return self::sendFile($connection, $filename);
                     }
             	} 
-*/
+/////*/
                 // Proceed with other handlers
                 $response = self::_handle($request);
                 $connection->send($response);
+
+                // EXP Try to send file AFTER the handlers
+
 
             } catch(HttpNotFoundException $error) {
                 $connection->send(new WorkermanResponse(404));
@@ -392,7 +395,7 @@ class Comet
     {
         // TODO Enable trunk transfer for BIG files
         // TODO Dig into 304 status processing
-echo "\n[DBG] SendFile"; // DEBUG
+//echo "\n[DBG] SendFile"; // DEBUG
         $items = file(self::$mimeFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         if (!is_array($items)) {
             echo "\n[ERR] Failed to get [mime.type] file content";
