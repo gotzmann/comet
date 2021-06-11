@@ -11,6 +11,8 @@ use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 
+// TODO Do not clone request within its methods, use $this instead!
+
 /**
  * Fast PSR-7 ServerRequest implementation
  * @package Comet
@@ -99,7 +101,8 @@ class Request extends GuzzleRequest implements ServerRequestInterface
     public function __construct($http_buffer) {
         $request = new WorkermanRequest($http_buffer);
 
-        $this->serverParams = $_SERVER; // TODO Check again : https://github.com/gotzmann/comet/issues/10
+        // TODO Check again : https://github.com/gotzmann/comet/issues/10
+        $this->serverParams = $_SERVER;
         $this->uploadedFiles = $request->file();
         $this->queryParams = $request->get();
         $this->cookieParams = $request->cookie();

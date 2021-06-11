@@ -35,19 +35,26 @@ class Comet
     private static $init;
     private static $container;
 
+    // MIME Types for internal web-server
     private static $mimeFile;
     private static $mimeTypeMap;
     private static $defaultMimeType = 'text/html; charset=utf-8';
 
+    // Settings of handling static files by internal web-server
     private static $rootDir;
     private static $serveStatic = false;
     private static $staticDir;
     private static $staticExtensions;
-    private static $trunkLimitSize = 10 * 1024 * 1024; // Split static content to parts if file size more than limit
+    private static $trunkLimitSize = 2 * 1024 * 1024; // Split static content to parts if file size more than limit of 2 Mb
 
     private static $config = [];
     private static $jobs = [];
 
+    /**
+     * Comet constructor
+     *
+     * @param array|null $config
+     */
     public function __construct(array $config = null)
     {
         self::$host = $config['host'] ?? '0.0.0.0';
@@ -79,16 +86,35 @@ class Comet
         $provider::setFactories([ CometPsr17Factory::class ]);
         AppFactory::setPsr17FactoryProvider($provider);
 	
-        // Using Container
+        // Set up Container
         if (self::$container) {
             AppFactory::setContainer(self::$container);
         }
 
-        // Know MIME types for embedded web server
+        // --- Know MIME types for embedded web server
+
         self::$mimeFile = __DIR__ . '/mime.types';
         if (!is_file(self::$mimeFile)) {
             echo "\n[ERR] mime.type file not found!";
+        } else {
+            $items = file(self::$mimeFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            if (!is_array($items)) {
+                echo "\n[ERR] Failed to get [mime.type] file content";
+            } else {
+                foreach ($items as $content) {
+                    if (preg_match("/\s*(\S+)\s+(\S.+)/", $content, $match)) {
+                        $mime_type = $match[1];
+                        $workerman_file_extension_var = $match[2];
+                        $workerman_file_extension_array = explode(' ', substr($workerman_file_extension_var, 0, -1));
+                        foreach ($workerman_file_extension_array as $workerman_file_extension) {
+                            self::$mimeTypeMap[$workerman_file_extension] = $mime_type;
+                        }
+                    }
+                }
+            }
         }
+
+        // --- Create SlimPHP App instance with JSON parser middleware
 
         self::$app = AppFactory::create();
         self::$app->add(new JsonBodyParserMiddleware());
@@ -301,8 +327,28 @@ class Comet
         	};
         }
 
-        // Main Loop
+       	// Suppress Workerman startup message
+        global $argv;
+        $argv[] = '-q';
+
+        // Write Comet startup message to log file and show on screen
+        $jobsInfo = count(self::$jobs) ? ' / ' . count(self::$jobs) . ' jobs' : ''; 
+      	$hello = $worker->name . ' [' . self::$config['workers'] . ' workers' . $jobsInfo . '] ready on http://' . self::$host . ':' . self::$port;
+       	if (self::$logger) {
+            self::$logger->info($hello);
+       	}
+
+        if (DIRECTORY_SEPARATOR === '\\') {
+            echo "\n-------------------------------------------------------------------------";
+            echo "\nServer               Listen                              Workers   Status";
+            echo "\n-------------------------------------------------------------------------\n";
+        } else {
+            echo $hello . "\n";
+        }
+
         Http::requestClass(Request::class); // Point Workerman to our Request class to use it within onMessage
+
+        // --- Main Loop
 // EXP        $worker->onMessage = static function($connection, WorkermanRequest $request)
         $worker->onMessage = static function($connection, Request $request)
         {
@@ -311,11 +357,11 @@ class Comet
 
             try {
 /////*  EXP:ME
-            	// TODO Refactor web-server as standalone component
-            	// TODO Distinguish relative and absolute directories
-            	// TODO HTTP Cache, MIME Types, Multiple Domains, Check Extensions
+                // TODO Refactor web-server as standalone component
+                // TODO Distinguish relative and absolute directories
+                // TODO HTTP Cache, MIME Types, Multiple Domains, Check Extensions
 
-                // Serve static files first
+                // --- Serve static files first
 // EXP                if (self::$serveStatic && $request->method() === 'GET') {
                 if (self::$serveStatic && $request->getMethod() === 'GET') {
 
@@ -340,9 +386,10 @@ class Comet
                     ) {
                         return self::sendFile($connection, $filename);
                     }
-            	} 
+                }
 /////*/
-                // Proceed with other handlers
+                // --- Proceed with other handlers
+
                 $response = self::_handle($request);
                 $connection->send($response);
 
@@ -359,24 +406,7 @@ class Comet
             }
         };
 
-       	// Suppress Workerman startup message
-        global $argv;
-        $argv[] = '-q';
-
-        // Write Comet startup message to log file and show on screen
-        $jobsInfo = count(self::$jobs) ? ' / ' . count(self::$jobs) . ' jobs' : ''; 
-      	$hello = $worker->name . ' [' . self::$config['workers'] . ' workers' . $jobsInfo . '] ready on http://' . self::$host . ':' . self::$port;
-       	if (self::$logger) {
-            self::$logger->info($hello);
-       	}
-
-        if (DIRECTORY_SEPARATOR === '\\') {
-            echo "\n-------------------------------------------------------------------------";
-            echo "\nServer               Listen                              Workers   Status";
-            echo "\n-------------------------------------------------------------------------\n";
-        } else {
-            echo $hello . "\n";
-        }
+        // --- Start event loop
 
         Worker::runAll();
     }
@@ -390,37 +420,21 @@ class Comet
      */
     public static function sendFile($connection, $file_name)
     {
-        $items = file(self::$mimeFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        if (!is_array($items)) {
-            echo "\n[ERR] Failed to get [mime.type] file content";
-            return;
-        }
-
-        foreach ($items as $content) {
-            if (preg_match("/\s*(\S+)\s+(\S.+)/", $content, $match)) {
-                $mime_type                      = $match[1];
-                $workerman_file_extension_var   = $match[2];
-                $workerman_file_extension_array = explode(' ', substr($workerman_file_extension_var, 0, -1));
-                foreach ($workerman_file_extension_array as $workerman_file_extension) {
-                    self::$mimeTypeMap[$workerman_file_extension] = $mime_type;
-                }
-            }
-        }
-
         $file_size = filesize($file_name);
         $extension = pathinfo($file_name, PATHINFO_EXTENSION);
         $content_type = isset(self::$mimeTypeMap[$extension]) ? self::$mimeTypeMap[$extension] : self::$defaultMimeType;
-        $header = "HTTP/1.1 200 OK\r\n";
+        $header  = "HTTP/1.1 200 OK\r\n";
         $header .= "Content-Type: $content_type\r\n";
         $header .= "Connection: keep-alive\r\n";
         $header .= "Content-Length: $file_size\r\n\r\n";
 
-        // Send the whole file if size is less than limit
+        // --- Send the whole file if size is less than limit
+
         if ($file_size < self::$trunkLimitSize) {
             return $connection->send($header . file_get_contents($file_name), true);
         }
 
-        // Otherwise, send it part by part
+        // --- Otherwise, send it part by part
 
         $connection->fileHandler = fopen($file_name, 'r');
 
