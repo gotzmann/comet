@@ -38,12 +38,12 @@ class Comet
     private static $mimeFile;
     private static $mimeTypeMap;
     private static $defaultMimeType = 'text/html; charset=utf-8';
-    private static $trunkLimitSize = 10 * 1024 * 1024; // Split static content to parts if file size more than limit
 
     private static $rootDir;
     private static $serveStatic = false;
     private static $staticDir;
     private static $staticExtensions;
+    private static $trunkLimitSize = 10 * 1024 * 1024; // Split static content to parts if file size more than limit
 
     private static $config = [];
     private static $jobs = [];
@@ -51,7 +51,7 @@ class Comet
     public function __construct(array $config = null)
     {
         self::$host = $config['host'] ?? '0.0.0.0';
-        self::$port = $config['port'] ?? 8080;    
+        self::$port = $config['port'] ?? 8080;
         self::$debug = $config['debug'] ?? false;
         self::$logger = $config['logger'] ?? null;
         self::$container = $config['container'] ?? null;
@@ -269,7 +269,7 @@ class Comet
      */
     public function run()
     {
-        // Write worker output to log file if exists
+        // Redirect workers output to log file if it exists
         if (self::$logger) {
             foreach(self::$logger->getHandlers() as $handler) {
                 if ($handler->getUrl()) {
@@ -302,7 +302,7 @@ class Comet
         }
 
         // Main Loop
-        Http::requestClass(Request::class); // EXP
+        Http::requestClass(Request::class); // Point Workerman to our Request class to use it within onMessage
 // EXP        $worker->onMessage = static function($connection, WorkermanRequest $request)
         $worker->onMessage = static function($connection, Request $request)
         {
@@ -345,9 +345,6 @@ class Comet
                 // Proceed with other handlers
                 $response = self::_handle($request);
                 $connection->send($response);
-
-                // EXP Try to send file AFTER the handlers
-
 
             } catch(HttpNotFoundException $error) {
                 $connection->send(new WorkermanResponse(404));
@@ -393,9 +390,6 @@ class Comet
      */
     public static function sendFile($connection, $file_name)
     {
-        // TODO Enable trunk transfer for BIG files
-        // TODO Dig into 304 status processing
-//echo "\n[DBG] SendFile"; // DEBUG
         $items = file(self::$mimeFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         if (!is_array($items)) {
             echo "\n[ERR] Failed to get [mime.type] file content";
@@ -412,33 +406,13 @@ class Comet
                 }
             }
         }
-/*
-        // Check 304.
-        $info = stat($file_name);
-        $modified_time = $info ? date('D, d M Y H:i:s', $info['mtime']) . ' GMT' : '';
-        if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $info) {
-            // Http 304.
-            if ($modified_time === $_SERVER['HTTP_IF_MODIFIED_SINCE']) {
-                // 304
-                Http::header('HTTP/1.1 304 Not Modified');
-                // Send nothing but http headers..
-                $connection->close('');
-                return;
-            }
-        }
 
-        // Http header.
-        if ($modified_time) {
-            $modified_time = "Last-Modified: $modified_time\r\n";
-        }
-*/
         $file_size = filesize($file_name);
         $extension = pathinfo($file_name, PATHINFO_EXTENSION);
         $content_type = isset(self::$mimeTypeMap[$extension]) ? self::$mimeTypeMap[$extension] : self::$defaultMimeType;
         $header = "HTTP/1.1 200 OK\r\n";
         $header .= "Content-Type: $content_type\r\n";
         $header .= "Connection: keep-alive\r\n";
-//        $header .= $modified_time;
         $header .= "Content-Length: $file_size\r\n\r\n";
 
         // Send the whole file if size is less than limit
