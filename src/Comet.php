@@ -242,10 +242,10 @@ class Comet
 */ /////$req = $request;
         /////$ret = self::$app->handle($req);
 
-        $ret = self::$app->handle($request);
+        $response = self::$app->handle($request);
 
-/* EXP
-        $headers = $ret->getHeaders();
+///* EXP
+        $headers = $response->getHeaders();
 
         if (!isset($headers['Server'])) {
             $headers['Server'] = 'Comet v' . self::VERSION;
@@ -253,23 +253,29 @@ class Comet
 
         if (!isset($headers['Content-Type'])) {
             $headers['Content-Type'] = 'text/html; charset=utf-8';
-        } */
-/* EXP
+        } //*/
+///* EXP
         // Save session data to disk if needed
-        if ($req->getSession()) {
-            if (count($req->getSession()->all())) {
+        // EXP if ($req->getSession()) {
+        if ($request->getSession()) { // TODO Always true?
+//echo "\n --- [request->getSession()] all \n"; // DEBUG
+//var_dump($request->getSession()->all());
+            // EXP if (count($req->getSession()->all())) {
+            if (count($request->getSession()->all())) {
                 // If there no PHPSESSID between request cookies AND response headers, we should send session cookie to browser
                 // TODO What to do if request cookie PHPSESSID is not equal to response?
                 $defaultSessionName = Session::sessionName();
-                if (!array_key_exists($defaultSessionName, $request->cookie()) &&
+                // EXP if (!array_key_exists($defaultSessionName, $request->cookie()) &&
+                if (!array_key_exists($defaultSessionName, $request->getCookieParams()) &&
                     (!array_key_exists('cookie', $headers) ||
                         (array_key_exists('cookie', $headers) &&
                             strpos($headers['cookie'], $defaultSessionName) === false))) {
                     $cookie_params = \session_get_cookie_params();
-                    $session_id = $req->getSession()->getId();
+                    // EXP $session_id = $req->getSession()->getId();
+                    $session_id = $request->getSession()->getId();
                     $cookie = 'PHPSESSID' . '=' . $session_id
                         . (empty($cookie_params['domain']) ? '' : '; Domain=' . $cookie_params['domain'])
-                        . (empty($cookie_params['lifetime']) ? '' : '; Max-Age=' . ($cookie_params['lifetime']))
+                        . (empty($cookie_params['lifetime']) ? '' : '; Max-Age=' . $cookie_params['lifetime'])
                         . (empty($cookie_params['path']) ? '' : '; Path=' . $cookie_params['path'])
                         . (empty($cookie_params['samesite']) ? '' : '; SameSite=' . $cookie_params['samesite'])
                         . (!$cookie_params['secure'] ? '' : '; Secure')
@@ -277,9 +283,10 @@ class Comet
                     $headers['Set-Cookie'] = $cookie;
                 }
                 // Save session to storage otherwise it would be saved on destruct()
-                $req->getSession()->save();
+                // EXP $req->getSession()->save();
+                $request->getSession()->save();
             }
-        } */
+        } //*/
 /* EXP
         return new WorkermanResponse(
             $ret->getStatusCode(),
@@ -287,7 +294,10 @@ class Comet
             $ret->getBody()
         ); */
 
-        return $ret;
+        // ADDED for V2
+        $response->withHeaders($headers);
+
+        return $response;
     }
 
     /**
@@ -338,6 +348,7 @@ class Comet
             self::$logger->info($hello);
        	}
 
+       	// Special greeting for Windows
         if (DIRECTORY_SEPARATOR === '\\') {
             echo "\n-------------------------------------------------------------------------";
             echo "\nServer               Listen                              Workers   Status";
@@ -346,7 +357,8 @@ class Comet
             echo $hello . "\n";
         }
 
-        Http::requestClass(Request::class); // Point Workerman to our Request class to use it within onMessage
+        // Point Workerman to our Request class to use it within onMessage
+        Http::requestClass(Request::class);
 
         // --- Main Loop
 // EXP        $worker->onMessage = static function($connection, WorkermanRequest $request)

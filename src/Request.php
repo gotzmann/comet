@@ -37,10 +37,7 @@ class Request extends GuzzleRequest implements ServerRequestInterface
     /** @var array */
     private $uploadedFiles = [];
 
-    // EXP
-    // FIXME Comet\Session vs Workerman\Protocols\Http\Session !!!
-
-    /** @var Session */
+    /** @var Comet\Session */
     // EXP private $session = null;
     public $session = null;
 
@@ -96,16 +93,10 @@ class Request extends GuzzleRequest implements ServerRequestInterface
     /**
     // EXP
     * ServerRequest constructor.
-    * @param string $http_buffer
+    * @param string $httpBuffer
     */
-    public function __construct($http_buffer) {
-        $request = new WorkermanRequest($http_buffer);
-
-        // TODO Check again : https://github.com/gotzmann/comet/issues/10
-        $this->serverParams = $_SERVER;
-        $this->uploadedFiles = $request->file();
-        $this->queryParams = $request->get();
-        $this->cookieParams = $request->cookie();
+    public function __construct($httpBuffer) {
+        $request = new WorkermanRequest($httpBuffer);
 
         parent::__construct(
             $request->method(),
@@ -114,6 +105,31 @@ class Request extends GuzzleRequest implements ServerRequestInterface
             $request->rawBody(),
             $request->protocolVersion()
         );
+
+        // TODO Check again : https://github.com/gotzmann/comet/issues/10
+        $this->serverParams = $_SERVER;
+        $this->uploadedFiles = $request->file();
+        $this->queryParams = $request->get();
+        $this->cookieParams = $request->cookie();
+
+        // Parse body of POST request with form data
+//var_dump($request->header()); die(); // DEBUG
+        $headers = $request->header();
+        if (array_key_exists('content-type', $headers) &&
+            $headers['content-type'] == 'application/x-www-form-urlencoded'
+        ) {
+            \parse_str($request->rawBody(), $this->parsedBody);
+        }
+
+        // Wake up active or create new shadow session
+        $defaultSessionName = Session::sessionName();
+        if (array_key_exists($defaultSessionName, $this->cookieParams)) {
+            $session_id = $this->cookieParams[$defaultSessionName];
+            $this->session = new Session($session_id);
+        } else {
+            $this->session = new Session();
+        }
+
     }
 
     /**

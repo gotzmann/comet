@@ -228,13 +228,6 @@ NOW
                 $header = (string) $header;
             } */
 
-            // EXP:ME Double the code before
-///            if (is_int($header)) {
-                // Numeric array keys are converted to int by PHP but having a header name '123' is not forbidden by the spec
-                // and also allowed in withHeader(). So we need to cast it to string again for the following assertion to pass.
-///                $header = (string) $header;
-///            }
-
             // EXP:ME $this->assertHeader($header);
             // EXP:ME $value = $this->normalizeHeaderValue($value);
 
@@ -248,7 +241,6 @@ NOW
             $value = is_array($value) ? array_values($value) : array_values([$value]);
 //echo "\n*** VALUE AFTER\n"; // DEBUG
 //var_dump($value);
-
 
             $normalized = strtolower($header);
             if (isset($this->headerNames[$normalized])) {
