@@ -21,62 +21,47 @@ trait MessageTrait
     /** @var StreamInterface|null */
     private $stream;
 
+    /**
+     * @return string
+     */
     public function getProtocolVersion()
     {
         return $this->protocol;
     }
 
+    /**
+     * @param $version
+     * @return $this
+     */
     public function withProtocolVersion($version)
     {
-        /* EXP
-                if ($this->protocol === $version) {
-                    return $this;
-                }
-
-                $new = clone $this;
-                $new->protocol = $version;
-                return $new; */
         $this->protocol = $version;
         return $this;
     }
 
+    /**
+     * @return array
+     */
     public function getHeaders()
     {
         return $this->headers;
     }
 
+    /**
+     * @param $header
+     * @return bool
+     */
     public function hasHeader($header)
     {
         return isset($this->headerNames[strtolower($header)]);
     }
 
-/*
-
-WAS
-
-headers = array(14) {
-    ["host"] => array(1) {
-        [0] => string(9) "localhost"
-    }
-    ...
-}
-
-headerNames = array(14) {
-    ["host"] => string(4) "host"
-}
-
-NOW
-
-
- */
-
+    /**
+     * @param $header
+     * @return array|mixed
+     */
     public function getHeader($header)
     {
-//echo "\n\n --- getHeader COMET\n"; // DEBUG
-//echo "\n headers = \n"; // DEBUG
-//var_dump($this->headers); // DEBUG
-//echo "\n headerNames = \n"; // DEBUG//
-//var_dump($this->headerNames); // DEBUG
         $header = strtolower($header);
 
         if (!isset($this->headerNames[$header])) {
@@ -88,27 +73,25 @@ NOW
         return $this->headers[$header];
     }
 
+    /**
+     * @param $header
+     * @return string
+     */
     public function getHeaderLine($header)
     {
-//echo "\n\n === getHeaderLine COMET\n";
-//var_dump($header); // DEBUG
         return implode(', ', $this->getHeader($header));
     }
 
+    /**
+     * @param $header
+     * @param $value
+     * @return $this
+     */
     public function withHeader($header, $value)
     {
-        // EXP ME $this->assertHeader($header);
+        // EXP $this->assertHeader($header);
         $value = $this->normalizeHeaderValue($value);
         $normalized = strtolower($header);
-/* EXP
-        $new = clone $this;
-        if (isset($new->headerNames[$normalized])) {
-            unset($new->headers[$new->headerNames[$normalized]]);
-        }
-        $new->headerNames[$normalized] = $header;
-        $new->headers[$header] = $value;
-
-        return $new; */
 
         if (isset($this->headerNames[$normalized])) {
             unset($this->headers[$this->headerNames[$normalized]]);
@@ -120,16 +103,18 @@ NOW
         return $this;
     }
 
-    // EXP FIXME!!! Do we need this?
+    /**
+     * @param array $headers
+     * @return $this
+     */
     public function withHeaders(array $headers)
     {
-//echo "\n[[[[[ MESSAGE TRAIT : WITH HEADERS ]]]]\n"; // DEBUG
         foreach ($headers as $header => $value) {
             if (!is_array($value)) {
                 $value = [$value];
             }
 
-            // EXP:ME $value = $this->trimHeaderValues($value);
+            // EXP $value = $this->trimHeaderValues($value);
             $normalized = strtolower($header);
             if (isset($this->headerNames[$normalized])) {
                 $header = $this->headerNames[$normalized];
@@ -142,23 +127,16 @@ NOW
         return $this;
     }
 
+    /**
+     * @param $header
+     * @param $value
+     * @return $this
+     */
     public function withAddedHeader($header, $value)
     {
-        // EXP:ME $this->assertHeader($header);
-        // EXP:ME $value = $this->normalizeHeaderValue($value);
+        // EXP $this->assertHeader($header);
+        // EXP $value = $this->normalizeHeaderValue($value);
         $normalized = strtolower($header);
-/* EXP
-        $new = clone $this;
-        if (isset($new->headerNames[$normalized])) {
-            $header = $this->headerNames[$normalized];
-            $new->headers[$header] = array_merge($this->headers[$header], $value);
-        } else {
-            $new->headerNames[$normalized] = $header;
-            $new->headers[$header] = $value;
-        }
-
-        return $new;
-*/
         if (isset($this->headerNames[$normalized])) {
             $header = $this->headerNames[$normalized];
             $this->headers[$header] = array_merge($this->headers[$header], $value);
@@ -170,6 +148,10 @@ NOW
         return $this;
     }
 
+    /**
+     * @param $header
+     * @return $this
+     */
     public function withoutHeader($header)
     {
         $normalized = strtolower($header);
@@ -179,17 +161,15 @@ NOW
         }
 
         $header = $this->headerNames[$normalized];
-/* EXP
-        $new = clone $this;
-        unset($new->headers[$header], $new->headerNames[$normalized]);
-
-        return $new; */
 
         unset($this->headers[$header], $this->headerNames[$normalized]);
 
         return $this;
     }
 
+    /**
+     * @return StreamInterface|null
+     */
     public function getBody()
     {
         if (!$this->stream) {
@@ -199,48 +179,32 @@ NOW
         return $this->stream;
     }
 
+    /**
+     * @param StreamInterface $body
+     * @return $this
+     */
     public function withBody(StreamInterface $body)
     {
         if ($body === $this->stream) {
             return $this;
         }
-/* EXP
-        $new = clone $this;
-        $new->stream = $body;
-        return $new; */
 
         $this->stream = $body;
         return $this;
     }
 
-    // EXP FIXME!!! What the right code here?
+    /**
+     * @param array $headers
+     * @return $this
+     */
     private function setHeaders(array $headers)
     {
-        // EXP:ME $this->headerNames = $this->headers = [];
         $this->headers = [];
         $this->headerNames = [];
 
         foreach ($headers as $header => $value) {
-/* EXP:ME
-            if (is_int($header)) {
-                // Numeric array keys are converted to int by PHP but having a header name '123' is not forbidden by the spec
-                // and also allowed in withHeader(). So we need to cast it to string again for the following assertion to pass.
-                $header = (string) $header;
-            } */
-
-            // EXP:ME $this->assertHeader($header);
-            // EXP:ME $value = $this->normalizeHeaderValue($value);
-
-            // EXP:ME Try to double code before
-            // EXP:ME $this->assertHeader($header);
-//echo "\n*** VALUE BEFORE\n"; // DEBUG
-//var_dump($value);
-            // string(24) "text/html; charset=utf=8" ===> array(1) { [0] => string(24) "text/html; charset=utf=8" }
-            // EXP:ME $value = $this->normalizeHeaderValue($value);
             // Simplify [normalizeHeaderValue] here with just an [array_values] call
             $value = is_array($value) ? array_values($value) : array_values([$value]);
-//echo "\n*** VALUE AFTER\n"; // DEBUG
-//var_dump($value);
 
             $normalized = strtolower($header);
             if (isset($this->headerNames[$normalized])) {
@@ -251,15 +215,15 @@ NOW
                 $this->headers[$header] = $value;
             }
         }
-//*/
-// EXP        return $this->withHeaders($headers);
 
-        // EXP:ME Try to return code - NO LOOP!
-//        return $this->withHeaders($headers);
-
+        return $this;
     }
 
-    // TODO Do we need this?
+    /**
+     * DEPRECATED
+     * @param $value
+     * @return string[]
+     */
     private function normalizeHeaderValue($value)
     {
         if (!is_array($value)) {
@@ -274,6 +238,8 @@ NOW
     }
 
     /**
+     * DEPRECATED
+     *
      * Trims whitespace from the header values.
      *
      * Spaces and tabs ought to be excluded by parsers when extracting the field value from a header field.
@@ -287,7 +253,6 @@ NOW
      *
      * @see https://tools.ietf.org/html/rfc7230#section-3.2.4
      */
-    // TODO Do we need this?
     private function trimHeaderValues(array $values)
     {
         return array_map(function ($value) {
@@ -302,7 +267,10 @@ NOW
         }, array_values($values));
     }
 
-    // TODO Do we need this?
+    /**
+     * DEPRECATED
+     * @param $header
+     */
     private function assertHeader($header)
     {
         if (!is_string($header)) {

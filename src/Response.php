@@ -101,7 +101,6 @@ class Response extends GuzzleResponse implements ResponseInterface
         $this->setHeaders($headers);
 
         if ($body !== '' && $body !== null) {
-            // EXP $this->stream = \GuzzleHttp\Psr7\stream_for($body);
             $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
         }
 
@@ -126,29 +125,6 @@ class Response extends GuzzleResponse implements ResponseInterface
      */
     public function with($body, $status = null)
     {
-/*  EXP
-        $new = clone $this;
-
-        if ($status) {
-            $new->statusCode = (int) $status;
-            if (isset(self::$phrases[$status])) {
-                $new->reasonPhrase = self::$phrases[$status];
-            }
-        }
-
-        if (is_array($body) || is_object($body)) {
-            $body = json_encode($body);
-            if ($body === false) {
-                throw new \RuntimeException(json_last_error_msg(), json_last_error());
-            }
-            $new->setHeaders([ 'Content-Type' => 'application/json; charset=utf-8' ]);
-        } 
-
-        // TODO $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
-        $new->stream = \GuzzleHttp\Psr7\stream_for($body);
-
-        return $new;
-*/
         if ($status) {
             $this->statusCode = (int) $status;
             if (isset(self::$phrases[$status])) {
@@ -164,7 +140,6 @@ class Response extends GuzzleResponse implements ResponseInterface
             $this->setHeaders([ 'Content-Type' => 'application/json; charset=utf-8' ]);
         }
 
-        // EXP $this->stream = \GuzzleHttp\Psr7\stream_for($body);
         $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
 
         return $this;
@@ -178,35 +153,12 @@ class Response extends GuzzleResponse implements ResponseInterface
      */
     public function withHeaders($headers)
     {
-//echo "\n[[[[[ RESPONSE : WITH HEADERS ]]]]\n"; // DEBUG
-/*  EXP
-        $new = clone $this;
-        $new->setHeaders($headers);
-        return $new;
-*/
         $this->setHeaders($headers);
         return $this;
     }
 
     public function withText($body, $status = null)
     {
-/*  EXP
-        $new = clone $this;
-
-        if (isset($status)) {
-            $new->statusCode = (int) $status;
-            if (isset(self::$phrases[$status])) {
-                $new->reasonPhrase = self::$phrases[$status];
-            }
-        }
-
-        $new->setHeaders([ 'Content-Type' => 'text/plain; charset=utf-8' ]);
-
-        // TODO $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
-        $new->stream = \GuzzleHttp\Psr7\stream_for($body);
-
-        return $new;
-*/
         if (isset($status)) {
             $this->statusCode = (int) $status;
             if (isset(self::$phrases[$status])) {
@@ -216,7 +168,6 @@ class Response extends GuzzleResponse implements ResponseInterface
 
         $this->setHeaders([ 'Content-Type' => 'text/plain; charset=utf-8' ]);
 
-        // EXP $this->stream = \GuzzleHttp\Psr7\stream_for($body);
         $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
 
         return $this;
@@ -234,20 +185,7 @@ class Response extends GuzzleResponse implements ResponseInterface
 
     public function withStatus($code, $reasonPhrase = '')
     {
-// EXP        $this->assertStatusCodeIsInteger($code);
-// EXP        $code = (int) $code;
-// EXP        $this->assertStatusCodeRange($code);
-/*  EXP
-        $new = clone $this;
-        $new->statusCode = $code;
-        if ($reasonPhrase == '' && isset(self::$phrases[$new->statusCode])) {
-            $reasonPhrase = self::$phrases[$new->statusCode];
-        }
-        $new->reasonPhrase = $reasonPhrase;
-        return $new;
-*/
-        $this->statusCode = $code;
-// EXP        if ($reasonPhrase == '' && isset(self::$phrases[$new->statusCode])) {
+        $this->statusCode = (int) $code;
         if ($reasonPhrase == '' && isset(self::$phrases[$this->statusCode])) {
             $reasonPhrase = self::$phrases[$this->statusCode];
         }
@@ -255,22 +193,29 @@ class Response extends GuzzleResponse implements ResponseInterface
 
         return $this;
     }
-/* EXP
+
+    /**
+     * DEPRECATED
+     * @param $statusCode
+     */
     private function assertStatusCodeIsInteger($statusCode)
     {
         if (filter_var($statusCode, FILTER_VALIDATE_INT) === false) {
             throw new \InvalidArgumentException('Status code must be an integer value.');
         }
     }
-*/
-/* EXP
+
+    /**
+     * DEPRECATED
+     * @param $statusCode
+     */
     private function assertStatusCodeRange($statusCode)
     {
         if ($statusCode < 100 || $statusCode >= 600) {
             throw new \InvalidArgumentException('Status code must be an integer value between 1xx and 5xx.');
         }
     }
-*/
+
     // EXP DO we need this?
     public function __toString()
     {

@@ -246,8 +246,6 @@ class Session
         $this->_needSave = false;
     }
 
-   // TODO FIXME Does it performant enough to check \ini_get ?
-
     /**
      * Init
      *

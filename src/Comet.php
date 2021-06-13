@@ -8,40 +8,32 @@ use Comet\Middleware\JsonBodyParserMiddleware;
 use Slim\Factory\AppFactory;
 use Slim\Factory\Psr17\Psr17FactoryProvider;
 use Slim\Exception\HttpNotFoundException;
-use Workerman\Protocols\Http;
 use Workerman\Worker;
-use Workerman\Protocols\Http\Request as WorkermanRequest;
-use Workerman\Protocols\Http\Response as WorkermanResponse;
+use Workerman\Protocols\Http;
+use Workerman\Protocols\Http\Response;
 
 class Comet
 {
-    public const VERSION = '1.9.0';
-
-    // TODO Implement Redirect Helper
-    // TODO Move both Form and JSON Body parsers to Request constructor or Middleware
-    // TODO Clean FromGlobals method
-    // TODO Suppress Workerman output on forkWorkersForWindows
-    // TODO Use Worker::safeEcho for console out?
+    public const VERSION = '1.9.1';
 
     /** @property \Slim\App $app */
     private static $app;
 
-    // TODO Store set up variables within single Config struct
     private static $host;
     private static $port;    
     private static $logger;
-    private static $status;
     private static $debug;
     private static $init;
     private static $container;
 
-    // MIME Types for internal web-server
+    // MIME types for internal web-server
     private static $mimeFile;
     private static $mimeTypeMap;
     private static $defaultMimeType = 'text/html; charset=utf-8';
 
     // Settings of handling static files by internal web-server
     private static $rootDir;
+    private static $publicDir;
     private static $serveStatic = false;
     private static $staticDir;
     private static $staticExtensions;
@@ -145,22 +137,6 @@ class Comet
         self::$init = $init;
     }
 
-    /* 	TODO
-    	@@@ Error: multi workers init in one php file are not support @@@
-		@@@ See http://doc.workerman.net/faq/multi-woker-for-windows.html @@@
-	*/
-	// TODO Return Job ID
-	/*
-		Windows Hack
-        Timer::add(INTERVAL,
-        function() use ($app, $logger) {
-            $id = rand(1, $app->getConfig('workers'));
-            if ($id == 1) 
-                Job::run();            
-        });
-
-	*/
-
     /**
      * Add periodic $job executed every $interval of seconds
      *
@@ -192,7 +168,13 @@ class Comet
     public function serveStatic(string $dir, array $extensions = null)
     {
     	self::$serveStatic = true;
-    	self::$staticDir = $dir;
+    	// If dir specified as UNIX absolute path, or contains Windows disk name, thats enough
+        // In other case we should concatenate full path of two parts
+        if ($dir[0] == '/' || strpos($dir, ':')) {
+            self::$staticDir = $dir;
+        } else {
+            self::$staticDir = self::$rootDir . '/' . $dir;
+        }
     	self::$staticExtensions = $extensions;
     }
 
@@ -212,39 +194,14 @@ class Comet
     /**
      * Handle Workerman request to return Workerman response
      *
-     * @param WorkermanRequest $request
-     * @return WorkermanResponse
+     * @param Request $request
+     * @return Response
      */
-//    private static function _handle(WorkermanRequest $request)
     private static function _handle(Request $request)
     {
-/*    	if ($request->queryString()) {
-            parse_str($request->queryString(), $queryParams);
-    	} else {
-            $queryParams = [];
-    	}
-
-        $req = new Request(
-            $request->method(),
-            $request->uri(),
-            $request->header(),
-            $request->rawBody(),
-            '1.1',
-            [
-                'REMOTE_ADDR' => $request->connection->getRemoteIp(),
-            ],
-            $request->cookie(),
-            $request->file(),
-            $queryParams
-        );
-
-    	$req->setAttribute('connection', $request->connection);
-*/ /////$req = $request;
-        /////$ret = self::$app->handle($req);
-
+        /** @var  Comet\Response $response */
         $response = self::$app->handle($request);
 
-///* EXP
         $headers = $response->getHeaders();
 
         if (!isset($headers['Server'])) {
@@ -253,51 +210,34 @@ class Comet
 
         if (!isset($headers['Content-Type'])) {
             $headers['Content-Type'] = 'text/html; charset=utf-8';
-        } //*/
-///* EXP
+        }
+
         // Save session data to disk if needed
-        // EXP if ($req->getSession()) {
-        if ($request->getSession()) { // TODO Always true?
-//echo "\n --- [request->getSession()] all \n"; // DEBUG
-//var_dump($request->getSession()->all());
-            // EXP if (count($req->getSession()->all())) {
-            if (count($request->getSession()->all())) {
-                // If there no PHPSESSID between request cookies AND response headers, we should send session cookie to browser
-                // TODO What to do if request cookie PHPSESSID is not equal to response?
-                $defaultSessionName = Session::sessionName();
-                // EXP if (!array_key_exists($defaultSessionName, $request->cookie()) &&
-                if (!array_key_exists($defaultSessionName, $request->getCookieParams()) &&
-                    (!array_key_exists('cookie', $headers) ||
-                        (array_key_exists('cookie', $headers) &&
-                            strpos($headers['cookie'], $defaultSessionName) === false))) {
-                    $cookie_params = \session_get_cookie_params();
-                    // EXP $session_id = $req->getSession()->getId();
-                    $session_id = $request->getSession()->getId();
-                    $cookie = 'PHPSESSID' . '=' . $session_id
-                        . (empty($cookie_params['domain']) ? '' : '; Domain=' . $cookie_params['domain'])
-                        . (empty($cookie_params['lifetime']) ? '' : '; Max-Age=' . $cookie_params['lifetime'])
-                        . (empty($cookie_params['path']) ? '' : '; Path=' . $cookie_params['path'])
-                        . (empty($cookie_params['samesite']) ? '' : '; SameSite=' . $cookie_params['samesite'])
-                        . (!$cookie_params['secure'] ? '' : '; Secure')
-                        . (!$cookie_params['httponly'] ? '' : '; HttpOnly');
-                    $headers['Set-Cookie'] = $cookie;
-                }
-                // Save session to storage otherwise it would be saved on destruct()
-                // EXP $req->getSession()->save();
-                $request->getSession()->save();
+        if (count($request->getSession()->all())) {
+            // If there no PHPSESSID between request cookies AND response headers, we should send session cookie to browser
+            $defaultSessionName = Session::sessionName();
+            if (!array_key_exists($defaultSessionName, $request->getCookieParams()) &&
+                (!array_key_exists('cookie', $headers) ||
+                    (array_key_exists('cookie', $headers) &&
+                        strpos($headers['cookie'], $defaultSessionName) === false))) {
+                $cookie_params = \session_get_cookie_params();
+                $session_id = $request->getSession()->getId();
+                $cookie = 'PHPSESSID' . '=' . $session_id
+                    . (empty($cookie_params['domain']) ? '' : '; Domain=' . $cookie_params['domain'])
+                    . (empty($cookie_params['lifetime']) ? '' : '; Max-Age=' . $cookie_params['lifetime'])
+                    . (empty($cookie_params['path']) ? '' : '; Path=' . $cookie_params['path'])
+                    . (empty($cookie_params['samesite']) ? '' : '; SameSite=' . $cookie_params['samesite'])
+                    . (!$cookie_params['secure'] ? '' : '; Secure')
+                    . (!$cookie_params['httponly'] ? '' : '; HttpOnly');
+                $headers['Set-Cookie'] = $cookie;
             }
-        } //*/
-/* EXP
-        return new WorkermanResponse(
-            $ret->getStatusCode(),
-            $headers,
-            $ret->getBody()
-        ); */
 
-        // ADDED for V2
-        $response->withHeaders($headers);
+            // Save session to storage otherwise it would be saved on destruct()
+            $request->getSession()->save();
+        }
 
-        return $response;
+        return $response
+            ->withHeaders($headers);
     }
 
     /**
@@ -323,8 +263,6 @@ class Comet
         if (self::$init)
             $worker->onWorkerStart = self::$init;
 
-        // TODO Add timers to the single main worker for Windows hosts!
-        // FIXME We should use real free random port not fixed 65432
         // Init JOB workers
         foreach (self::$jobs as $job) {
 	        $w = new Worker('text://' . self::$host . ':' . 65432);
@@ -361,52 +299,43 @@ class Comet
         Http::requestClass(Request::class);
 
         // --- Main Loop
-// EXP        $worker->onMessage = static function($connection, WorkermanRequest $request)
+
         $worker->onMessage = static function($connection, Request $request)
         {
-            // TODO Try to handle request first, and search for static file in case of 404 error
-            //      This helps optimize regular API calls execution speed
-
             try {
-/////*  EXP:ME
-                // TODO Refactor web-server as standalone component
-                // TODO Distinguish relative and absolute directories
-                // TODO HTTP Cache, MIME Types, Multiple Domains, Check Extensions
-
                 // --- Serve static files first
-// EXP                if (self::$serveStatic && $request->method() === 'GET') {
                 if (self::$serveStatic && $request->getMethod() === 'GET') {
 
-                    $publicDir = self::$rootDir . '/' . self::$staticDir;
-// EXP                	$parts = \pathinfo($request->uri());
-// EXP                    $parts = \pathinfo($request->getUri());
-                    $parts = \pathinfo($request->getUri()->getPath());
-                    $filename = $publicDir . '/' . $parts['dirname'] . '/' . $parts['basename'];
+                    $path = $request->getUri()->getPath();
+                    $filename = self::$staticDir . '/' . $path;
+                    $realFile = realpath($filename);
+
+                    $parts = pathinfo($path);
                     $fileparts = pathinfo($parts['basename']);
                     $extension = key_exists('extension', $fileparts) ? $fileparts['extension'] : '';
-                    $path = str_replace("\\", '/', realpath($filename));
 
-                    // Do security checks first!
+                    // --- Do security checks
+
                     // Requested file MUST EXISTS, be inside of public root,
                     // do not have PHP extension or be hidden (starts with dot)
 
-                    if (strpos($path, $publicDir) === 0 &&
-                        strlen($path) >= strlen($publicDir) &&
+                    if ($realFile &&
+                        is_file($realFile) &&
+                        strpos($realFile, realpath(self::$staticDir)) === 0 &&
                         strpos($parts['basename'], '.') !== 0 &&
-                        $extension != 'php' &&
-                        is_file($filename)
+                        $extension != 'php'
                     ) {
-                        return self::sendFile($connection, $filename);
+                        return self::sendFile($connection, $realFile);
                     }
                 }
-/////*/
+
                 // --- Proceed with other handlers
 
                 $response = self::_handle($request);
                 $connection->send($response);
 
             } catch(HttpNotFoundException $error) {
-                $connection->send(new WorkermanResponse(404));
+                $connection->send(new Response(404));
             } catch(\Throwable $error) {
                 if (self::$debug) {
                     echo "\n[ERR] " . $error->getFile() . ':' . $error->getLine() . ' >> ' . $error->getMessage();
@@ -414,7 +343,7 @@ class Comet
                 if (self::$logger) {
                     self::$logger->error($error->getFile() . ':' . $error->getLine() . ' >> ' . $error->getMessage());
                 }
-                $connection->send(new WorkermanResponse(500));
+                $connection->send(new Response(500));
             }
         };
 

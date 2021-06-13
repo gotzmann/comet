@@ -11,8 +11,6 @@ use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 
-// TODO Do not clone request within its methods, use $this instead!
-
 /**
  * Fast PSR-7 ServerRequest implementation
  * @package Comet
@@ -38,82 +36,33 @@ class Request extends GuzzleRequest implements ServerRequestInterface
     private $uploadedFiles = [];
 
     /** @var Comet\Session */
-    // EXP private $session = null;
     public $session = null;
 
-/* EXP
-    / **
-     * @param string                               $method       HTTP method
-     * @param string|UriInterface                  $uri          URI
-     * @param array                                $headers      Request headers
-     * @param string|null|resource|StreamInterface $body         Request body
-     * @param string                               $version      Protocol version
-     * @param array                                $serverParams Typically the $_SERVER superglobal
-     * @param array                                $cookies      Request cookies
-     * @param array                                $files        Request files
-     * @param array                                $query        Query Params
-     * /
-    public function __construct(
-        $method,
-        $uri,
-        array $headers = [],
-        $body = null,
-        $version = '1.1',
-        array $serverParams = [],
-        array $cookies = [],
-        array $files = [],
-        array $query = []
-    ) {
-        $this->serverParams = $serverParams;
-        $this->cookieParams = $cookies;
-        $this->uploadedFiles = $files;
-        $this->queryParams = $query;
-
-        // Parse body of POST request with form data
-
-        if (array_key_exists('content-type', $headers)) {
-            if ($headers['content-type'] == 'application/x-www-form-urlencoded') {
-                \parse_str($body, $this->parsedBody);
-            }
-        }
-
-        // Wake up active or create new shadow session
-        $defaultSessionName = Session::sessionName();
-        if (array_key_exists($defaultSessionName, $this->cookieParams)) {
-            $session_id = $this->cookieParams[$defaultSessionName];
-            $this->session = new Session($session_id);
-        } else {
-            $this->session = new Session();
-        }
-
-        parent::__construct($method, $uri, $headers, $body, $version);
-    }
-*/
-
     /**
-    // EXP
-    * ServerRequest constructor.
-    * @param string $httpBuffer
-    */
+     * Request constructor
+     *
+     * @param string $httpBuffer
+     */
     public function __construct($httpBuffer) {
         $request = new WorkermanRequest($httpBuffer);
 
+        // Sanitize URI to avoid exceptions
+        $uri = preg_replace('~//+~', '/', $request->uri());
+
         parent::__construct(
             $request->method(),
-            $request->uri(),
+            $uri,
             $request->header(),
             $request->rawBody(),
-            $request->protocolVersion()
+            '1.1'
         );
 
-        // TODO Check again : https://github.com/gotzmann/comet/issues/10
         $this->serverParams = $_SERVER;
         $this->uploadedFiles = $request->file();
         $this->queryParams = $request->get();
         $this->cookieParams = $request->cookie();
 
         // Parse body of POST request with form data
-//var_dump($request->header()); die(); // DEBUG
         $headers = $request->header();
         if (array_key_exists('content-type', $headers) &&
             $headers['content-type'] == 'application/x-www-form-urlencoded'
@@ -129,7 +78,6 @@ class Request extends GuzzleRequest implements ServerRequestInterface
         } else {
             $this->session = new Session();
         }
-
     }
 
     /**
@@ -218,21 +166,6 @@ class Request extends GuzzleRequest implements ServerRequestInterface
     public static function fromGlobals()
     {
     	throw new InvalidArgumentException('Do not use fromGlobals() method for Comet\Request objects!');
-/*
-        $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
-        $headers = getallheaders();
-        $uri = self::getUriFromGlobals();
-        $body = new CachingStream(new LazyOpenStream('php://input', 'r+'));
-        $protocol = isset($_SERVER['SERVER_PROTOCOL']) ? str_replace('HTTP/', '', $_SERVER['SERVER_PROTOCOL']) : '1.1';
-
-        $serverRequest = new ServerRequest($method, $uri, $headers, $body, $protocol, $_SERVER);
-
-        return $serverRequest
-            ->withCookieParams($_COOKIE)
-            ->withQueryParams($_GET)
-            ->withParsedBody($_POST)
-            ->withUploadedFiles(self::normalizeFiles($_FILES));
-*/
     }
 
     private static function extractHostAndPortFromAuthority($authority)
@@ -441,7 +374,7 @@ class Request extends GuzzleRequest implements ServerRequestInterface
     }
 
     /**
-     * Get session.
+     * Get session
      *
      * @return \Comet\Session
      */
@@ -450,6 +383,7 @@ class Request extends GuzzleRequest implements ServerRequestInterface
         if ($this->session === null) {
             $this->session = new Session();
         }
+
         return $this->session;
     }
 
