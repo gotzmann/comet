@@ -269,8 +269,9 @@ class Comet
             $worker->onWorkerStart = self::$init;
 
         // Init JOB workers
+        $counter = 0;
         foreach (self::$jobs as $job) {
-	        $w = new Worker('text://' . self::$host . ':' . 65432);
+	        $w = new Worker('text://' . self::$host . ':' . strval(65432 + $counter++));
     	    $w->count = $job['workers'];
         	$w->name = 'Comet v' . self::VERSION .' [job] ' . $job['name'];
         	$w->onWorkerStart = function() use ($job) {
