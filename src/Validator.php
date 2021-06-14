@@ -61,7 +61,7 @@ class Validator extends \Rakit\Validation\Validator
     	if (is_object($inputs)) {
     		$inputs = $inputs->toArray();
     	} else if (is_string($inputs)) {
-	        $inputs = json_decode($inputs, true); 
+	        $inputs = json_decode($inputs, true);
     	}
 
         $messages = array_merge($this->messages, $messages);

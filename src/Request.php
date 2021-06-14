@@ -44,6 +44,7 @@ class Request extends GuzzleRequest implements ServerRequestInterface
      */
     public function __construct($httpBuffer) {
         $request = new WorkermanRequest($httpBuffer);
+        $headers = $request->header();
 
         // Sanitize URI to avoid exceptions
         $uri = preg_replace('~//+~', '/', $request->uri());
@@ -51,7 +52,7 @@ class Request extends GuzzleRequest implements ServerRequestInterface
         parent::__construct(
             $request->method(),
             $uri,
-            $request->header(),
+            $headers,
             $request->rawBody(),
             '1.1'
         );
@@ -61,12 +62,14 @@ class Request extends GuzzleRequest implements ServerRequestInterface
         $this->queryParams = $request->get();
         $this->cookieParams = $request->cookie();
 
-        // Parse body of POST request with form data
-        $headers = $request->header();
-        if (array_key_exists('content-type', $headers) &&
-            $headers['content-type'] == 'application/x-www-form-urlencoded'
-        ) {
-            \parse_str($request->rawBody(), $this->parsedBody);
+        // --- Parse POST forms and JSON bodies
+
+        if (array_key_exists('content-type', $headers)) {
+            if ($headers['content-type'] == 'application/json') {
+                $this->parsedBody = json_decode($request->rawBody(), true);
+            } else if ($headers['content-type'] == 'application/x-www-form-urlencoded') {
+                \parse_str($request->rawBody(), $this->parsedBody);
+            }
         }
 
         // Wake up active or create new shadow session

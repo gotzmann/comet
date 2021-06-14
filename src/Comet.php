@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Comet;
 
 use Comet\Factory\CometPsr17Factory;
-use Comet\Middleware\JsonBodyParserMiddleware;
 use Slim\Factory\AppFactory;
 use Slim\Factory\Psr17\Psr17FactoryProvider;
 use Slim\Exception\HttpNotFoundException;
@@ -43,8 +42,8 @@ class Comet
     private static $serveStatic = false;
     private static $staticDir;
     private static $staticExtensions;
-//    private static $trunkLimitSize = 2 * 1024 * 1024; // Split static content to parts if file size more than limit of 2 Mb
-    private static $trunkLimitSize = 1000;
+    // Split static content to parts if file size more than limit of 2 Mb
+    private static $trunkLimitSize = 2 * 1024 * 1024;
 
     private static $config = [];
     private static $jobs = [];
@@ -58,7 +57,7 @@ class Comet
     {
         // Set up params with user defined or default values
         self::$host      = $config['host']      ?? '0.0.0.0';
-        self::$port      = $config['port']      ?? 8080;
+        self::$port      = $config['port']      ?? 80;
         self::$debug     = $config['debug']     ?? false;
         self::$logger    = $config['logger']    ?? null;
         self::$container = $config['container'] ?? null;
@@ -114,10 +113,8 @@ class Comet
             }
         }
 
-        // --- Create SlimPHP App instance with JSON parser middleware
-
+        // Create SlimPHP App instance
         self::$app = AppFactory::create();
-        self::$app->add(new JsonBodyParserMiddleware());
     }
 
     /**
