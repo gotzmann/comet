@@ -6,8 +6,7 @@ namespace Comet;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
 use InvalidArgumentException;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\UriInterface;
-use Psr\Http\Message\StreamInterface;
+use Psr\Http\Message\UriInterface;;
 use Psr\Http\Message\UploadedFileInterface;
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 
@@ -183,6 +182,7 @@ class Request extends GuzzleRequest implements ServerRequestInterface
     }
 
     /**
+     * DEPRECATED
      * Get a Uri populated with values from $_SERVER.
      *
      * @return UriInterface

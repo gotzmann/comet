@@ -335,7 +335,6 @@ class Session
     }
 }
 
-// FIXME Set all GC vars as static class globals once at Comet start!
+// --- Init session
 
-// Init session.
 Session::init();

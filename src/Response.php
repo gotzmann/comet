@@ -157,6 +157,11 @@ class Response extends GuzzleResponse implements ResponseInterface
         return $this;
     }
 
+    /**
+     * @param $body
+     * @param null $status
+     * @return $this
+     */
     public function withText($body, $status = null)
     {
         if (isset($status)) {
@@ -173,16 +178,27 @@ class Response extends GuzzleResponse implements ResponseInterface
         return $this;
     }
 
+    /**
+     * @return int
+     */
     public function getStatusCode()
     {
         return $this->statusCode;
     }
 
+    /**
+     * @return mixed|string|null
+     */
     public function getReasonPhrase()
     {
         return $this->reasonPhrase;
     }
 
+    /**
+     * @param int $code
+     * @param string $reasonPhrase
+     * @return $this|Response|GuzzleResponse
+     */
     public function withStatus($code, $reasonPhrase = '')
     {
         $this->statusCode = (int) $code;
@@ -216,49 +232,47 @@ class Response extends GuzzleResponse implements ResponseInterface
         }
     }
 
-    // EXP DO we need this?
+    /**
+     * Serialization Helper
+     * https://github.com/walkor/psr7/commit/8f163224ed5bb93fb210da9211651fcd88acb97b#diff-fe65dcdace9cc44252b537bee79dd574edd1bccf6cee646cc860006a6ec50e8b
+     *
+     * @return string
+     */
     public function __toString()
     {
-        return response_to_string($this);
+        $msg = 'HTTP/' . $this->getProtocolVersion() . ' '
+            . $this->getStatusCode() . ' '
+            . $this->getReasonPhrase();
+
+        $headers = $this->getHeaders();
+
+        if (empty($headers)) {
+            $msg .= "\r\nContent-Length: " . $this->getBody()->getSize() .
+                "\r\nContent-Type: text/html; charset=utf-8" .
+                "\r\nConnection: keep-alive";
+        } else {
+
+            if ('' === $this->getHeaderLine('Transfer-Encoding') &&
+                '' === $this->getHeaderLine('Content-Length'))
+            {
+                $msg .= "\r\nContent-Length: " . $this->getBody()->getSize();
+            }
+
+            if ('' === $this->getHeaderLine('Content-Type')) {
+                $msg .= "\r\nContent-Type: text/html; charset=utf-8";
+            }
+
+            if ('' === $this->getHeaderLine('Connection')) {
+                $msg .= "\r\nConnection: keep-alive";
+            }
+
+            foreach ($headers as $name => $values) {
+                $msg .= "\r\n{$name}: " . implode(', ', $values);
+            }
+        }
+
+        return "{$msg}\r\n\r\n" . $this->getBody();
+
     }
 
-}
-
-// EXP https://github.com/walkor/psr7/commit/8f163224ed5bb93fb210da9211651fcd88acb97b#diff-fe65dcdace9cc44252b537bee79dd574edd1bccf6cee646cc860006a6ec50e8b
-function response_to_string(ResponseInterface $message)
-{
-    $msg = 'HTTP/' . $message->getProtocolVersion() . ' '
-        . $message->getStatusCode() . ' '
-        . $message->getReasonPhrase();
-
-    $headers = $message->getHeaders();
-
-    if (empty($headers)) {
-        $msg .= "\r\nContent-Length: " . $message->getBody()->getSize() .
-            "\r\nContent-Type: text/html\r\nConnection: keep-alive\r\nServer: workerman";
-    } else {
-
-        if ('' === $message->getHeaderLine('Transfer-Encoding') && '' === $message->getHeaderLine('Content-Length')) {
-            $msg .= "\r\nContent-Length: " . $message->getBody()->getSize();
-        }
-
-        if ('' === $message->getHeaderLine('Content-Type')) {
-            $msg .= "\r\nContent-Type: text/html";
-        }
-
-        if ('' === $message->getHeaderLine('Connection')) {
-            $msg .= "\r\nConnection: keep-alive";
-        }
-
-        // FIXME Name!
-        if ('' === $message->getHeaderLine('Server')) {
-            $msg .= "\r\nServer: workerman";
-        }
-
-        foreach ($headers as $name => $values) {
-            $msg .= "\r\n{$name}: " . implode(', ', $values);
-        }
-    }
-
-    return "{$msg}\r\n\r\n" . $message->getBody();
 }

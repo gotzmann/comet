@@ -12,6 +12,12 @@ use Workerman\Worker;
 use Workerman\Protocols\Http;
 use Workerman\Protocols\Http\Response;
 
+/**
+ * Main class of Comet PHP microframework
+ * https://github.com/gotzmann/comet
+ *
+ * @package Comet
+ */
 class Comet
 {
     public const VERSION = '1.9.1';
@@ -19,6 +25,7 @@ class Comet
     /** @property \Slim\App $app */
     private static $app;
 
+    // Configuration vars
     private static $host;
     private static $port;    
     private static $logger;
@@ -33,11 +40,11 @@ class Comet
 
     // Settings of handling static files by internal web-server
     private static $rootDir;
-    private static $publicDir;
     private static $serveStatic = false;
     private static $staticDir;
     private static $staticExtensions;
-    private static $trunkLimitSize = 2 * 1024 * 1024; // Split static content to parts if file size more than limit of 2 Mb
+//    private static $trunkLimitSize = 2 * 1024 * 1024; // Split static content to parts if file size more than limit of 2 Mb
+    private static $trunkLimitSize = 1000;
 
     private static $config = [];
     private static $jobs = [];
@@ -49,10 +56,11 @@ class Comet
      */
     public function __construct(array $config = null)
     {
-        self::$host = $config['host'] ?? '0.0.0.0';
-        self::$port = $config['port'] ?? 8080;
-        self::$debug = $config['debug'] ?? false;
-        self::$logger = $config['logger'] ?? null;
+        // Set up params with user defined or default values
+        self::$host      = $config['host']      ?? '0.0.0.0';
+        self::$port      = $config['port']      ?? 8080;
+        self::$debug     = $config['debug']     ?? false;
+        self::$logger    = $config['logger']    ?? null;
         self::$container = $config['container'] ?? null;
 
         // Construct correct root dir of the project
@@ -364,29 +372,31 @@ class Comet
         $file_size = filesize($file_name);
         $extension = pathinfo($file_name, PATHINFO_EXTENSION);
         $content_type = isset(self::$mimeTypeMap[$extension]) ? self::$mimeTypeMap[$extension] : self::$defaultMimeType;
-        $header  = "HTTP/1.1 200 OK\r\n";
-        $header .= "Content-Type: $content_type\r\n";
-        $header .= "Connection: keep-alive\r\n";
-        $header .= "Content-Length: $file_size\r\n\r\n";
+        $headers  = "HTTP/1.1 200 OK\r\n";
+        $headers .= "Content-Type: $content_type\r\n";
+        $headers .= "Connection: keep-alive\r\n";
+        $headers .= "Content-Length: $file_size\r\n\r\n";
 
         // --- Send the whole file if size is less than limit
 
         if ($file_size < self::$trunkLimitSize) {
-            return $connection->send($header . file_get_contents($file_name), true);
+            return $connection->send($headers . file_get_contents($file_name), true);
         }
 
         // --- Otherwise, send it part by part
-
+        
+        $connection->send($headers, true); 
+        
         $connection->fileHandler = fopen($file_name, 'r');
 
         $do_write = function() use ($connection)
         {
             // Send buffer not full
             while (empty($connection->bufferFull)) {
-                // Read from disk
-                $buffer = fread($connection->fileHandler, 8192);
-
-                // Read EOF
+                // Read from disk by chunks of 64 of 8K blocks - so it some sort of magic constant ~500Kb
+                $buffer = fread($connection->fileHandler, 64 * 8 * 1024);
+                
+                // Stop on EOF
                 if($buffer === '' || $buffer === false) {
                     return;
                 }
