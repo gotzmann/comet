@@ -3,35 +3,20 @@ declare(strict_types=1);
 
 namespace Comet\Session;
 
-if (!interface_exists('SessionHandlerInterface')) {
-    interface SessionHandlerInterface {
-        public function close();
-        public function destroy($session_id);
-        public function gc($maxlifetime);
-        public function open($save_path ,$session_name);
-        public function read($session_id);
-        public function write($session_id , $session_data);
-    }
-}
-
+/**
+ * Class FileSessionHandler
+ * @package Comet\Session
+ */
 class FileSessionHandler implements \SessionHandlerInterface
 {
-    /**
-     * Session save path.
-     *
-     * @var string
-     */
+    /** @var string Session save path */
     protected static $_sessionSavePath = null;
 
-    /**
-     * Session file prefix.
-     *
-     * @var string
-     */
+    /** @var string Session file prefix */
     protected static $_sessionFilePrefix = 'sess_';
 
     /**
-     * Init.
+     * Init
      */
     public static function init() {
         $save_path = @\session_save_path();
@@ -146,5 +131,7 @@ class FileSessionHandler implements \SessionHandlerInterface
         return $path;
     }
 }
+
+// --- Init
 
 FileSessionHandler::init();

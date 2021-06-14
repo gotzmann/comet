@@ -4,54 +4,62 @@ declare(strict_types=1);
 namespace Comet;
 
 use Comet\Factory\CometPsr17Factory;
-use Comet\Middleware\JsonBodyParserMiddleware;
 use Slim\Factory\AppFactory;
 use Slim\Factory\Psr17\Psr17FactoryProvider;
 use Slim\Exception\HttpNotFoundException;
 use Workerman\Worker;
-use Workerman\Protocols\Http\Request as WorkermanRequest;
-use Workerman\Protocols\Http\Response as WorkermanResponse;
+use Workerman\Protocols\Http;
+use Workerman\Protocols\Http\Response;
 
+/**
+ * Main class of Comet PHP microframework
+ * https://github.com/gotzmann/comet
+ *
+ * @package Comet
+ */
 class Comet
 {
-    public const VERSION = '1.2.1';
+    public const VERSION = '1.9.1';
 
-    // TODO Implement Redirect Helper
-    // TODO Move both Form and JSON Body parsers to Request constructor or Middleware
-    // TODO Clean FromGlobals method
-    // TODO Suppress Workerman output on forkWorkersForWindows
-    // TODO Use Worker::safeEcho for console out?
-
-    /**
-     * @property \Slim\App $app
-     */
+    /** @property \Slim\App $app */
     private static $app;
 
-    // TODO Store set up variables within single Config struct
+    // Configuration vars
     private static $host;
     private static $port;    
     private static $logger;
-    private static $status;
     private static $debug;
     private static $init;
     private static $container;
 
-    private static $defaultMimeType = 'text/html; charset=utf-8';
-    private static $rootDir;
+    // MIME types for internal web-server
+    private static $mimeFile;
     private static $mimeTypeMap;
+    private static $defaultMimeType = 'text/html; charset=utf-8';
+
+    // Settings of handling static files by internal web-server
+    private static $rootDir;
     private static $serveStatic = false;
     private static $staticDir;
     private static $staticExtensions;
+    // Split static content to parts if file size more than limit of 2 Mb
+    private static $trunkLimitSize = 2 * 1024 * 1024;
 
     private static $config = [];
     private static $jobs = [];
 
+    /**
+     * Comet constructor
+     *
+     * @param array|null $config
+     */
     public function __construct(array $config = null)
     {
-        self::$host = $config['host'] ?? '0.0.0.0';
-        self::$port = $config['port'] ?? 8080;    
-        self::$debug = $config['debug'] ?? false;
-        self::$logger = $config['logger'] ?? null;
+        // Set up params with user defined or default values
+        self::$host      = $config['host']      ?? '0.0.0.0';
+        self::$port      = $config['port']      ?? 80;
+        self::$debug     = $config['debug']     ?? false;
+        self::$logger    = $config['logger']    ?? null;
         self::$container = $config['container'] ?? null;
 
         // Construct correct root dir of the project
@@ -77,13 +85,36 @@ class Comet
         $provider::setFactories([ CometPsr17Factory::class ]);
         AppFactory::setPsr17FactoryProvider($provider);
 	
-        // Using Container
+        // Set up Container
         if (self::$container) {
             AppFactory::setContainer(self::$container);
         }
 
+        // --- Know MIME types for embedded web server
+
+        self::$mimeFile = __DIR__ . '/mime.types';
+        if (!is_file(self::$mimeFile)) {
+            echo "\n[ERR] mime.type file not found!";
+        } else {
+            $items = file(self::$mimeFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            if (!is_array($items)) {
+                echo "\n[ERR] Failed to get [mime.type] file content";
+            } else {
+                foreach ($items as $content) {
+                    if (preg_match("/\s*(\S+)\s+(\S.+)/", $content, $match)) {
+                        $mime_type = $match[1];
+                        $workerman_file_extension_var = $match[2];
+                        $workerman_file_extension_array = explode(' ', substr($workerman_file_extension_var, 0, -1));
+                        foreach ($workerman_file_extension_array as $workerman_file_extension) {
+                            self::$mimeTypeMap[$workerman_file_extension] = $mime_type;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Create SlimPHP App instance
         self::$app = AppFactory::create();
-        self::$app->add(new JsonBodyParserMiddleware());
     }
 
     /**
@@ -110,22 +141,6 @@ class Comet
     {
         self::$init = $init;
     }
-
-    /* 	TODO
-    	@@@ Error: multi workers init in one php file are not support @@@
-		@@@ See http://doc.workerman.net/faq/multi-woker-for-windows.html @@@
-	*/
-	// TODO Return Job ID
-	/*
-		Windows Hack
-        Timer::add(INTERVAL,
-        function() use ($app, $logger) {
-            $id = rand(1, $app->getConfig('workers'));
-            if ($id == 1) 
-                Job::run();            
-        });
-
-	*/
 
     /**
      * Add periodic $job executed every $interval of seconds
@@ -158,7 +173,13 @@ class Comet
     public function serveStatic(string $dir, array $extensions = null)
     {
     	self::$serveStatic = true;
-    	self::$staticDir = $dir;
+    	// If dir specified as UNIX absolute path, or contains Windows disk name, thats enough
+        // In other case we should concatenate full path of two parts
+        if ($dir[0] == '/' || strpos($dir, ':')) {
+            self::$staticDir = $dir;
+        } else {
+            self::$staticDir = self::$rootDir . '/' . $dir;
+        }
     	self::$staticExtensions = $extensions;
     }
 
@@ -178,36 +199,15 @@ class Comet
     /**
      * Handle Workerman request to return Workerman response
      *
-     * @param WorkermanRequest $request
-     * @return WorkermanResponse
+     * @param Request $request
+     * @return Response
      */
-    private static function _handle(WorkermanRequest $request)
+    private static function _handle(Request $request)
     {
-    	if ($request->queryString()) {
-            parse_str($request->queryString(), $queryParams);
-    	} else {
-            $queryParams = [];
-    	}
+        /** @var  Comet\Response $response */
+        $response = self::$app->handle($request);
 
-        $req = new Request(
-            $request->method(),
-            $request->uri(),
-            $request->header(),
-            $request->rawBody(),
-            '1.1',
-            [
-                'REMOTE_ADDR' => $request->connection->getRemoteIp(),
-            ],
-            $request->cookie(),
-            $request->file(),
-            $queryParams
-        );
-
-    	$req->setAttribute('connection', $request->connection);
-
-        $ret = self::$app->handle($req);
-
-        $headers = $ret->getHeaders();
+        $headers = $response->getHeaders();
 
         if (!isset($headers['Server'])) {
             $headers['Server'] = 'Comet v' . self::VERSION;
@@ -218,36 +218,31 @@ class Comet
         }
 
         // Save session data to disk if needed
-        if ($req->getSession()) {
-            if (count($req->getSession()->all())) {
-                // If there no PHPSESSID between request cookies AND response headers, we should send session cookie to browser
-                // TODO What to do if request cookie PHPSESSID is not equal to response?
-                $defaultSessionName = Session::sessionName();
-                if (!array_key_exists($defaultSessionName, $request->cookie()) &&
-                    (!array_key_exists('cookie', $headers) ||
-                        (array_key_exists('cookie', $headers) &&
-                            strpos($headers['cookie'], $defaultSessionName) === false))) {
-                    $cookie_params = \session_get_cookie_params();
-                    $session_id = $req->getSession()->getId();
-                    $cookie = 'PHPSESSID' . '=' . $session_id
-                        . (empty($cookie_params['domain']) ? '' : '; Domain=' . $cookie_params['domain'])
-                        . (empty($cookie_params['lifetime']) ? '' : '; Max-Age=' . ($cookie_params['lifetime']))
-                        . (empty($cookie_params['path']) ? '' : '; Path=' . $cookie_params['path'])
-                        . (empty($cookie_params['samesite']) ? '' : '; SameSite=' . $cookie_params['samesite'])
-                        . (!$cookie_params['secure'] ? '' : '; Secure')
-                        . (!$cookie_params['httponly'] ? '' : '; HttpOnly');
-                    $headers['Set-Cookie'] = $cookie;
-                }
-                // Save session to storage otherwise it would be saved on destruct()
-                $req->getSession()->save();
+        if (count($request->getSession()->all())) {
+            // If there no PHPSESSID between request cookies AND response headers, we should send session cookie to browser
+            $defaultSessionName = Session::sessionName();
+            if (!array_key_exists($defaultSessionName, $request->getCookieParams()) &&
+                (!array_key_exists('cookie', $headers) ||
+                    (array_key_exists('cookie', $headers) &&
+                        strpos($headers['cookie'], $defaultSessionName) === false))) {
+                $cookie_params = \session_get_cookie_params();
+                $session_id = $request->getSession()->getId();
+                $cookie = 'PHPSESSID' . '=' . $session_id
+                    . (empty($cookie_params['domain']) ? '' : '; Domain=' . $cookie_params['domain'])
+                    . (empty($cookie_params['lifetime']) ? '' : '; Max-Age=' . $cookie_params['lifetime'])
+                    . (empty($cookie_params['path']) ? '' : '; Path=' . $cookie_params['path'])
+                    . (empty($cookie_params['samesite']) ? '' : '; SameSite=' . $cookie_params['samesite'])
+                    . (!$cookie_params['secure'] ? '' : '; Secure')
+                    . (!$cookie_params['httponly'] ? '' : '; HttpOnly');
+                $headers['Set-Cookie'] = $cookie;
             }
+
+            // Save session to storage otherwise it would be saved on destruct()
+            $request->getSession()->save();
         }
 
-        return new WorkermanResponse(
-            $ret->getStatusCode(),
-            $headers,
-            $ret->getBody()
-        );
+        return $response
+            ->withHeaders($headers);
     }
 
     /**
@@ -255,7 +250,7 @@ class Comet
      */
     public function run()
     {
-        // Write worker output to log file if exists
+        // Redirect workers output to log file if it exists
         if (self::$logger) {
             foreach(self::$logger->getHandlers() as $handler) {
                 if ($handler->getUrl()) {
@@ -273,9 +268,6 @@ class Comet
         if (self::$init)
             $worker->onWorkerStart = self::$init;
 
-        // TODO Add timers to the single main worker for Windows hosts!
-        // FIXME We should use 1) free and maybe 2) random port, not fixed 65432.
-        //       That also allow start more than 104 jobs 
         // Init JOB workers
         $counter = 0;
         foreach (self::$jobs as $job) {
@@ -289,55 +281,6 @@ class Comet
         	};
         }
 
-        // Main Loop
-        $worker->onMessage = static function($connection, WorkermanRequest $request)
-        {
-            try {
-            	// TODO Refactor web-server as standalone component
-            	// TODO Distinguish relative and absolute directories
-            	// TODO HTTP Cache, MIME Types, Multiple Domains, Check Extensions
-
-                // Serve static files first
-                if (self::$serveStatic && $request->method() === 'GET') {
-
-                    $publicDir = self::$rootDir . '/' . self::$staticDir;
-                	$parts = \pathinfo($request->uri());
-                    $filename = $publicDir . '/' . $parts['dirname'] . '/' . $parts['basename'];
-                    $fileparts = pathinfo($parts['basename']);
-                    $extension = key_exists('extension', $fileparts) ? $fileparts['extension'] : '';
-                    $path = str_replace("\\", '/', realpath($filename));
-
-                    // Do security checks first!
-                    // Requested file MUST EXISTS, be inside of public root,
-                    // do not have PHP extension or be hidden (starts with dot)
-
-                    if (strpos($path, $publicDir) === 0 &&
-                        strlen($path) >= strlen($publicDir) &&
-                        strpos($parts['basename'], '.') !== 0 &&
-                        $extension != 'php' &&
-                        is_file($filename)
-                    ) {
-                        return self::sendFile($connection, $filename);
-                    }
-            	} 
-
-                // Proceed with other handlers
-                $response = self::_handle($request);
-                $connection->send($response);
-
-            } catch(HttpNotFoundException $error) {
-                $connection->send(new WorkermanResponse(404));
-            } catch(\Throwable $error) {
-                if (self::$debug) {
-                    echo "\n[ERR] " . $error->getFile() . ':' . $error->getLine() . ' >> ' . $error->getMessage();
-                }
-                if (self::$logger) {
-                    self::$logger->error($error->getFile() . ':' . $error->getLine() . ' >> ' . $error->getMessage());
-                }
-                $connection->send(new WorkermanResponse(500));
-            }
-        };
-
        	// Suppress Workerman startup message
         global $argv;
         $argv[] = '-q';
@@ -349,6 +292,7 @@ class Comet
             self::$logger->info($hello);
        	}
 
+       	// Special greeting for Windows
         if (DIRECTORY_SEPARATOR === '\\') {
             echo "\n-------------------------------------------------------------------------";
             echo "\nServer               Listen                              Workers   Status";
@@ -356,6 +300,60 @@ class Comet
         } else {
             echo $hello . "\n";
         }
+
+        // Point Workerman to our Request class to use it within onMessage
+        Http::requestClass(Request::class);
+
+        // --- Main Loop
+
+        $worker->onMessage = static function($connection, Request $request)
+        {
+            try {
+                // --- Serve static files first
+                if (self::$serveStatic && $request->getMethod() === 'GET') {
+
+                    $path = $request->getUri()->getPath();
+                    $filename = self::$staticDir . '/' . $path;
+                    $realFile = realpath($filename);
+
+                    $parts = pathinfo($path);
+                    $fileparts = pathinfo($parts['basename']);
+                    $extension = key_exists('extension', $fileparts) ? $fileparts['extension'] : '';
+
+                    // --- Do security checks
+
+                    // Requested file MUST EXISTS, be inside of public root,
+                    // do not have PHP extension or be hidden (starts with dot)
+
+                    if ($realFile &&
+                        is_file($realFile) &&
+                        strpos($realFile, realpath(self::$staticDir)) === 0 &&
+                        strpos($parts['basename'], '.') !== 0 &&
+                        $extension != 'php'
+                    ) {
+                        return self::sendFile($connection, $realFile);
+                    }
+                }
+
+                // --- Proceed with other handlers
+
+                $response = self::_handle($request);
+                $connection->send($response);
+
+            } catch(HttpNotFoundException $error) {
+                $connection->send(new Response(404));
+            } catch(\Throwable $error) {
+                if (self::$debug) {
+                    echo "\n[ERR] " . $error->getFile() . ':' . $error->getLine() . ' >> ' . $error->getMessage();
+                }
+                if (self::$logger) {
+                    self::$logger->error($error->getFile() . ':' . $error->getLine() . ' >> ' . $error->getMessage());
+                }
+                $connection->send(new Response(500));
+            }
+        };
+
+        // --- Start event loop
 
         Worker::runAll();
     }
@@ -369,96 +367,55 @@ class Comet
      */
     public static function sendFile($connection, $file_name)
     {
-    	// TODO Move MIME initialization to class constructor
-        // TODO Enable trunk transfer for BIG files
-        // TODO Dig into 304 status processing
-
-	    $mime_file = __DIR__ . '/mime.types';
-
-        if (!is_file($mime_file)) {
-            echo "\n[ERR] mime.type file not found!";
-            return;
-        }
-
-        $items = file($mime_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        if (!is_array($items)) {
-            echo "\n[ERR] mime.type content fails!";
-            return;
-        }
-
-        foreach ($items as $content) {
-            if (preg_match("/\s*(\S+)\s+(\S.+)/", $content, $match)) {
-                $mime_type                      = $match[1];
-                $workerman_file_extension_var   = $match[2];
-                $workerman_file_extension_array = explode(' ', substr($workerman_file_extension_var, 0, -1));
-                foreach ($workerman_file_extension_array as $workerman_file_extension) {
-                    self::$mimeTypeMap[$workerman_file_extension] = $mime_type;
-                }
-            }
-        }
-/*
-        // Check 304.
-        $info = stat($file_name);
-        $modified_time = $info ? date('D, d M Y H:i:s', $info['mtime']) . ' GMT' : '';
-        if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $info) {
-            // Http 304.
-            if ($modified_time === $_SERVER['HTTP_IF_MODIFIED_SINCE']) {
-                // 304
-                Http::header('HTTP/1.1 304 Not Modified');
-                // Send nothing but http headers..
-                $connection->close('');
-                return;
-            }
-        }
-
-        // Http header.
-        if ($modified_time) {
-            $modified_time = "Last-Modified: $modified_time\r\n";
-        }
-*/
         $file_size = filesize($file_name);
         $extension = pathinfo($file_name, PATHINFO_EXTENSION);
         $content_type = isset(self::$mimeTypeMap[$extension]) ? self::$mimeTypeMap[$extension] : self::$defaultMimeType;
-        $header = "HTTP/1.1 200 OK\r\n";
-        $header .= "Content-Type: $content_type\r\n";
-        $header .= "Connection: keep-alive\r\n";
-//        $header .= $modified_time;
-        $header .= "Content-Length: $file_size\r\n\r\n";
-//        $trunk_limit_size = 1024*1024;
-//        if ($file_size < $trunk_limit_size) {
-            return $connection->send($header . file_get_contents($file_name), true);
-//        }
-//        $connection->send($header, true);
-/*
-        // Read file content from disk piece by piece and send to client.
+        $headers  = "HTTP/1.1 200 OK\r\n";
+        $headers .= "Content-Type: $content_type\r\n";
+        $headers .= "Connection: keep-alive\r\n";
+        $headers .= "Content-Length: $file_size\r\n\r\n";
+
+        // --- Send the whole file if size is less than limit
+
+        if ($file_size < self::$trunkLimitSize) {
+            return $connection->send($headers . file_get_contents($file_name), true);
+        }
+
+        // --- Otherwise, send it part by part
+        
+        $connection->send($headers, true); 
+        
         $connection->fileHandler = fopen($file_name, 'r');
-        $do_write = function()use($connection)
+
+        $do_write = function() use ($connection)
         {
-            // Send buffer not full.
-            while(empty($connection->bufferFull))
-            {
-                // Read from disk.
-                $buffer = fread($connection->fileHandler, 8192);
-                // Read eof.
-                if($buffer === '' || $buffer === false)
-                {
+            // Send buffer not full
+            while (empty($connection->bufferFull)) {
+                // Read from disk by chunks of 64 of 8K blocks - so it some sort of magic constant ~500Kb
+                $buffer = fread($connection->fileHandler, 64 * 8 * 1024);
+                
+                // Stop on EOF
+                if($buffer === '' || $buffer === false) {
                     return;
                 }
+
                 $connection->send($buffer, true);
             }
         };
-        // Send buffer full.
+
+        // Send buffer full
         $connection->onBufferFull = function($connection)
         {
             $connection->bufferFull = true;
         };
-        // Send buffer drain.
-        $connection->onBufferDrain = function($connection)use($do_write)
+
+        // Send buffer drain
+        $connection->onBufferDrain = function($connection) use ($do_write)
         {
             $connection->bufferFull = false;
             $do_write();
         };
+
         $do_write();
-*/
     }
 }

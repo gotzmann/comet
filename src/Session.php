@@ -3,84 +3,50 @@ declare(strict_types=1);
 
 namespace Comet;
 
+class SessionException extends \RuntimeException {}
+
+/**
+ * Handle PHP sessions data for web users
+ *
+ * @package Comet
+ */
 class Session
 {
-   /**
-     * Session name.
-     *
-     * @var string
-     */
+    /** @var string Session name */
     protected static $_sessionName = 'PHPSESSID';
 
-
-    /**
-     * Session handler class which implements SessionHandlerInterface.
-     *
-     * @var string
-     */
+    /** @var string Session handler class which implements SessionHandlerInterface */
     protected static $_handlerClass = 'Comet\Session\FileSessionHandler';
 
-    /**
-     * Parameters of __constructor for session handler class.
-     *
-     * @var null
-     */
-    protected static $_handlerConfig = null;
+    /** @var null Parameters of __constructor for session handler class */
+     protected static $_handlerConfig = null;
 
-    /**
-     * Session.gc_probability
-     *
-     * @var int
-     */
+    /** @var int Session.gc_probability */
     protected static $_sessionGcProbability = 1;
 
-    /**
-     * Session.gc_divisor
-     *
-     * @var int
-     */
+    /** @var int Session.gc_divisor */
     protected static $_sessionGcDivisor = 1000;
 
-    /**
-     * Session.gc_maxlifetime
-     *
-     * @var int
-     */
+    /** @var int Session.gc_maxlifetime */
     protected static $_sessionGcMaxLifeTime = 1440;
 
-    /**
-     * Session handler instance.
-     *
-     * @var \SessionHandlerInterface
-     */
+    /** @var \SessionHandlerInterface Session handler instance */
     protected static $_handler = null;
 
-    /**
-     * Session data.
-     *
-     * @var array
-     */
+    /** @var array Session data */
     protected $_data = array();
 
-    /**
-     * Session changed and need to save.
-     *
-     * @var bool
-     */
+    /** @var bool Session changed and need to save */
     protected $_needSave = false;
 
-    /**
-     * Session id.
-     *
-     * @var null
-     */
+    /** @var null Session id */
     protected $_sessionId = null;
 
-    /**
-     * Session constructor.
-     *
-     * @param $session_id
-     */
+   /**
+    * Session constructor
+    *
+    * @param $session_id
+    */
     public function __construct($session_id = null)
     {
         if (!$session_id) {
@@ -99,7 +65,7 @@ class Session
     }
 
     /**
-     * Create session id.
+     * Create session id
      *
      * @return string
      */
@@ -109,7 +75,7 @@ class Session
     }
 
     /**
-     * Get or set session name.
+     * Get or set session name
      *
      * @param null $name
      * @return string
@@ -122,9 +88,8 @@ class Session
         return static::$_sessionName;
     }
 
-
     /**
-     * Get session id.
+     * Get session id
      *
      * @return string
      */
@@ -134,7 +99,7 @@ class Session
     }
 
     /**
-     * Get session.
+     * Get session
      *
      * @param $name
      * @param null $default
@@ -146,7 +111,7 @@ class Session
     }
 
     /**
-     * Store data in the session.
+     * Store data in the session
      *
      * @param $name
      * @param $value
@@ -158,7 +123,7 @@ class Session
     }
 
     /**
-     * Delete an item from the session.
+     * Delete an item from the session
      *
      * @param $name
      */
@@ -169,7 +134,7 @@ class Session
     }
 
     /**
-     * Retrieve and delete an item from the session.
+     * Retrieve and delete an item from the session
      *
      * @param $name
      * @param null $default
@@ -183,7 +148,7 @@ class Session
     }
 
     /**
-     * Store data in the session.
+     * Store data in the session
      *
      * @param $key
      * @param null $value
@@ -198,11 +163,12 @@ class Session
         foreach ($key as $k => $v) {
             $this->_data[$k] = $v;
         }
+
         $this->_needSave = true;
     }
 
     /**
-     * Remove a piece of data from the session.
+     * Remove a piece of data from the session
      *
      * @param $name
      */
@@ -221,7 +187,7 @@ class Session
     }
 
     /**
-     * Retrieve all the data in the session.
+     * Retrieve all the data in the session
      *
      * @return array
      */
@@ -231,7 +197,7 @@ class Session
     }
 
     /**
-     * Remove all data from the session.
+     * Remove all data from the session
      *
      * @return void
      */
@@ -242,7 +208,7 @@ class Session
     }
 
     /**
-     * Determining If An Item Exists In The Session.
+     * Determining If An Item Exists In The Session
      *
      * @param $name
      * @return bool
@@ -253,7 +219,7 @@ class Session
     }
 
     /**
-     * To determine if an item is present in the session, even if its value is null.
+     * To determine if an item is present in the session, even if its value is null
      *
      * @param $name
      * @return bool
@@ -264,7 +230,7 @@ class Session
     }
 
     /**
-     * Save session to store.
+     * Save session to store
      *
      * @return void
      */
@@ -281,7 +247,7 @@ class Session
     }
 
     /**
-     * Init.
+     * Init
      *
      * @return void
      */
@@ -301,7 +267,7 @@ class Session
     }
 
     /**
-     * Set session handler class.
+     * Set session handler class
      *
      * @param null $class_name
      * @param null $config
@@ -319,7 +285,7 @@ class Session
     }
 
     /**
-     * Init handler.
+     * Init handler
      *
      * @return void
      */
@@ -333,7 +299,7 @@ class Session
     }
 
     /**
-     * Try GC sessions.
+     * Try GC sessions
      *
      * @return void
      */
@@ -346,7 +312,7 @@ class Session
     }
 
     /**
-     * __destruct.
+     * __destruct
      *
      * @return void
      */
@@ -369,13 +335,6 @@ class Session
     }
 }
 
-/**
- * Class SessionException
- */
-class SessionException extends \RuntimeException
-{
+// --- Init session
 
-}
-
-// Init session.
 Session::init();

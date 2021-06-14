@@ -5,6 +5,7 @@ public/
 log/
 temp/
 tmp/
+todo
 out
 app.php
 app.log

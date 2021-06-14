@@ -3,27 +3,39 @@ declare(strict_types=1);
 
 namespace Comet;
 
-// FIXME Absolutely Expreimental! Please do not use it in production
-// TODO Use Comet\Response object with simplified acces like Python Requests objects
-
+/**
+ * Class Client
+ * Absolutely Expreimental! Please do not use it in production
+ * @package Comet
+ */
 class Client {
-	
-	// TODO Allow using cURL as HTTP transport lib
+
+    /**
+     * Client constructor
+     */
 	public function __construct()
 	{
 	}
 
-	// TODO Use file_get_contents
+    /**
+     * @param $url
+     * @param null $data
+     * @return false|string
+     */
 	static public function get($url, $data = null)
 	{		
 		if ($data) {
 			$url .= '?' . http_build_query($data);
 		}
 
-		// TODO Errors?
 		return file_get_contents($url);
 	}
 
+    /**
+     * @param $url
+     * @param $data
+     * @return false|string
+     */
 	static public function post($url, $data)
 	{
 		if (is_array($data)) {
@@ -39,7 +51,7 @@ class Client {
                     "Connection: close\r\n" .
                     "Content-length: " . strlen($data) . "\r\n",
                 'content'=> $data,
-                'protocol_version' => 1.1,
+                'protocol_version' => '1.1',
        		],
      		'ssl' => [
                 'verify_peer' => false,
@@ -50,7 +62,6 @@ class Client {
    		$ctx = stream_context_create($opts);
    		$result = file_get_contents($url, false, $ctx);
 
-   		// TODO Errors?
    		return $result;
 	}
 }

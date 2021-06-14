@@ -99,7 +99,7 @@ Start it from command line:
 $ php app.php start
 ```
 
-Then open browser and type in default address http://localhost:8080 - you'll see hello from Comet!
+Then open browser and type in default address http://localhost - you'll see hello from Comet!
 
 ### Simple JSON Response
 
@@ -185,7 +185,7 @@ Before you proceed with complex examples, be sure that your composer.json contai
 ```bash
 {
     "require": {
-        "gotzmann/comet": "^0.6",
+        "gotzmann/comet": "^1.0",
     },
     "autoload": {
         "psr-4": { "App\\": "src/" }

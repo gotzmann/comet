@@ -5,12 +5,12 @@ namespace Comet;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
-use GuzzleHttp\Psr7\Stream;
-use GuzzleHttp\Psr7\MessageTrait;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 
-// Fast PSR-7 Response implementation
-
+/**
+ * Fast PSR-7 Response implementation
+ * @package Comet
+ */
 class Response extends GuzzleResponse implements ResponseInterface
 {
 	use MessageTrait;
@@ -101,7 +101,7 @@ class Response extends GuzzleResponse implements ResponseInterface
         $this->setHeaders($headers);
 
         if ($body !== '' && $body !== null) {
-            $this->stream = \GuzzleHttp\Psr7\stream_for($body);
+            $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
         }
 
         $this->protocol = $version;
@@ -125,12 +125,10 @@ class Response extends GuzzleResponse implements ResponseInterface
      */
     public function with($body, $status = null)
     {
-        $new = clone $this;
-
         if ($status) {
-            $new->statusCode = (int) $status;
+            $this->statusCode = (int) $status;
             if (isset(self::$phrases[$status])) {
-                $new->reasonPhrase = self::$phrases[$status];
+                $this->reasonPhrase = self::$phrases[$status];
             }
         }
 
@@ -139,12 +137,12 @@ class Response extends GuzzleResponse implements ResponseInterface
             if ($body === false) {
                 throw new \RuntimeException(json_last_error_msg(), json_last_error());
             }
-            $new->setHeaders([ 'Content-Type' => 'application/json; charset=utf-8' ]);
-        } 
+            $this->setHeaders([ 'Content-Type' => 'application/json; charset=utf-8' ]);
+        }
 
-        $new->stream = \GuzzleHttp\Psr7\stream_for($body);
+        $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
 
-        return $new;
+        return $this;
     }
 
     /**
@@ -155,54 +153,67 @@ class Response extends GuzzleResponse implements ResponseInterface
      */
     public function withHeaders($headers)
     {
-        $new = clone $this;
-        $new->setHeaders($headers);
-        return $new;
+        $this->setHeaders($headers);
+        return $this;
     }
 
+    /**
+     * @param $body
+     * @param null $status
+     * @return $this
+     */
     public function withText($body, $status = null)
     {
-        $new = clone $this;
-
         if (isset($status)) {
-            $new->statusCode = (int) $status;
+            $this->statusCode = (int) $status;
             if (isset(self::$phrases[$status])) {
-                $new->reasonPhrase = self::$phrases[$status];
+                $this->reasonPhrase = self::$phrases[$status];
             }
         }
 
-        $new->setHeaders([ 'Content-Type' => 'text/plain; charset=utf-8' ]);
+        $this->setHeaders([ 'Content-Type' => 'text/plain; charset=utf-8' ]);
 
-        $new->stream = \GuzzleHttp\Psr7\stream_for($body);
+        $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
 
-        return $new;
+        return $this;
     }
 
+    /**
+     * @return int
+     */
     public function getStatusCode()
     {
         return $this->statusCode;
     }
 
+    /**
+     * @return mixed|string|null
+     */
     public function getReasonPhrase()
     {
         return $this->reasonPhrase;
     }
 
+    /**
+     * @param int $code
+     * @param string $reasonPhrase
+     * @return $this|Response|GuzzleResponse
+     */
     public function withStatus($code, $reasonPhrase = '')
     {
-        $this->assertStatusCodeIsInteger($code);
-        $code = (int) $code;
-        $this->assertStatusCodeRange($code);
-
-        $new = clone $this;
-        $new->statusCode = $code;
-        if ($reasonPhrase == '' && isset(self::$phrases[$new->statusCode])) {
-            $reasonPhrase = self::$phrases[$new->statusCode];
+        $this->statusCode = (int) $code;
+        if ($reasonPhrase == '' && isset(self::$phrases[$this->statusCode])) {
+            $reasonPhrase = self::$phrases[$this->statusCode];
         }
-        $new->reasonPhrase = $reasonPhrase;
-        return $new;
+        $this->reasonPhrase = $reasonPhrase;
+
+        return $this;
     }
 
+    /**
+     * DEPRECATED
+     * @param $statusCode
+     */
     private function assertStatusCodeIsInteger($statusCode)
     {
         if (filter_var($statusCode, FILTER_VALIDATE_INT) === false) {
@@ -210,10 +221,58 @@ class Response extends GuzzleResponse implements ResponseInterface
         }
     }
 
+    /**
+     * DEPRECATED
+     * @param $statusCode
+     */
     private function assertStatusCodeRange($statusCode)
     {
         if ($statusCode < 100 || $statusCode >= 600) {
             throw new \InvalidArgumentException('Status code must be an integer value between 1xx and 5xx.');
         }
     }
+
+    /**
+     * Serialization Helper
+     * https://github.com/walkor/psr7/commit/8f163224ed5bb93fb210da9211651fcd88acb97b#diff-fe65dcdace9cc44252b537bee79dd574edd1bccf6cee646cc860006a6ec50e8b
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        $msg = 'HTTP/' . $this->getProtocolVersion() . ' '
+            . $this->getStatusCode() . ' '
+            . $this->getReasonPhrase();
+
+        $headers = $this->getHeaders();
+
+        if (empty($headers)) {
+            $msg .= "\r\nContent-Length: " . $this->getBody()->getSize() .
+                "\r\nContent-Type: text/html; charset=utf-8" .
+                "\r\nConnection: keep-alive";
+        } else {
+
+            if ('' === $this->getHeaderLine('Transfer-Encoding') &&
+                '' === $this->getHeaderLine('Content-Length'))
+            {
+                $msg .= "\r\nContent-Length: " . $this->getBody()->getSize();
+            }
+
+            if ('' === $this->getHeaderLine('Content-Type')) {
+                $msg .= "\r\nContent-Type: text/html; charset=utf-8";
+            }
+
+            if ('' === $this->getHeaderLine('Connection')) {
+                $msg .= "\r\nConnection: keep-alive";
+            }
+
+            foreach ($headers as $name => $values) {
+                $msg .= "\r\n{$name}: " . implode(', ', $values);
+            }
+        }
+
+        return "{$msg}\r\n\r\n" . $this->getBody();
+
+    }
+
 }
