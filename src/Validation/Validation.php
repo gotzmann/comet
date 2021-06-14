@@ -3,6 +3,10 @@ declare(strict_types=1);
 
 namespace Comet\Validation;
 
+/**
+ * Class Validation
+ * @package Comet\Validation
+ */
 class Validation extends \Rakit\Validation\Validation
 {
 	/**

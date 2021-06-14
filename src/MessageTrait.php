@@ -6,6 +6,7 @@ use Psr\Http\Message\StreamInterface;
 
 /**
  * Trait implementing functionality common to requests and responses.
+ * @package Comet
  */
 trait MessageTrait
 {
@@ -89,7 +90,7 @@ trait MessageTrait
      */
     public function withHeader($header, $value)
     {
-        // EXP $this->assertHeader($header);
+        // Skip assertHeader
         $value = $this->normalizeHeaderValue($value);
         $normalized = strtolower($header);
 
@@ -114,7 +115,7 @@ trait MessageTrait
                 $value = [$value];
             }
 
-            // EXP $value = $this->trimHeaderValues($value);
+            // Skip trimHeaderValues
             $normalized = strtolower($header);
             if (isset($this->headerNames[$normalized])) {
                 $header = $this->headerNames[$normalized];
@@ -134,8 +135,7 @@ trait MessageTrait
      */
     public function withAddedHeader($header, $value)
     {
-        // EXP $this->assertHeader($header);
-        // EXP $value = $this->normalizeHeaderValue($value);
+        // Skip assertHeader and normalizeHeaderValue
         $normalized = strtolower($header);
         if (isset($this->headerNames[$normalized])) {
             $header = $this->headerNames[$normalized];

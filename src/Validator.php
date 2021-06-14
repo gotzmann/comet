@@ -5,8 +5,11 @@ namespace Comet;
 
 use Comet\Validation;
 
-// Based on https://github.com/rakit/validation
-
+/**
+ * Class Validator
+ * Based on https://github.com/rakit/validation
+ * @package Comet
+ */
 class Validator extends \Rakit\Validation\Validator
 {
     /**
@@ -56,9 +59,9 @@ class Validator extends \Rakit\Validation\Validator
     {
     	// We should convert any input into array 
     	if (is_object($inputs)) {
-    		$inputs = $inputs->toArray(); // TODO Expect errors!
+    		$inputs = $inputs->toArray();
     	} else if (is_string($inputs)) {
-	        $inputs = json_decode($inputs, true); // TODO Expect errors!
+	        $inputs = json_decode($inputs, true); 
     	}
 
         $messages = array_merge($this->messages, $messages);
