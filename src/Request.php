@@ -255,10 +255,9 @@ class Request extends GuzzleRequest implements ServerRequestInterface
      */
     public function withUploadedFiles(array $uploadedFiles)
     {
-        $new = clone $this;
-        $new->uploadedFiles = $uploadedFiles;
+        $this->uploadedFiles = $uploadedFiles;
 
-        return $new;
+        return $this;
     }
 
     /**
@@ -274,10 +273,9 @@ class Request extends GuzzleRequest implements ServerRequestInterface
      */
     public function withCookieParams(array $cookies)
     {
-        $new = clone $this;
-        $new->cookieParams = $cookies;
+        $this->cookieParams = $cookies;
 
-        return $new;
+        return $this;
     }
 
     /**
@@ -293,10 +291,9 @@ class Request extends GuzzleRequest implements ServerRequestInterface
      */
     public function withQueryParams(array $query)
     {
-        $new = clone $this;
-        $new->queryParams = $query;
+        $this->queryParams = $query;
 
-        return $new;
+        return $this;
     }
 
     /**
@@ -312,10 +309,9 @@ class Request extends GuzzleRequest implements ServerRequestInterface
      */
     public function withParsedBody($data)
     {
-        $new = clone $this;
-        $new->parsedBody = $data;
+        $this->parsedBody = $data;
 
-        return $new;
+        return $this;
     }
 
     /**
@@ -355,10 +351,9 @@ class Request extends GuzzleRequest implements ServerRequestInterface
      */
     public function withAttribute($attribute, $value)
     {
-        $new = clone $this;
-        $new->attributes[$attribute] = $value;
+        $this->attributes[$attribute] = $value;
 
-        return $new;
+        return $this;
     }
 
     /**
@@ -370,10 +365,10 @@ class Request extends GuzzleRequest implements ServerRequestInterface
             return $this;
         }
 
-        $new = clone $this;
-        unset($new->attributes[$attribute]);
+        unset($this->attributes[$attribute]);
 
-        return $new;
+        return $this;
+
     }
 
     /**
@@ -389,5 +384,4 @@ class Request extends GuzzleRequest implements ServerRequestInterface
 
         return $this->session;
     }
-
 }
