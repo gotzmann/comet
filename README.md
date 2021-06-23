@@ -6,6 +6,13 @@
 
 Comet is a modern PHP framework for building blazing fast REST APIs, CRUDs, admin panels and microservices. 
 
+## What's new in Comet v2
+
+- Performance improvments - up to 20-30% faster than first version!
+- Embedded secure web-server to serve static content like images, CSS styles and JS scripts
+- Extended session support for complex authentication and authorizathion services
+- Hassle-free out-of-the-box integration with full-featured Auth library
+
 ## Superpowers at your disposal
 
 - Blazing fast with 100K HTTP requests per second and ~0.1 ms latency on commodity cloud hardware
