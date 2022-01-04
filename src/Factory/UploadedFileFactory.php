@@ -2,7 +2,7 @@
 
 namespace Comet\Factory;
 
-use GuzzleHttp\Psr7\UploadedFile;
+use Comet\Psr\UploadedFile;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;

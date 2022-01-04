@@ -19,7 +19,7 @@ use Workerman\Protocols\Http\Response;
  */
 class Comet
 {
-    public const VERSION = '2.0.1';
+    public const VERSION = '2.2.0';
 
     /** @property \Slim\App $app */
     private static $app;

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Comet;
 
-class SessionException extends \RuntimeException {}
+use Comet\Exception\SessionException;
 
 /**
  * Handle PHP sessions data for web users

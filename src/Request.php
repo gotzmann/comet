@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace Comet;
 
-use GuzzleHttp\Psr7\Request as GuzzleRequest;
+use Comet\Psr\MessageTrait;
+use Comet\Psr\UploadedFile;
 use InvalidArgumentException;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\UriInterface;;
+use Psr\Http\Message\UriInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Workerman\Protocols\Http\Request as WorkermanRequest;
 
@@ -14,8 +16,16 @@ use Workerman\Protocols\Http\Request as WorkermanRequest;
  * Fast PSR-7 ServerRequest implementation
  * @package Comet
  */
-class Request extends GuzzleRequest implements ServerRequestInterface
+class Request implements ServerRequestInterface
 {
+    use MessageTrait;
+
+    /** @var string */
+    private $method;
+
+    /** @var UriInterface */
+    private $uri;
+
     /** @var array */
     private $attributes = [];
 
@@ -34,8 +44,11 @@ class Request extends GuzzleRequest implements ServerRequestInterface
     /** @var array */
     private $uploadedFiles = [];
 
-    /** @var Comet\Session */
+    /** @var Session */
     public $session = null;
+
+    /** @var string|null */
+    private $requestTarget;
 
     /**
      * Request constructor
@@ -44,18 +57,22 @@ class Request extends GuzzleRequest implements ServerRequestInterface
      */
     public function __construct($httpBuffer) {
         $request = new WorkermanRequest($httpBuffer);
+        $this->method = strtoupper($request->method());
         $headers = $request->header();
+        $this->setHeaders($headers);
+        $body = $request->rawBody();
 
         // Sanitize URI to avoid exceptions
         $uri = preg_replace('~//+~', '/', $request->uri());
+        $this->uri = new Uri($uri);
 
-        parent::__construct(
-            $request->method(),
-            $uri,
-            $headers,
-            $request->rawBody(),
-            '1.1'
-        );
+        if (!isset($this->headerNames['host'])) {
+            $this->updateHostFromUri();
+        }
+
+        if ($body !== '' && $body !== null) {
+            $this->stream = Utils::streamFor($body);
+        }
 
         $this->serverParams = $_SERVER;
         $this->uploadedFiles = $request->file();
@@ -66,13 +83,14 @@ class Request extends GuzzleRequest implements ServerRequestInterface
 
         if (array_key_exists('content-type', $headers)) {
             if (strstr($headers['content-type'], 'application/json')) {
-                $this->parsedBody = json_decode($request->rawBody(), true);
+                $this->parsedBody = json_decode($body, true);
             } else if (strstr($headers['content-type'], 'application/x-www-form-urlencoded')) {
-                \parse_str($request->rawBody(), $this->parsedBody);
+                \parse_str($body, $this->parsedBody);
             }
         }
 
-        // Wake up active or create new shadow session
+        // --- Wake up active session or create new one
+
         $defaultSessionName = Session::sessionName();
         if (array_key_exists($defaultSessionName, $this->cookieParams)) {
             $session_id = $this->cookieParams[$defaultSessionName];
@@ -383,5 +401,95 @@ class Request extends GuzzleRequest implements ServerRequestInterface
         }
 
         return $this->session;
+    }
+
+    // --- Methods below was extracted from Guzzle Request v2 (with type definitions)
+    // --- TODO: Optimize for speed
+
+    public function getMethod(): string
+    {
+        return $this->method;
+    }
+
+    public function withMethod($method): RequestInterface
+    {
+        // $this->assertMethod($method);
+        $new = clone $this;
+        $new->method = strtoupper($method);
+        return $new;
+    }
+
+    public function getUri(): UriInterface
+    {
+        return $this->uri;
+    }
+
+    public function withUri(UriInterface $uri, $preserveHost = false): RequestInterface
+    {
+        if ($uri === $this->uri) {
+            return $this;
+        }
+
+        $new = clone $this;
+        $new->uri = $uri;
+
+        if (!$preserveHost || !isset($this->headerNames['host'])) {
+            $new->updateHostFromUri();
+        }
+
+        return $new;
+    }
+
+    public function getRequestTarget(): string
+    {
+        if ($this->requestTarget !== null) {
+            return $this->requestTarget;
+        }
+
+        $target = $this->uri->getPath();
+        if ($target === '') {
+            $target = '/';
+        }
+        if ($this->uri->getQuery() != '') {
+            $target .= '?' . $this->uri->getQuery();
+        }
+
+        return $target;
+    }
+
+    public function withRequestTarget($requestTarget): RequestInterface
+    {
+        if (preg_match('#\s#', $requestTarget)) {
+            throw new InvalidArgumentException(
+                'Invalid request target provided; cannot contain whitespace'
+            );
+        }
+
+        $new = clone $this;
+        $new->requestTarget = $requestTarget;
+        return $new;
+    }
+
+    private function updateHostFromUri(): void
+    {
+        $host = $this->uri->getHost();
+
+        if ($host == '') {
+            return;
+        }
+
+        if (($port = $this->uri->getPort()) !== null) {
+            $host .= ':' . $port;
+        }
+
+        if (isset($this->headerNames['host'])) {
+            $header = $this->headerNames['host'];
+        } else {
+            $header = 'Host';
+            $this->headerNames['host'] = 'Host';
+        }
+        // Ensure Host is the first header.
+        // See: http://tools.ietf.org/html/rfc7230#section-5.4
+        $this->headers = [$header => [$host]] + $this->headers;
     }
 }

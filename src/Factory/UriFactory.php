@@ -2,7 +2,7 @@
 
 namespace Comet\Factory;
 
-use GuzzleHttp\Psr7\Uri;
+use Comet\Uri;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
 

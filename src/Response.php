@@ -3,15 +3,15 @@ declare(strict_types=1);
 
 namespace Comet;
 
+use Comet\Psr\MessageTrait;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
-use GuzzleHttp\Psr7\Response as GuzzleResponse;
 
 /**
  * Fast PSR-7 Response implementation
  * @package Comet
  */
-class Response extends GuzzleResponse implements ResponseInterface
+class Response implements ResponseInterface
 {
 	use MessageTrait;
 
@@ -43,6 +43,7 @@ class Response extends GuzzleResponse implements ResponseInterface
         305 => 'Use Proxy',
         306 => 'Switch Proxy',
         307 => 'Temporary Redirect',
+        308 => 'Permanent Redirect',
         400 => 'Bad Request',
         401 => 'Unauthorized',
         402 => 'Payment Required',
@@ -80,6 +81,7 @@ class Response extends GuzzleResponse implements ResponseInterface
         506 => 'Variant Also Negotiates',
         507 => 'Insufficient Storage',
         508 => 'Loop Detected',
+        510 => 'Not Extended',
         511 => 'Network Authentication Required',
     ];
 
@@ -101,7 +103,7 @@ class Response extends GuzzleResponse implements ResponseInterface
         $this->setHeaders($headers);
 
         if ($body !== '' && $body !== null) {
-            $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
+            $this->stream = Utils::streamFor($body);
         }
 
         $this->protocol = $version;
@@ -140,7 +142,7 @@ class Response extends GuzzleResponse implements ResponseInterface
             $this->setHeaders([ 'Content-Type' => 'application/json; charset=utf-8' ]);
         }
 
-        $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
+        $this->stream = Utils::streamFor($body);
 
         return $this;
     }
@@ -173,7 +175,7 @@ class Response extends GuzzleResponse implements ResponseInterface
 
         $this->setHeaders([ 'Content-Type' => 'text/plain; charset=utf-8' ]);
 
-        $this->stream = \GuzzleHttp\Psr7\Utils::streamFor($body);
+        $this->stream = Utils::streamFor($body);
 
         return $this;
     }
@@ -197,7 +199,7 @@ class Response extends GuzzleResponse implements ResponseInterface
     /**
      * @param int $code
      * @param string $reasonPhrase
-     * @return $this|Response|GuzzleResponse
+     * @return Response
      */
     public function withStatus($code, $reasonPhrase = '')
     {
@@ -240,9 +242,10 @@ class Response extends GuzzleResponse implements ResponseInterface
      */
     public function __toString()
     {
-        $msg = 'HTTP/' . $this->getProtocolVersion() . ' '
-            . $this->getStatusCode() . ' '
-            . $this->getReasonPhrase();
+        $msg = 'HTTP/'
+            . $this->protocol . ' '
+            . $this->statusCode . ' '
+            . $this->reasonPhrase;
 
         $headers = $this->getHeaders();
 
@@ -267,12 +270,11 @@ class Response extends GuzzleResponse implements ResponseInterface
             }
 
             foreach ($headers as $name => $values) {
-                $msg .= "\r\n{$name}: " . implode(', ', $values);
+                $msg .= "\r\n" . $name . ": " . implode(', ', $values);
             }
         }
 
-        return "{$msg}\r\n\r\n" . $this->getBody();
-
+        return $msg . "\r\n\r\n" . $this->getBody();
     }
 
 }

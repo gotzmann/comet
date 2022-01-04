@@ -1,7 +1,8 @@
 <?php
 
-namespace Comet;
+namespace Comet\Psr;
 
+use Comet\Utils;
 use Psr\Http\Message\StreamInterface;
 
 /**
@@ -173,7 +174,7 @@ trait MessageTrait
     public function getBody()
     {
         if (!$this->stream) {
-            $this->stream = \GuzzleHttp\Psr7\Utils::streamFor('');
+            $this->stream = Utils::streamFor('');
         }
 
         return $this->stream;
