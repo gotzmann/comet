@@ -65,9 +65,9 @@ class Request extends GuzzleRequest implements ServerRequestInterface
         // --- Parse POST forms and JSON bodies
 
         if (array_key_exists('content-type', $headers)) {
-            if ($headers['content-type'] == 'application/json') {
+            if (strstr($headers['content-type'], 'application/json')) {
                 $this->parsedBody = json_decode($request->rawBody(), true);
-            } else if ($headers['content-type'] == 'application/x-www-form-urlencoded') {
+            } else if (strstr($headers['content-type'], 'application/x-www-form-urlencoded')) {
                 \parse_str($request->rawBody(), $this->parsedBody);
             }
         }
