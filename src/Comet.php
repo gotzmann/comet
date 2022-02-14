@@ -31,6 +31,7 @@ class Comet
     private static $debug;
     private static $init;
     private static $container;
+    private static int $workers;
 
     // MIME types for internal web-server
     private static $mimeFile;
@@ -56,6 +57,7 @@ class Comet
     public function __construct(array $config = null)
     {
         // Set up params with user defined or default values
+        self::$workers   = $config['workers']   ?? 0;
         self::$host      = $config['host']      ?? '0.0.0.0';
         self::$port      = $config['port']      ?? 80;
         self::$debug     = $config['debug']     ?? false;
@@ -75,9 +77,14 @@ class Comet
             if (self::$host === '0.0.0.0') {
                 self::$host = '127.0.0.1';
             }
-            self::$config['workers'] = 1; // Windows can't hadnle multiple processes with PHP and have no "nproc" command
+            self::$workers = 1; // Windows can't hadnle multiple processes with PHP
         } else {
-        	self::$config['workers'] = $config['workers'] ?? (int) shell_exec('nproc') * 4;
+            if (self::$workers == 0) {
+                self::$workers = (int) shell_exec('nproc') * 4; // Linux
+                if (self::$workers == 0) {
+                    self::$workers = (int) shell_exec('sysctl -n hw.logicalcpu') * 4; // MacOS
+                }
+            }
         }
 
         // Using Comet PSR-7 and PSR-17
@@ -262,7 +269,7 @@ class Comet
 
         // Init HTTP workers
         $worker = new Worker('http://' . self::$host . ':' . self::$port);
-        $worker->count = self::$config['workers'];
+        $worker->count = self::$workers;
         $worker->name = 'Comet v' . self::VERSION;
 
         if (self::$init)
@@ -287,7 +294,7 @@ class Comet
 
         // Write Comet startup message to log file and show on screen
         $jobsInfo = count(self::$jobs) ? ' / ' . count(self::$jobs) . ' jobs' : ''; 
-      	$hello = $worker->name . ' [' . self::$config['workers'] . ' workers' . $jobsInfo . '] ready on http://' . self::$host . ':' . self::$port;
+      	$hello = $worker->name . ' [' . self::$workers . ' workers' . $jobsInfo . '] ready on http://' . self::$host . ':' . self::$port;
        	if (self::$logger) {
             self::$logger->info($hello);
        	}
