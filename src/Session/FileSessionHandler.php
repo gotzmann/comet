@@ -39,7 +39,7 @@ class FileSessionHandler implements \SessionHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function open($save_path, $name)
+    public function open($save_path, $name): bool
     {
         return true;
     }
@@ -47,7 +47,7 @@ class FileSessionHandler implements \SessionHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function read($session_id)
+    public function read($session_id): string
     {
         $session_file = static::sessionFile($session_id);
         \clearstatcache();
@@ -61,7 +61,7 @@ class FileSessionHandler implements \SessionHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function write($session_id, $session_data)
+    public function write($session_id, $session_data): bool
     {
         $temp_file = static::$_sessionSavePath . uniqid(strval(mt_rand()), true);
         if (!\file_put_contents($temp_file, $session_data)) {
@@ -73,7 +73,7 @@ class FileSessionHandler implements \SessionHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function close()
+    public function close(): bool
     {
         return true;
     }
@@ -81,7 +81,7 @@ class FileSessionHandler implements \SessionHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function destroy($session_id)
+    public function destroy($session_id): bool
     {
         $session_file = static::sessionFile($session_id);
         if (\is_file($session_file)) {
@@ -93,7 +93,7 @@ class FileSessionHandler implements \SessionHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function gc($maxlifetime) {
+    public function gc($maxlifetime): int {
         $time_now = \time();
         foreach (\glob(static::$_sessionSavePath . static::$_sessionFilePrefix . '*') as $file) {
             if(\is_file($file) && $time_now - \filemtime($file) > $maxlifetime) {
