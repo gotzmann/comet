@@ -100,6 +100,7 @@ class FileSessionHandler implements \SessionHandlerInterface
                 \unlink($file);
             }
         }
+        return 0; // TODO https://www.php.net/manual/en/sessionhandlerinterface.gc.php
     }
 
     /**
