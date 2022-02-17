@@ -12,6 +12,7 @@ app.log
 debug.php
 debug.log
 Makefile
+composer.lock
 Dockerfile.wrk
 Dockerfile.comet
 docker-compose.yml

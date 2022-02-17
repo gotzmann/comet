@@ -386,7 +386,6 @@ class Request implements ServerRequestInterface
         unset($this->attributes[$attribute]);
 
         return $this;
-
     }
 
     /**
@@ -403,8 +402,7 @@ class Request implements ServerRequestInterface
         return $this->session;
     }
 
-    // --- Methods below was extracted from Guzzle Request v2 (with type definitions)
-    // --- TODO: Optimize for speed
+    // --- Methods extracted from Guzzle Request v2 (with type definitions)
 
     public function getMethod(): string
     {
@@ -414,9 +412,9 @@ class Request implements ServerRequestInterface
     public function withMethod($method): RequestInterface
     {
         // $this->assertMethod($method);
-        $new = clone $this;
-        $new->method = strtoupper($method);
-        return $new;
+        $this->method = strtoupper($method);
+
+        return $this;
     }
 
     public function getUri(): UriInterface
@@ -426,18 +424,14 @@ class Request implements ServerRequestInterface
 
     public function withUri(UriInterface $uri, $preserveHost = false): RequestInterface
     {
-        if ($uri === $this->uri) {
-            return $this;
-        }
+        $this->uri = $uri;
 
-        $new = clone $this;
-        $new->uri = $uri;
+        //if (!$preserveHost || !isset($this->headerNames['host'])) {
+        //    $new->updateHostFromUri();
+        //}
+        $this->updateHostFromUri();
 
-        if (!$preserveHost || !isset($this->headerNames['host'])) {
-            $new->updateHostFromUri();
-        }
-
-        return $new;
+        return $this;
     }
 
     public function getRequestTarget(): string
@@ -465,9 +459,9 @@ class Request implements ServerRequestInterface
             );
         }
 
-        $new = clone $this;
-        $new->requestTarget = $requestTarget;
-        return $new;
+        $this->requestTarget = $requestTarget;
+
+        return $this;
     }
 
     private function updateHostFromUri(): void
