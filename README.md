@@ -334,3 +334,9 @@ http {
     }
 }    
 ```
+
+## FAQ
+
+**Got error `stream_socket_server(): unable to connect to tcp://0.0.0.0:80 (Permission denied)` trying to start Comet under my Ubuntu?**
+
+Comet needs to be run as root in order to bind to port 80 or any other port lower than 1000. So either start with sudo or just use port like 8080.
