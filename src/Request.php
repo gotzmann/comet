@@ -63,8 +63,13 @@ class Request implements ServerRequestInterface
         $body = $request->rawBody();
 
         // Sanitize URI to avoid exceptions
-        $uri = preg_replace('~//+~', '/', $request->uri());
-        $this->uri = new Uri($uri);
+        // FIXME $uri = preg_replace('~//+~', '/', $request->uri());
+        try {
+            $this->uri = new Uri($uri);
+        } catch (\Throwable $error) {
+            // FIXME It's better to process some root path rather than panic the whole framework
+            $this->uri = new Uri();
+        }
 
         if (!isset($this->headerNames['host'])) {
             $this->updateHostFromUri();
