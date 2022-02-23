@@ -65,7 +65,7 @@ class Request implements ServerRequestInterface
         // Sanitize URI to avoid exceptions
         // FIXME $uri = preg_replace('~//+~', '/', $request->uri());
         try {
-            $this->uri = new Uri($uri);
+            $this->uri = new Uri($request->uri());
         } catch (\Throwable $error) {
             // FIXME It's better to process some root path rather than panic the whole framework
             $this->uri = new Uri();
