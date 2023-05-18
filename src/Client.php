@@ -1,67 +1,61 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Comet;
+namespace Meteor;
+
+use JsonException;
 
 /**
  * Class Client
  * Absolutely Expreimental! Please do not use it in production
- * @package Comet
+ * @package Meteor
  */
-class Client {
-
+class Client
+{
     /**
      * Client constructor
      */
-	public function __construct()
-	{
-	}
+    public function __construct()
+    {
+    }
+
+    public static function get($url, $data = null): false|string
+    {
+        if ($data) {
+            $url .= '?' . http_build_query($data);
+        }
+
+        return file_get_contents($url);
+    }
 
     /**
-     * @param $url
-     * @param null $data
-     * @return false|string
+     * @throws JsonException
      */
-	static public function get($url, $data = null)
-	{		
-		if ($data) {
-			$url .= '?' . http_build_query($data);
-		}
+    public static function post($url, $data): false|string
+    {
+        if (is_array($data)) {
+            $data = json_encode($data, JSON_THROW_ON_ERROR);
+        }
 
-		return file_get_contents($url);
-	}
-
-    /**
-     * @param $url
-     * @param $data
-     * @return false|string
-     */
-	static public function post($url, $data)
-	{
-		if (is_array($data)) {
-			$data = json_encode($data);
-		}
-
-		$opts = [
+        $opts = [
             'http' => [
                 'method' => "POST",
-                'header' => 
+                'header' =>
                     "Content-type: application/json\r\n" .
                     "Accept: application/json\r\n" .
                     "Connection: close\r\n" .
                     "Content-length: " . strlen($data) . "\r\n",
-                'content'=> $data,
+                'content' => $data,
                 'protocol_version' => '1.1',
-       		],
-     		'ssl' => [
+            ],
+            'ssl' => [
                 'verify_peer' => false,
                 'verify_peer_name' => false,
             ]
         ];
 
-   		$ctx = stream_context_create($opts);
-   		$result = file_get_contents($url, false, $ctx);
-
-   		return $result;
-	}
+        $ctx = stream_context_create($opts);
+        return file_get_contents($url, false, $ctx);
+    }
 }

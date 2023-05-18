@@ -1,10 +1,13 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Comet\Psr;
+namespace Meteor\Psr;
 
-use Comet\Utils;
+use BadMethodCallException;
+use Meteor\Utils;
 use Psr\Http\Message\StreamInterface;
+use UnexpectedValueException;
 
 /**
  * Stream decorator trait
@@ -13,12 +16,8 @@ use Psr\Http\Message\StreamInterface;
  */
 trait StreamDecoratorTrait
 {
-    /**
-     * @param StreamInterface $stream Stream to decorate
-     */
-    public function __construct(StreamInterface $stream)
+    public function __construct(protected StreamInterface $stream)
     {
-        $this->stream = $stream;
     }
 
     /**
@@ -34,23 +33,15 @@ trait StreamDecoratorTrait
             return $this->stream;
         }
 
-        throw new \UnexpectedValueException("$name not found on class");
+        throw new UnexpectedValueException("$name not found on class");
     }
 
     public function __toString(): string
     {
-        try {
-            if ($this->isSeekable()) {
-                $this->seek(0);
-            }
-            return $this->getContents();
-        } catch (\Throwable $e) {
-            if (\PHP_VERSION_ID >= 70400) {
-                throw $e;
-            }
-            trigger_error(sprintf('%s::__toString exception: %s', self::class, (string) $e), E_USER_ERROR);
-            return '';
+        if ($this->isSeekable()) {
+            $this->seek(0);
         }
+        return $this->getContents();
     }
 
     public function getContents(): string
@@ -83,7 +74,7 @@ trait StreamDecoratorTrait
      *
      * @return mixed
      */
-    public function getMetadata($key = null)
+    public function getMetadata($key = null): mixed
     {
         return $this->stream->getMetadata($key);
     }
@@ -143,13 +134,8 @@ trait StreamDecoratorTrait
         return $this->stream->write($string);
     }
 
-    /**
-     * Implement in subclasses to dynamically create streams when requested.
-     *
-     * @throws \BadMethodCallException
-     */
     protected function createStream(): StreamInterface
     {
-        throw new \BadMethodCallException('Not implemented');
+        throw new BadMethodCallException('Not implemented');
     }
 }

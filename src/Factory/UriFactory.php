@@ -1,8 +1,8 @@
 <?php
 
-namespace Comet\Factory;
+namespace Meteor\Factory;
 
-use Comet\Uri;
+use Meteor\Uri;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
 

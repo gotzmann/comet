@@ -1,36 +1,36 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Comet\Session;
+namespace Meteor\Session;
+
+use RuntimeException;
+use function session_save_path;
 
 /**
  * Class FileSessionHandler
- * @package Comet\Session
+ * @package Meteor\Session
  */
 class FileSessionHandler implements \SessionHandlerInterface
 {
-    /** @var string Session save path */
-    protected static $_sessionSavePath = null;
+    protected static ?string $sessionSavePath = null;
 
-    /** @var string Session file prefix */
-    protected static $_sessionFilePrefix = 'sess_';
+    protected static string $sessionFilePrefix = 'sess_';
 
     /**
      * Init
      */
-    public static function init() {
-        $save_path = @\session_save_path();
-        if (!$save_path || \strpos($save_path, 'tcp://') === 0) {
-            $save_path = \sys_get_temp_dir();
+    public static function init(): void
+    {
+        $save_path = @session_save_path();
+        if (!$save_path || str_starts_with($save_path, 'tcp://')) {
+            $save_path = sys_get_temp_dir();
         }
         static::sessionSavePath($save_path);
     }
 
-    /**
-     * FileSessionHandler constructor.
-     * @param array $config
-     */
-    public function __construct($config = array()) {
+    public function __construct(array $config = [])
+    {
         if (isset($config['save_path'])) {
             static::sessionSavePath($config['save_path']);
         }
@@ -39,7 +39,7 @@ class FileSessionHandler implements \SessionHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function open($save_path, $name): bool
+    public function open(string $path, string $name): bool
     {
         return true;
     }
@@ -47,13 +47,13 @@ class FileSessionHandler implements \SessionHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function read($session_id): string
+    public function read($id): string
     {
-        $session_file = static::sessionFile($session_id);
-        \clearstatcache();
-        if (\is_file($session_file)) {
-            $data = \file_get_contents($session_file);
-            return $data ? $data : '';
+        $session_file = static::sessionFile($id);
+        clearstatcache();
+        if (is_file($session_file)) {
+            $data = file_get_contents($session_file);
+            return $data ?: '';
         }
         return '';
     }
@@ -61,13 +61,13 @@ class FileSessionHandler implements \SessionHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function write($session_id, $session_data): bool
+    public function write(string $id, string $data): bool
     {
-        $temp_file = static::$_sessionSavePath . uniqid(strval(mt_rand()), true);
-        if (!\file_put_contents($temp_file, $session_data)) {
+        $temp_file = static::$sessionSavePath . uniqid((string)mt_rand(), true);
+        if (!file_put_contents($temp_file, $data)) {
             return false;
         }
-        return \rename($temp_file, static::sessionFile($session_id));
+        return rename($temp_file, static::sessionFile($id));
     }
 
     /**
@@ -81,11 +81,11 @@ class FileSessionHandler implements \SessionHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function destroy($session_id): bool
+    public function destroy(string $id): bool
     {
-        $session_file = static::sessionFile($session_id);
-        if (\is_file($session_file)) {
-            \unlink($session_file);
+        $session_file = static::sessionFile($id);
+        if (is_file($session_file)) {
+            unlink($session_file);
         }
         return true;
     }
@@ -93,11 +93,12 @@ class FileSessionHandler implements \SessionHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function gc($maxlifetime): int {
-        $time_now = \time();
-        foreach (\glob(static::$_sessionSavePath . static::$_sessionFilePrefix . '*') as $file) {
-            if(\is_file($file) && $time_now - \filemtime($file) > $maxlifetime) {
-                \unlink($file);
+    public function gc($maxlifetime): int
+    {
+        $time_now = time();
+        foreach (glob(static::$sessionSavePath . static::$sessionFilePrefix . '*') as $file) {
+            if (is_file($file) && $time_now - filemtime($file) > $maxlifetime) {
+                unlink($file);
             }
         }
         return 0; // TODO https://www.php.net/manual/en/sessionhandlerinterface.gc.php
@@ -109,8 +110,9 @@ class FileSessionHandler implements \SessionHandlerInterface
      * @param $session_id
      * @return string
      */
-    protected static function sessionFile($session_id) {
-        return static::$_sessionSavePath.static::$_sessionFilePrefix.$session_id;
+    protected static function sessionFile($session_id): string
+    {
+        return static::$sessionSavePath . static::$sessionFilePrefix . $session_id;
     }
 
     /**
@@ -119,20 +121,17 @@ class FileSessionHandler implements \SessionHandlerInterface
      * @param $path
      * @return string
      */
-    public static function sessionSavePath($path) {
+    public static function sessionSavePath($path): string
+    {
         if ($path) {
-            if ($path[\strlen($path)-1] !== DIRECTORY_SEPARATOR) {
+            if ($path[strlen($path) - 1] !== DIRECTORY_SEPARATOR) {
                 $path .= DIRECTORY_SEPARATOR;
             }
-            static::$_sessionSavePath = $path;
-            if (!\is_dir($path)) {
-                \mkdir($path, 0777, true);
+            static::$sessionSavePath = $path;
+            if (!is_dir($path) && !mkdir($path, 0777, true) && !is_dir($path)) {
+                throw new RuntimeException(sprintf('Directory "%s" was not created', $path));
             }
         }
         return $path;
     }
 }
-
-// --- Init
-
-FileSessionHandler::init();

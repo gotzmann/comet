@@ -1,8 +1,8 @@
 <?php
 
-namespace Comet\Factory;
+namespace Meteor\Factory;
 
-use Comet\Psr\UploadedFile;
+use Meteor\Psr\UploadedFile;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;

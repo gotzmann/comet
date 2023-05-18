@@ -1,20 +1,112 @@
 {
-    "name": "gotzmann/comet",
+    "name": "diego-ninja/meteor",
     "description": "Modern PHP framework for building blazing fast REST APIs and microservices",
     "license": "MIT",
-    "keywords": ["comet", "slim", "api", "microservice", "framework", "REST", "slimphp", "workerman", "PSR7", "techempower", "benchmark"],
-    "homepage": "https://github.com/gotzmann/comet",
-    "authors": [{
-        "name": "Serge Gotsuliak",
-        "email": "sgotsulyak@gmail.com"
-    }],
+    "keywords": [
+        "meteor",
+        "slim",
+        "api",
+        "microservice",
+        "framework",
+        "REST",
+        "slimphp",
+        "workerman",
+        "PSR7",
+        "techempower",
+        "benchmark"
+    ],
+    "authors": [
+        {
+            "name": "Serge Gotsuliak",
+            "email": "sgotsulyak@gmail.com"
+        },
+        {
+            "name": "Diego Rin Martín",
+            "email": "yosoy@diego.ninja"
+        }
+    ],
+    "homepage": "https://github.com/diego-ninja/meteor",
     "require": {
+        "php": "^8.2",
         "ext-json": "*",
-        "workerman/workerman": "^4.1",
+        "ext-redis": "*",
+        "crell/envmapper": "^1.0",
+        "guzzlehttp/psr7": "^2.5",
+        "rakit/validation": "^1.4",
         "slim/slim": "^4.10",
-        "rakit/validation": "^1.4"
+        "workerman/workerman": "^4.1"
+    },
+    "require-dev": {
+        "captainhook/captainhook": "^5",
+        "captainhook/plugin-composer": "^5",
+        "ergebnis/composer-normalize": "^2.30",
+        "mockery/mockery": "^1",
+        "moxio/captainhook-psalm": "^0.3",
+        "php-parallel-lint/php-console-highlighter": "^1.0",
+        "php-parallel-lint/php-parallel-lint": "^1.3",
+        "phpunit/phpunit": "^10",
+        "psalm/plugin-phpunit": "^0.18.4",
+        "ramsey/conventional-commits": "^1.3",
+        "roave/security-advisories": "dev-latest",
+        "squizlabs/php_codesniffer": "^3",
+        "vimeo/psalm": "^5"
     },
     "autoload": {
-        "psr-4": { "Comet\\": "src/" }
+        "psr-4": {
+            "Meteor\\": "src/"
+        },
+        "files": [
+            "src/functions.php"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "captainhook/plugin-composer": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "php-http/discovery": false,
+            "ergebnis/composer-normalize": true
+        },
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "scripts": {
+        "dev:analyze": [
+            "@dev:analyze:psalm"
+        ],
+        "dev:analyze:psalm": "psalm",
+        "dev:build:clean": "git clean -fX builds/",
+        "dev:lint": [
+            "@dev:lint:syntax",
+            "@dev:lint:style"
+        ],
+        "dev:lint:fix": "phpcbf",
+        "dev:lint:style": "phpcs --colors --encoding=utf-8 -n",
+        "dev:lint:syntax": "parallel-lint --colors src/",
+        "dev:test": [
+            "@dev:lint",
+            "@dev:analyze",
+            "@dev:test:unit"
+        ],
+        "dev:test:coverage:ci": "phpunit --colors=always --coverage-text --coverage-clover build/coverage/clover.xml --coverage-cobertura build/coverage/cobertura.xml --coverage-crap4j build/coverage/crap4j.xml --coverage-xml build/coverage/coverage-xml --log-junit build/junit.xml",
+        "dev:test:coverage:html": "phpunit --colors=always --coverage-html build/coverage/coverage-html/",
+        "dev:test:unit": "phpunit --colors=always --testdox",
+        "dev:test:unit:debug": "phpunit --colors=always --testdox -d xdebug.profiler_enable=on",
+        "test": "@dev:test"
+    },
+    "scripts-descriptions": {
+        "dev:analyze": "Runs all static analysis checks.",
+        "dev:analyze:psalm": "Runs the Psalm static analyzer.",
+        "dev:build:clean": "Cleans the build/ directory.",
+        "dev:lint": "Runs all linting checks.",
+        "dev:lint:fix": "Auto-fixes coding standards issues, if possible.",
+        "dev:lint:style": "Checks for coding standards issues.",
+        "dev:lint:syntax": "Checks for syntax errors.",
+        "dev:test": "Runs linting, static analysis, and unit tests.",
+        "dev:test:coverage:ci": "Runs unit tests and generates CI coverage reports.",
+        "dev:test:coverage:html": "Runs unit tests and generates HTML coverage report.",
+        "dev:test:unit": "Runs unit tests.",
+        "test": "Runs linting, static analysis, and unit tests."
     }
 }

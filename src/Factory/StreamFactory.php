@@ -1,7 +1,8 @@
 <?php
 
-namespace Comet\Factory;
+namespace Meteor\Factory;
 
+use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 
@@ -9,18 +10,18 @@ class StreamFactory implements StreamFactoryInterface
 {
     public function createStream(string $content = ''): StreamInterface
     {
-        return \GuzzleHttp\Psr7\stream_for($content);
+        return Utils::streamFor($content);
     }
 
-    public function createStreamFromFile(string $file, string $mode = 'r'): StreamInterface
+    public function createStreamFromFile(string $filename, string $mode = 'r'): StreamInterface
     {
-        $resource = \GuzzleHttp\Psr7\try_fopen($file, $mode);
+        $resource = Utils::tryFopen($filename, $mode);
 
-        return \GuzzleHttp\Psr7\stream_for($resource);
+        return Utils::streamFor($resource);
     }
 
     public function createStreamFromResource($resource): StreamInterface
     {
-        return \GuzzleHttp\Psr7\stream_for($resource);
+        return Utils::streamFor($resource);
     }
 }

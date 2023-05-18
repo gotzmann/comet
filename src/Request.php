@@ -1,61 +1,54 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Comet;
+namespace Meteor;
 
-use Comet\Psr\MessageTrait;
-use Comet\Psr\UploadedFile;
+use Meteor\Psr\MessageTrait;
+use Meteor\Psr\UploadedFile;
 use InvalidArgumentException;
+use JsonException;
 use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Message\UploadedFileInterface;
+use Throwable;
 use Workerman\Protocols\Http\Request as WorkermanRequest;
+
+use function parse_str;
 
 /**
  * Fast PSR-7 ServerRequest implementation
- * @package Comet
+ * @package Meteor
  */
 class Request implements ServerRequestInterface
 {
     use MessageTrait;
 
-    /** @var string */
-    private $method;
+    private string $method;
 
-    /** @var UriInterface */
-    private $uri;
+    private Uri|UriInterface $uri;
 
-    /** @var array */
-    private $attributes = [];
+    private array $attributes = [];
 
-    /** @var array */
-    private $cookieParams = [];
+    private array $cookieParams;
 
-    /** @var null|array|object */
-    private $parsedBody;
+    private mixed $parsedBody;
 
-    /** @var array */
-    private $queryParams = [];
+    private array $queryParams;
 
-    /** @var array */
-    private $serverParams;
+    private array $serverParams;
 
-    /** @var array */
-    private $uploadedFiles = [];
+    private array $uploadedFiles;
 
-    /** @var Session */
-    public $session = null;
+    public ?Session $session = null;
 
-    /** @var string|null */
-    private $requestTarget;
+    private ?string $requestTarget;
 
     /**
-     * Request constructor
-     *
-     * @param string $httpBuffer
+     * @throws JsonException
      */
-    public function __construct($httpBuffer) {
+    public function __construct(string $httpBuffer)
+    {
         $request = new WorkermanRequest($httpBuffer);
         $this->method = strtoupper($request->method());
         $headers = $request->header();
@@ -66,7 +59,7 @@ class Request implements ServerRequestInterface
         // FIXME $uri = preg_replace('~//+~', '/', $request->uri());
         try {
             $this->uri = new Uri($request->uri());
-        } catch (\Throwable $error) {
+        } catch (Throwable $error) {
             // FIXME It's better to process some root path rather than panic the whole framework
             $this->uri = new Uri();
         }
@@ -87,10 +80,10 @@ class Request implements ServerRequestInterface
         // --- Parse POST forms and JSON bodies
 
         if (array_key_exists('content-type', $headers)) {
-            if (strstr($headers['content-type'], 'application/json')) {
-                $this->parsedBody = json_decode($body, true);
-            } else if (strstr($headers['content-type'], 'application/x-www-form-urlencoded')) {
-                \parse_str($body, $this->parsedBody);
+            if (str_contains($headers['content-type'], 'application/json')) {
+                $this->parsedBody = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+            } elseif (str_contains($headers['content-type'], 'application/x-www-form-urlencoded')) {
+                parse_str($body, $this->parsedBody);
             }
         }
 
@@ -112,7 +105,7 @@ class Request implements ServerRequestInterface
      * @throws InvalidArgumentException for unrecognized values
      * @return array
      */
-    public static function normalizeFiles(array $files)
+    public static function normalizeFiles(array $files): array
     {
         $normalized = [];
 
@@ -123,7 +116,6 @@ class Request implements ServerRequestInterface
                 $normalized[$key] = self::createUploadedFileFromSpec($value);
             } elseif (is_array($value)) {
                 $normalized[$key] = self::normalizeFiles($value);
-                continue;
             } else {
                 throw new InvalidArgumentException('Invalid value in files specification');
             }
@@ -141,7 +133,7 @@ class Request implements ServerRequestInterface
      * @param array $value $_FILES struct
      * @return array|UploadedFileInterface
      */
-    private static function createUploadedFileFromSpec(array $value)
+    private static function createUploadedFileFromSpec(array $value): UploadedFileInterface | array
     {
         if (is_array($value['tmp_name'])) {
             return self::normalizeNestedFileSpec($value);
@@ -156,16 +148,7 @@ class Request implements ServerRequestInterface
         );
     }
 
-    /**
-     * Normalize an array of file specifications.
-     *
-     * Loops through all nested files and returns a normalized array of
-     * UploadedFileInterface instances.
-     *
-     * @param array $files
-     * @return UploadedFileInterface[]
-     */
-    private static function normalizeNestedFileSpec(array $files = [])
+    private static function normalizeNestedFileSpec(array $files = []): array
     {
         $normalizedFiles = [];
 
@@ -186,23 +169,23 @@ class Request implements ServerRequestInterface
     /**
      * We should not allow creating requests from GLOBALS with Workerman-based framework
      *
-     * @throws InvalidArgumentException 
+     * @throws InvalidArgumentException
      */
-    public static function fromGlobals()
+    public static function fromGlobals(): void
     {
-    	throw new InvalidArgumentException('Do not use fromGlobals() method for Comet\Request objects!');
+        throw new InvalidArgumentException('Do not use fromGlobals() method for Meteor\Request objects!');
     }
 
-    private static function extractHostAndPortFromAuthority($authority)
+    private static function extractHostAndPortFromAuthority($authority): array
     {
-        $uri = 'http://'.$authority;
+        $uri = sprintf('http://%s', $authority);
         $parts = parse_url($uri);
         if (false === $parts) {
             return [null, null];
         }
 
-        $host = isset($parts['host']) ? $parts['host'] : null;
-        $port = isset($parts['port']) ? $parts['port'] : null;
+        $host = $parts['host'] ?? null;
+        $port = $parts['port'] ?? null;
 
         return [$host, $port];
     }
@@ -213,7 +196,7 @@ class Request implements ServerRequestInterface
      *
      * @return UriInterface
      */
-    public static function getUriFromGlobals()
+    public static function getUriFromGlobals(): UriInterface
     {
         $uri = new Uri('');
 
@@ -221,7 +204,7 @@ class Request implements ServerRequestInterface
 
         $hasPort = false;
         if (isset($_SERVER['HTTP_HOST'])) {
-            list($host, $port) = self::extractHostAndPortFromAuthority($_SERVER['HTTP_HOST']);
+            [$host, $port] = self::extractHostAndPortFromAuthority($_SERVER['HTTP_HOST']);
             if ($host !== null) {
                 $uri = $uri->withHost($host);
             }
@@ -237,7 +220,7 @@ class Request implements ServerRequestInterface
         }
 
         if (!$hasPort && isset($_SERVER['SERVER_PORT'])) {
-            $uri = $uri->withPort($_SERVER['SERVER_PORT']);
+            $uri = $uri->withPort((int) $_SERVER['SERVER_PORT']);
         }
 
         $hasQuery = false;
@@ -260,7 +243,7 @@ class Request implements ServerRequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getServerParams()
+    public function getServerParams(): array
     {
         return $this->serverParams;
     }
@@ -268,7 +251,7 @@ class Request implements ServerRequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getUploadedFiles()
+    public function getUploadedFiles(): ?array
     {
         return $this->uploadedFiles;
     }
@@ -276,129 +259,88 @@ class Request implements ServerRequestInterface
     /**
      * {@inheritdoc}
      */
-    public function withUploadedFiles(array $uploadedFiles)
+    public function withUploadedFiles(array $uploadedFiles): ServerRequestInterface
     {
         $this->uploadedFiles = $uploadedFiles;
 
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getCookieParams()
+    public function getCookieParams(): array
     {
         return $this->cookieParams;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function withCookieParams(array $cookies)
+    public function withCookieParams(array $cookies): RequestInterface
     {
         $this->cookieParams = $cookies;
 
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getQueryParams()
     {
         return $this->queryParams;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function withQueryParams(array $query)
+    public function withQueryParams(array $query): ServerRequestInterface
     {
         $this->queryParams = $query;
 
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getParsedBody()
+    public function getParsedBody(): mixed
     {
         return $this->parsedBody;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function withParsedBody($data)
+    public function withParsedBody($data): ServerRequestInterface
     {
         $this->parsedBody = $data;
 
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getAttributes()
+    public function getAttributes(): array
     {
         return $this->attributes;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getAttribute($attribute, $default = null)
+    public function getAttribute(string $name, $default = null)
     {
-        if (false === array_key_exists($attribute, $this->attributes)) {
+        if (false === array_key_exists($name, $this->attributes)) {
             return $default;
         }
 
-        return $this->attributes[$attribute];
+        return $this->attributes[$name];
     }
 
-    /**
-     * Efficient way to set up attributes without cloning request
-     *
-     * @param $attribute
-     * @param $value
-     * @return Request
-     */
-    public function setAttribute($attribute, $value)
+    public function setAttribute($attribute, $value): ServerRequestInterface
     {
         $this->attributes[$attribute] = $value;
+        return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function withAttribute($attribute, $value)
+    public function withAttribute($name, $value): ServerRequestInterface
     {
-        $this->attributes[$attribute] = $value;
+        $this->attributes[$name] = $value;
 
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function withoutAttribute($attribute)
+    public function withoutAttribute($name): ServerRequestInterface
     {
-        if (false === array_key_exists($attribute, $this->attributes)) {
+        if (false === array_key_exists($name, $this->attributes)) {
             return $this;
         }
 
-        unset($this->attributes[$attribute]);
+        unset($this->attributes[$name]);
 
         return $this;
     }
 
-    /**
-     * Get session
-     *
-     * @return \Comet\Session
-     */
-    public function getSession()
+    public function getSession(): ?Session
     {
         if ($this->session === null) {
             $this->session = new Session();
@@ -449,7 +391,7 @@ class Request implements ServerRequestInterface
         if ($target === '') {
             $target = '/';
         }
-        if ($this->uri->getQuery() != '') {
+        if ($this->uri->getQuery() !== '') {
             $target .= '?' . $this->uri->getQuery();
         }
 
@@ -473,7 +415,7 @@ class Request implements ServerRequestInterface
     {
         $host = $this->uri->getHost();
 
-        if ($host == '') {
+        if ($host === '') {
             return;
         }
 
@@ -481,14 +423,8 @@ class Request implements ServerRequestInterface
             $host .= ':' . $port;
         }
 
-        if (isset($this->headerNames['host'])) {
-            $header = $this->headerNames['host'];
-        } else {
-            $header = 'Host';
-            $this->headerNames['host'] = 'Host';
-        }
-        // Ensure Host is the first header.
-        // See: http://tools.ietf.org/html/rfc7230#section-5.4
+        $header = 'Host';
+        $this->headerNames['host'] = 'Host';
         $this->headers = [$header => [$host]] + $this->headers;
     }
 }

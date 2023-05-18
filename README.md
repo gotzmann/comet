@@ -94,7 +94,7 @@ $app = new Comet\Comet();
 $app->get('/hello', 
     function ($request, $response) {              
         return $response
-            ->with("Hello, Comet!");
+            ->with("Hello, Meteor!");
 });
 
 $app->run();
@@ -123,7 +123,7 @@ $app = new Comet\Comet([
 
 $app->get('/json', 
     function ($request, $response) {        
-        $data = [ "message" => "Hello, Comet!" ];
+        $data = [ "message" => "Hello, Meteor!" ];
         return $response
             ->with($data);
 });

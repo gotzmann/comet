@@ -1,10 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Comet\Psr;
+namespace Meteor\Psr;
 
-use Comet\Utils;
+use Meteor\Utils;
+use GuzzleHttp\Psr7\BufferStream;
 use Psr\Http\Message\StreamInterface;
+use RuntimeException;
+use Throwable;
 
 /**
  * Provides a read only stream that pumps data from a PHP callable.
@@ -18,20 +22,16 @@ use Psr\Http\Message\StreamInterface;
  */
 final class PumpStream implements StreamInterface
 {
-    /** @var callable|null */
     private $source;
 
-    /** @var int|null */
-    private $size;
+    private ?int $size;
 
-    /** @var int */
-    private $tellPos = 0;
+    private int $tellPos = 0;
 
     /** @var array */
-    private $metadata;
+    private array $metadata;
 
-    /** @var BufferStream */
-    private $buffer;
+    private BufferStream $buffer;
 
     /**
      * @param callable(int): (string|null|false)  $source  Source of the stream data. The callable MAY
@@ -53,15 +53,7 @@ final class PumpStream implements StreamInterface
 
     public function __toString(): string
     {
-        try {
-            return Utils::copyToString($this);
-        } catch (\Throwable $e) {
-            if (\PHP_VERSION_ID >= 70400) {
-                throw $e;
-            }
-            trigger_error(sprintf('%s::__toString exception: %s', self::class, (string) $e), E_USER_ERROR);
-            return '';
-        }
+        return Utils::copyToString($this);
     }
 
     public function close(): void
@@ -69,12 +61,10 @@ final class PumpStream implements StreamInterface
         $this->detach();
     }
 
-    public function detach()
+    public function detach(): void
     {
         $this->tellPos = 0;
         $this->source = null;
-
-        return null;
     }
 
     public function getSize(): ?int
@@ -104,7 +94,7 @@ final class PumpStream implements StreamInterface
 
     public function seek($offset, $whence = SEEK_SET): void
     {
-        throw new \RuntimeException('Cannot seek a PumpStream');
+        throw new RuntimeException('Cannot seek a PumpStream');
     }
 
     public function isWritable(): bool
@@ -114,7 +104,7 @@ final class PumpStream implements StreamInterface
 
     public function write($string): int
     {
-        throw new \RuntimeException('Cannot write to a PumpStream');
+        throw new RuntimeException('Cannot write to a PumpStream');
     }
 
     public function isReadable(): bool
@@ -153,7 +143,7 @@ final class PumpStream implements StreamInterface
      *
      * @return mixed
      */
-    public function getMetadata($key = null)
+    public function getMetadata($key = null): mixed
     {
         if (!$key) {
             return $this->metadata;

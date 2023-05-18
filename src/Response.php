@@ -1,28 +1,26 @@
-<?php               
+<?php
+
 declare(strict_types=1);
 
-namespace Comet;
+namespace Meteor;
 
-use Comet\Psr\MessageTrait;
-use Psr\Http\Message\ResponseInterface;
+use Meteor\Psr\MessageTrait;
+use JsonException;
 use Psr\Http\Message\StreamInterface;
 
 /**
  * Fast PSR-7 Response implementation
- * @package Comet
+ * @package Meteor
  */
 class Response implements ResponseInterface
 {
-	use MessageTrait;
+    use MessageTrait;
 
-    /** @var int */
-    private $statusCode = 200;
+    private int $statusCode;
 
-    /** @var string */
-    private $reasonPhrase = '';
+    private string $reasonPhrase = '';
 
-    /** @var array Map of standard HTTP status code/reason phrases */
-    private static $phrases = [
+    private static array $phrases = [
         100 => 'Continue',
         101 => 'Switching Protocols',
         102 => 'Processing',
@@ -85,21 +83,14 @@ class Response implements ResponseInterface
         511 => 'Network Authentication Required',
     ];
 
-    /**
-     * @param int                                  $status  Status code
-     * @param array                                $headers Response headers
-     * @param string|null|resource|StreamInterface $body    Response body
-     * @param string                               $version Protocol version
-     * @param string|null                          $reason  Reason phrase
-     */
     public function __construct(
-        $status = 200,
+        int $status = 200,
         array $headers = [],
-        $body = null,
-        $version = '1.1',
-        $reason = null
+        StreamInterface|string $body = null,
+        string $version = '1.1',
+        ?string $reason = null
     ) {
-        $this->statusCode = (int) $status;
+        $this->statusCode = $status;
         $this->setHeaders($headers);
 
         if ($body !== '' && $body !== null) {
@@ -117,25 +108,22 @@ class Response implements ResponseInterface
 
     /**
      * Smart method returns right type of Response for any type of content
-     * NB! We expect that 'Content-Type' => 'text/html' will be set up 
-     * by Comet at the last step of the response emitting if needed
+     * NB! We expect that 'Content-Type' => 'text/html' will be set up
+     * by Meteor at the last step of the response emitting if needed
      *
-     * @param $body Response body as array, object or string
-     * @param null $status Optional HTTP Status
-     * @param null $headers Optional HTTP Headers
-     * @return Response Comet PSR-7 HTTP Response
+     * @throws JsonException
      */
-    public function with($body, $status = null)
+    public function with(mixed $body, ?int $status = null): ResponseInterface
     {
         if ($status) {
-            $this->statusCode = (int) $status;
+            $this->statusCode = $status;
             if (isset(self::$phrases[$status])) {
                 $this->reasonPhrase = self::$phrases[$status];
             }
         }
 
         if (is_array($body) || is_object($body)) {
-            $body = json_encode($body);
+            $body = json_encode($body, JSON_THROW_ON_ERROR);
             if ($body === false) {
                 throw new \RuntimeException(json_last_error_msg(), json_last_error());
             }
@@ -153,18 +141,13 @@ class Response implements ResponseInterface
      * @param $headers
      * @return Response
      */
-    public function withHeaders($headers)
+    public function withHeaders($headers): ResponseInterface
     {
         $this->setHeaders($headers);
         return $this;
     }
 
-    /**
-     * @param $body
-     * @param null $status
-     * @return $this
-     */
-    public function withText($body, $status = null)
+    public function withText($body, $status = null): ResponseInterface
     {
         if (isset($status)) {
             $this->statusCode = (int) $status;
@@ -180,31 +163,20 @@ class Response implements ResponseInterface
         return $this;
     }
 
-    /**
-     * @return int
-     */
-    public function getStatusCode()
+    public function getStatusCode(): int
     {
         return $this->statusCode;
     }
 
-    /**
-     * @return mixed|string|null
-     */
-    public function getReasonPhrase()
+    public function getReasonPhrase(): ?string
     {
         return $this->reasonPhrase;
     }
 
-    /**
-     * @param int $code
-     * @param string $reasonPhrase
-     * @return Response
-     */
-    public function withStatus($code, $reasonPhrase = '')
+    public function withStatus(int $code, string $reasonPhrase = ''): ResponseInterface
     {
-        $this->statusCode = (int) $code;
-        if ($reasonPhrase == '' && isset(self::$phrases[$this->statusCode])) {
+        $this->statusCode = $code;
+        if ($reasonPhrase === '' && isset(self::$phrases[$this->statusCode])) {
             $reasonPhrase = self::$phrases[$this->statusCode];
         }
         $this->reasonPhrase = $reasonPhrase;
@@ -212,35 +184,7 @@ class Response implements ResponseInterface
         return $this;
     }
 
-    /**
-     * DEPRECATED
-     * @param $statusCode
-     */
-    private function assertStatusCodeIsInteger($statusCode)
-    {
-        if (filter_var($statusCode, FILTER_VALIDATE_INT) === false) {
-            throw new \InvalidArgumentException('Status code must be an integer value.');
-        }
-    }
-
-    /**
-     * DEPRECATED
-     * @param $statusCode
-     */
-    private function assertStatusCodeRange($statusCode)
-    {
-        if ($statusCode < 100 || $statusCode >= 600) {
-            throw new \InvalidArgumentException('Status code must be an integer value between 1xx and 5xx.');
-        }
-    }
-
-    /**
-     * Serialization Helper
-     * https://github.com/walkor/psr7/commit/8f163224ed5bb93fb210da9211651fcd88acb97b#diff-fe65dcdace9cc44252b537bee79dd574edd1bccf6cee646cc860006a6ec50e8b
-     *
-     * @return string
-     */
-    public function __toString()
+    public function __toString(): string
     {
         $msg = 'HTTP/'
             . $this->protocol . ' '
@@ -254,10 +198,10 @@ class Response implements ResponseInterface
                 "\r\nContent-Type: text/html; charset=utf-8" .
                 "\r\nConnection: keep-alive";
         } else {
-
-            if ('' === $this->getHeaderLine('Transfer-Encoding') &&
-                '' === $this->getHeaderLine('Content-Length'))
-            {
+            if (
+                '' === $this->getHeaderLine('Transfer-Encoding') &&
+                '' === $this->getHeaderLine('Content-Length')
+            ) {
                 $msg .= "\r\nContent-Length: " . $this->getBody()->getSize();
             }
 
@@ -270,11 +214,14 @@ class Response implements ResponseInterface
             }
 
             foreach ($headers as $name => $values) {
-                $msg .= "\r\n" . $name . ": " . implode(', ', $values);
+                if (is_array($values)) {
+                    $values = implode(', ', $values);
+                }
+
+                $msg .= "\r\n" . $name . ": " . $values;
             }
         }
 
         return $msg . "\r\n\r\n" . $this->getBody();
     }
-
 }

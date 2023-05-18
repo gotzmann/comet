@@ -1,6 +1,6 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
-ARG PHP=7.4
+ARG PHP=8.2
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Install development tooling
@@ -9,6 +9,8 @@ RUN apt-get update -yqq && \
 	software-properties-common build-essential git unzip
 
 # Install PHP and extensions including PostgreSQL support
+RUN add-apt-repository -y ppa:ondrej/php
+RUN apt-get update
 RUN apt-get install -yqq \
 	php-pear pkg-config libevent-dev \
 	php${PHP}-dev php${PHP}-mbstring php${PHP}-curl php${PHP}-pgsql

@@ -1,64 +1,86 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Comet\Session;
+namespace Meteor\Session;
+
+use Redis;
+use RedisException;
+use RuntimeException;
+use SessionHandler;
 
 /**
  * Class RedisSessionHandler
- * @package Comet\Session
+ * @package Meteor\Session
  */
-class RedisSessionHandler extends \SessionHandler
+class RedisSessionHandler extends SessionHandler
 {
+    protected Redis $redis;
 
-    /** @var \Redis */
-    protected $_redis;
-
-    /** @var int */
-    protected $_maxLifeTime;
+    protected int $maxLifeTime;
 
     /**
-     * RedisSessionHandler constructor.
-     *
-     * @param $config = [
-     *  'host'     => '127.0.0.1',
-     *  'port'     => 6379,
-     *  'timeout'  => 2,
-     *  'auth'     => '******',
-     *  'database' => 2,
-     *  'prefix'   => 'redis_session_',
-     * ]
+     * @throws RedisException
      */
     public function __construct($config)
     {
         if (false === extension_loaded('redis')) {
-            throw new \RuntimeException('Please install redis extension.');
+            throw new RuntimeException('Please install redis extension.');
         }
-        $this->_maxLifeTime = (int)ini_get('session.gc_maxlifetime');
+        $this->maxLifeTime = (int)ini_get('session.gc_maxlifetime');
 
         if (!isset($config['timeout'])) {
             $config['timeout'] = 2;
         }
 
-        $this->_redis = new \Redis();
-        if (false === $this->_redis->connect($config['host'], $config['port'], $config['timeout'])) {
-            throw new \RuntimeException("Redis connect {$config['host']}:{$config['port']} fail.");
+        $this->redis = new Redis();
+        if (false === $this->redis->connect($config['host'], $config['port'], $config['timeout'])) {
+            throw new RuntimeException("Redis connect {$config['host']}:{$config['port']} fail.");
         }
         if (!empty($config['auth'])) {
-            $this->_redis->auth($config['auth']);
+            $this->redis->auth($config['auth']);
         }
         if (!empty($config['database'])) {
-            $this->_redis->select($config['database']);
+            $this->redis->select($config['database']);
         }
         if (empty($config['prefix'])) {
             $config['prefix'] = 'redis_session_';
         }
-        $this->_redis->setOption(\Redis::OPT_PREFIX, $config['prefix']);
+        $this->redis->setOption(Redis::OPT_PREFIX, $config['prefix']);
+    }
+
+    public function open($path, $name): bool
+    {
+        return true;
     }
 
     /**
-     * {@inheritdoc}
+     * @throws RedisException
      */
-    public function open($save_path, $name)
+    public function read($id): string|false
+    {
+        $value = $this->redis->get($id);
+        return is_string($value) ? $value : false;
+    }
+
+    /**
+     * @throws RedisException
+     */
+    public function write($id, $data): bool
+    {
+        return true === $this->redis->setex($id, $this->maxLifeTime, $data);
+    }
+
+    /**
+     * @throws RedisException
+     */
+    public function destroy($id): bool
+    {
+        $this->redis->del($id);
+        return true;
+    }
+
+    public function close(): bool
     {
         return true;
     }
@@ -66,41 +88,8 @@ class RedisSessionHandler extends \SessionHandler
     /**
      * {@inheritdoc}
      */
-    public function read($session_id)
+    public function gc($max_lifetime): int|false
     {
-        return $this->_redis->get($session_id);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function write($session_id, $session_data)
-    {
-        return true === $this->_redis->setex($session_id, $this->_maxLifeTime, $session_data);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function destroy($session_id)
-    {
-        $this->_redis->del($session_id);
-        return true;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function close()
-    {
-        return true;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function gc($maxlifetime)
-    {
-        return true;
+        return $this->maxLifeTime;
     }
 }

@@ -1,11 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Comet;
+namespace Meteor;
 
 /**
  * Class Timer
- * @package Comet
+ * @package Meteor
  */
 class Timer extends \Workerman\Timer
 {

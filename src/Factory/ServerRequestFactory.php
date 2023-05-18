@@ -1,13 +1,18 @@
 <?php
 
-namespace Comet\Factory;
+namespace Meteor\Factory;
 
-use Comet\Request as ServerRequest;
+use Meteor\Request as ServerRequest;
+use Meteor\ServerRequestInterface;
+use InvalidArgumentException;
+use JsonException;
 use Psr\Http\Message\ServerRequestFactoryInterface;
-use Psr\Http\Message\ServerRequestInterface;
 
 class ServerRequestFactory implements ServerRequestFactoryInterface
 {
+    /**
+     * @throws JsonException
+     */
     public function createServerRequest(string $method, $uri, array $serverParams = []): ServerRequestInterface
     {
 
@@ -15,10 +20,10 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
             if (!empty($serverParams['REQUEST_METHOD'])) {
                 $method = $serverParams['REQUEST_METHOD'];
             } else {
-                throw new \InvalidArgumentException('Cannot determine HTTP method');
+                throw new InvalidArgumentException('Cannot determine HTTP method');
             }
         }
 
-        return new ServerRequest($method, $uri, [], null, '1.1', $serverParams);
+        return new ServerRequest($method);
     }
 }

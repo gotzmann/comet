@@ -1,8 +1,8 @@
 <?php
 
-namespace Comet\Factory;
+namespace Meteor\Factory;
 
-use Comet\Response;
+use Meteor\Response;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 

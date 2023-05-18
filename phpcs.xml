@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Scalefast Standard" xsi:noNamespaceSchemaLocation="phpcs.xsd">
+    <arg name="colors" />
+    <arg value="p" />
+    <file>src</file>
+    <rule ref="PSR12"/>
+</ruleset>

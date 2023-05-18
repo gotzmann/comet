@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Comet\Psr;
+namespace Meteor\Psr;
 
-use Comet\Stream;
-use Comet\Utils;
+use Meteor\Stream;
+use Meteor\Utils;
 use InvalidArgumentException;
 use RuntimeException;
 use Psr\Http\Message\StreamInterface;
@@ -23,69 +24,31 @@ class UploadedFile implements UploadedFileInterface
         UPLOAD_ERR_EXTENSION,
     ];
 
-    /**
-     * @var string|null
-     */
-    private $clientFilename;
+    private ?string $file;
 
-    /**
-     * @var string|null
-     */
-    private $clientMediaType;
+    private bool $moved = false;
 
-    /**
-     * @var int
-     */
-    private $error;
+    private ?StreamInterface $stream;
 
-    /**
-     * @var string|null
-     */
-    private $file;
-
-    /**
-     * @var bool
-     */
-    private $moved = false;
-
-    /**
-     * @var int|null
-     */
-    private $size;
-
-    /**
-     * @var StreamInterface|null
-     */
-    private $stream;
-
-    /**
-     * @param StreamInterface|string|resource $streamOrFile
-     */
     public function __construct(
-        $streamOrFile,
-        ?int $size,
-        int $errorStatus,
-        string $clientFilename = null,
-        string $clientMediaType = null
+        private StreamInterface | string $streamOrFile,
+        private readonly ?int $size,
+        private readonly int $error,
+        private readonly ?string $clientFilename = null,
+        private readonly ?string $clientMediaType = null
     ) {
-        $this->setError($errorStatus);
-        $this->size = $size;
-        $this->clientFilename = $clientFilename;
-        $this->clientMediaType = $clientMediaType;
+        if (false === in_array($this->error, self::ERRORS, true)) {
+            throw new InvalidArgumentException(
+                'Invalid error status for UploadedFile'
+            );
+        }
 
         if ($this->isOk()) {
             $this->setStreamOrFile($streamOrFile);
         }
     }
 
-    /**
-     * Depending on the value set file or stream variable
-     *
-     * @param StreamInterface|string|resource $streamOrFile
-     *
-     * @throws InvalidArgumentException
-     */
-    private function setStreamOrFile($streamOrFile): void
+    private function setStreamOrFile(mixed $streamOrFile): void
     {
         if (is_string($streamOrFile)) {
             $this->file = $streamOrFile;
@@ -98,20 +61,6 @@ class UploadedFile implements UploadedFileInterface
                 'Invalid stream or file provided for UploadedFile'
             );
         }
-    }
-
-    /**
-     * @throws InvalidArgumentException
-     */
-    private function setError(int $error): void
-    {
-        if (false === in_array($error, UploadedFile::ERRORS, true)) {
-            throw new InvalidArgumentException(
-                'Invalid error status for UploadedFile'
-            );
-        }
-
-        $this->error = $error;
     }
 
     private function isStringNotEmpty($param): bool

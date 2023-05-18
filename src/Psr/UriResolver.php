@@ -1,9 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Comet\Psr;
+namespace Meteor\Psr;
 
-use Comet\Uri;
+use Meteor\Uri;
 use Psr\Http\Message\UriInterface;
 
 /**
@@ -43,7 +44,7 @@ final class UriResolver
             $newPath = '/' . $newPath;
         } elseif ($newPath !== '' && ($segment === '.' || $segment === '..')) {
             // Add the trailing slash if necessary
-            // If newPath is not empty, then $segment must be set and is the last segment from the foreach
+            // Is newPath is not empty, then $segment must be set and is the last segment from the foreach
             $newPath .= '/';
         }
 
@@ -62,11 +63,11 @@ final class UriResolver
             return $base;
         }
 
-        if ($rel->getScheme() != '') {
+        if ($rel->getScheme() !== '') {
             return $rel->withPath(self::removeDotSegments($rel->getPath()));
         }
 
-        if ($rel->getAuthority() != '') {
+        if ($rel->getAuthority() !== '') {
             $targetAuthority = $rel->getAuthority();
             $targetPath = self::removeDotSegments($rel->getPath());
             $targetQuery = $rel->getQuery();
@@ -74,20 +75,18 @@ final class UriResolver
             $targetAuthority = $base->getAuthority();
             if ($rel->getPath() === '') {
                 $targetPath = $base->getPath();
-                $targetQuery = $rel->getQuery() != '' ? $rel->getQuery() : $base->getQuery();
+                $targetQuery = $rel->getQuery() !== '' ? $rel->getQuery() : $base->getQuery();
             } else {
                 if ($rel->getPath()[0] === '/') {
                     $targetPath = $rel->getPath();
+                } elseif ($targetAuthority !== '' && $base->getPath() === '') {
+                    $targetPath = '/' . $rel->getPath();
                 } else {
-                    if ($targetAuthority != '' && $base->getPath() === '') {
-                        $targetPath = '/' . $rel->getPath();
+                    $lastSlashPos = strrpos($base->getPath(), '/');
+                    if ($lastSlashPos === false) {
+                        $targetPath = $rel->getPath();
                     } else {
-                        $lastSlashPos = strrpos($base->getPath(), '/');
-                        if ($lastSlashPos === false) {
-                            $targetPath = $rel->getPath();
-                        } else {
-                            $targetPath = substr($base->getPath(), 0, $lastSlashPos + 1) . $rel->getPath();
-                        }
+                        $targetPath = substr($base->getPath(), 0, $lastSlashPos + 1) . $rel->getPath();
                     }
                 }
                 $targetPath = self::removeDotSegments($targetPath);
@@ -127,8 +126,9 @@ final class UriResolver
      */
     public static function relativize(UriInterface $base, UriInterface $target): UriInterface
     {
-        if ($target->getScheme() !== '' &&
-            ($base->getScheme() !== $target->getScheme() || $target->getAuthority() === '' && $base->getAuthority() !== '')
+        if (
+            $target->getScheme() !== '' &&
+            ($base->getScheme() !== $target->getScheme() || ($target->getAuthority() === '' && $base->getAuthority() !== '')) //phpcs:ignore
         ) {
             return $target;
         }
@@ -190,10 +190,10 @@ final class UriResolver
         // A reference to am empty last segment or an empty first sub-segment must be prefixed with "./".
         // This also applies to a segment with a colon character (e.g., "file:colon") that cannot be used
         // as the first segment of a relative-path reference, as it would be mistaken for a scheme name.
-        if ('' === $relativePath || false !== strpos(explode('/', $relativePath, 2)[0], ':')) {
+        if (str_contains(explode('/', $relativePath, 2)[0], ':')) {
             $relativePath = "./$relativePath";
         } elseif ('/' === $relativePath[0]) {
-            if ($base->getAuthority() != '' && $base->getPath() === '') {
+            if ($base->getAuthority() !== '' && $base->getPath() === '') {
                 // In this case an extra slash is added by resolve() automatically. So we must not add one here.
                 $relativePath = ".$relativePath";
             } else {

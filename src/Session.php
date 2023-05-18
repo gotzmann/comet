@@ -1,136 +1,90 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Comet;
+namespace Meteor;
 
-use Comet\Exception\SessionException;
+use Meteor\Exception\SessionException;
+use Meteor\Session\FileSessionHandler;
+use Exception;
 
 /**
  * Handle PHP sessions data for web users
  *
- * @package Comet
+ * @package Meteor
  */
 class Session
 {
-    /** @var string Session name */
-    protected static $_sessionName = 'PHPSESSID';
+    protected static string $sessionName = 'PHPSESSID';
 
-    /** @var string Session handler class which implements SessionHandlerInterface */
-    protected static $_handlerClass = 'Comet\Session\FileSessionHandler';
+    protected static string $handlerClass = FileSessionHandler::class;
 
-    /** @var null Parameters of __constructor for session handler class */
-     protected static $_handlerConfig = null;
+    protected static ?array $handlerConfig = null;
 
-    /** @var int Session.gc_probability */
-    protected static $_sessionGcProbability = 1;
+    protected static int $sessionGcProbability = 1;
 
-    /** @var int Session.gc_divisor */
-    protected static $_sessionGcDivisor = 1000;
+    protected static int $sessionGcDivisor = 1000;
 
-    /** @var int Session.gc_maxlifetime */
-    protected static $_sessionGcMaxLifeTime = 1440;
+    protected static int $sessionGcMaxLifeTime = 1440;
 
-    /** @var \SessionHandlerInterface Session handler instance */
-    protected static $_handler = null;
+    protected static ?\SessionHandlerInterface $handler = null;
 
-    /** @var array Session data */
-    protected $_data = array();
+    protected array $data = [];
 
-    /** @var bool Session changed and need to save */
-    protected $_needSave = false;
+    protected bool $needSave = false;
 
-    /** @var null Session id */
-    protected $_sessionId = null;
+    protected ?string $sessionId = null;
 
-   /**
-    * Session constructor
-    *
-    * @param $session_id
-    */
-    public function __construct($session_id = null)
+    public function __construct(?string $session_id = null)
     {
         if (!$session_id) {
             $session_id = self::createSessionId();
         }
 
         static::checkSessionId($session_id);
-        if (static::$_handler === null) {
+        if (static::$handler === null) {
             static::initHandler();
         }
 
-        $this->_sessionId = $session_id;
-        if ($data = static::$_handler->read($session_id)) {
-            $this->_data = \unserialize($data);
+        $this->sessionId = $session_id;
+        if ($data = static::$handler->read($session_id)) {
+            $this->data = unserialize($data, ['allowed_classes' => false]);
         }
     }
 
-    /**
-     * Create session id
-     *
-     * @return string
-     */
-    protected static function createSessionId()
+    protected static function createSessionId(): string
     {
-        return \bin2hex(\pack('d', \microtime(true)) . \pack('N', \mt_rand()));
+        return bin2hex(pack('d', microtime(true)) . pack('N', mt_rand()));
     }
 
-    /**
-     * Get or set session name
-     *
-     * @param null $name
-     * @return string
-     */
-    public static function sessionName($name = null)
+    public static function sessionName(?string $name = null): string
     {
         if ($name !== null && $name !== '') {
-            static::$_sessionName = (string)$name;
+            static::$sessionName = $name;
         }
-        return static::$_sessionName;
+        return static::$sessionName;
     }
 
-    /**
-     * Get session id
-     *
-     * @return string
-     */
-    public function getId()
+    public function getId(): ?string
     {
-        return $this->_sessionId;
+        return $this->sessionId;
     }
 
-    /**
-     * Get session
-     *
-     * @param $name
-     * @param null $default
-     * @return mixed|null
-     */
-    public function get($name, $default = null)
+    public function get(string $name, mixed $default = null): mixed
     {
-        return isset($this->_data[$name]) ? $this->_data[$name] : $default;
+        return $this->data[$name] ?? $default;
     }
 
-    /**
-     * Store data in the session
-     *
-     * @param $name
-     * @param $value
-     */
-    public function set($name, $value)
+    public function set($name, $value): void
     {
-        $this->_data[$name] = $value;
-        $this->_needSave = true;
+        $this->data[$name] = $value;
+        $this->needSave = true;
     }
 
-    /**
-     * Delete an item from the session
-     *
-     * @param $name
-     */
-    public function delete($name)
+    public function delete($name): void
     {
-        unset($this->_data[$name]);
-        $this->_needSave = true;
+        unset($this->data[$name]);
+        $this->needSave = true;
     }
 
     /**
@@ -140,7 +94,7 @@ class Session
      * @param null $default
      * @return mixed|null
      */
-    public function pull($name, $default = null)
+    public function pull($name, $default = null): mixed
     {
         $value = $this->get($name, $default);
         $this->delete($name);
@@ -153,18 +107,18 @@ class Session
      * @param $key
      * @param null $value
      */
-    public function put($key, $value = null)
+    public function put($key, $value = null): void
     {
-        if (!\is_array($key)) {
+        if (!is_array($key)) {
             $this->set($key, $value);
             return;
         }
 
         foreach ($key as $k => $v) {
-            $this->_data[$k] = $v;
+            $this->data[$k] = $v;
         }
 
-        $this->_needSave = true;
+        $this->needSave = true;
     }
 
     /**
@@ -172,78 +126,51 @@ class Session
      *
      * @param $name
      */
-    public function forget($name)
+    public function forget($name): void
     {
-        if (\is_scalar($name)) {
+        if (is_scalar($name)) {
             $this->delete($name);
             return;
         }
-        if (\is_array($name)) {
+        if (is_array($name)) {
             foreach ($name as $key) {
-                unset($this->_data[$key]);
+                unset($this->data[$key]);
             }
         }
-        $this->_needSave = true;
+        $this->needSave = true;
     }
 
-    /**
-     * Retrieve all the data in the session
-     *
-     * @return array
-     */
-    public function all()
+    public function all(): array
     {
-        return $this->_data;
+        return $this->data;
     }
 
-    /**
-     * Remove all data from the session
-     *
-     * @return void
-     */
-    public function flush()
+    public function flush(): void
     {
-        $this->_needSave = true;
-        $this->_data = array();
+        $this->needSave = true;
+        $this->data = array();
     }
 
-    /**
-     * Determining If An Item Exists In The Session
-     *
-     * @param $name
-     * @return bool
-     */
-    public function has($name)
+    public function has($name): bool
     {
-        return isset($this->_data[$name]);
+        return isset($this->data[$name]);
     }
 
-    /**
-     * To determine if an item is present in the session, even if its value is null
-     *
-     * @param $name
-     * @return bool
-     */
-    public function exists($name)
+    public function exists($name): bool
     {
-        return \array_key_exists($name, $this->_data);
+        return array_key_exists($name, $this->data);
     }
 
-    /**
-     * Save session to store
-     *
-     * @return void
-     */
-    public function save()
+    public function save(): void
     {
-        if ($this->_needSave) {
+        if ($this->needSave) {
             if (empty($this->_data)) {
-                static::$_handler->destroy($this->_sessionId);
+                static::$handler->destroy($this->sessionId);
             } else {
-                static::$_handler->write($this->_sessionId, \serialize($this->_data));
+                static::$handler->write($this->sessionId, serialize($this->_data));
             }
         }
-        $this->_needSave = false;
+        $this->needSave = false;
     }
 
     /**
@@ -251,70 +178,45 @@ class Session
      *
      * @return void
      */
-    public static function init()
+    public static function init(): void
     {
-        if ($gc_probability = \ini_get('session.gc_probability')) {
-            self::$_sessionGcProbability = (int)$gc_probability;
+        if ($gc_probability = ini_get('session.gc_probability')) {
+            self::$sessionGcProbability = (int) $gc_probability;
         }
 
-        if ($gc_divisor = \ini_get('session.gc_divisor')) {
-            self::$_sessionGcDivisor = (int)$gc_divisor;
+        if ($gc_divisor = ini_get('session.gc_divisor')) {
+            self::$sessionGcDivisor = (int) $gc_divisor;
         }
 
-        if ($gc_max_life_time = \ini_get('session.gc_maxlifetime')) {
-            self::$_sessionGcMaxLifeTime = (int)$gc_max_life_time;
+        if ($gc_max_life_time = ini_get('session.gc_maxlifetime')) {
+            self::$sessionGcMaxLifeTime = (int) $gc_max_life_time;
         }
     }
 
-    /**
-     * Set session handler class
-     *
-     * @param null $class_name
-     * @param null $config
-     * @return string
-     */
-    public static function handlerClass($class_name = null, $config = null)
+    protected static function initHandler(): void
     {
-        if ($class_name) {
-            static::$_handlerClass = $class_name;
-        }
-        if ($config) {
-            static::$_handlerConfig = $config;
-        }
-        return static::$_handlerClass;
-    }
+        FileSessionHandler::init();
 
-    /**
-     * Init handler
-     *
-     * @return void
-     */
-    protected static function initHandler()
-    {
-        if (static::$_handlerConfig === null) {
-            static::$_handler = new static::$_handlerClass();
+        if (static::$handlerConfig === null) {
+            static::$handler = new static::$handlerClass();
         } else {
-            static::$_handler = new static::$_handlerClass(static::$_handlerConfig);
+            static::$handler = new static::$handlerClass(static::$handlerConfig);
         }
     }
 
     /**
-     * Try GC sessions
-     *
-     * @return void
+     * @throws Exception
      */
-    public function tryGcSessions()
+    public function tryGcSessions(): void
     {
-        if (\rand(1, static::$_sessionGcDivisor) > static::$_sessionGcProbability) {
+        if (random_int(1, static::$sessionGcDivisor) > static::$sessionGcProbability) {
             return;
         }
-        static::$_handler->gc(static::$_sessionGcMaxLifeTime);
+        static::$handler->gc(static::$sessionGcMaxLifeTime);
     }
 
     /**
-     * __destruct
-     *
-     * @return void
+     * @throws Exception
      */
     public function __destruct()
     {
@@ -327,14 +229,10 @@ class Session
      *
      * @param $session_id
      */
-    protected static function checkSessionId($session_id)
+    protected static function checkSessionId($session_id): void
     {
         if (!\preg_match('/^[a-zA-Z0-9]+$/', $session_id)) {
             throw new SessionException("session_id $session_id is invalid");
         }
     }
 }
-
-// --- Init session
-
-Session::init();

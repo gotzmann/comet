@@ -1,7 +1,8 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Comet\Exception;
+namespace Meteor\Exception;
 
 use RuntimeException;
 

@@ -1,28 +1,29 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Comet\Validation;
+namespace Meteor\Validation;
 
 /**
  * Class Validation
- * @package Comet\Validation
+ * @package Meteor\Validation
  */
 class Validation extends \Rakit\Validation\Validation
 {
-	/**
-     * Return errors from ErrorBag as array 
+    /**
+     * Return errors from ErrorBag as array
      *
      * @return array
      */
-    public function getErrors()
+    public function getErrors(): array
     {
-    	$errors = [];
-		foreach ($this->errors->toArray() as $key => $error) {
-			foreach ($error as $rule => $message) {
-				$errors[$key] = $message;
-			}
-		}
+        $errors = [];
+        foreach ($this->errors->toArray() as $key => $error) {
+            foreach ($error as $rule => $message) {
+                $errors[$key] = $message;
+            }
+        }
 
         return $errors;
-    }	
+    }
 }
