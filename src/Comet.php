@@ -19,7 +19,7 @@ use Workerman\Protocols\Http\Response;
  */
 class Comet
 {
-    public const VERSION = '2.4.2';
+    public const VERSION = '2.4.3';
 
     /** @property \Slim\App $app */
     private static $app;
@@ -320,7 +320,7 @@ class Comet
                 if (self::$serveStatic && $request->getMethod() === 'GET') {
 
                     $path = $request->getUri()->getPath();
-                    $path = urldecode()$path);
+                    $path = urldecode($path);
                     $filename = self::$staticDir . '/' . $path;
                     $realFile = realpath($filename);
 
