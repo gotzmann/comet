@@ -19,14 +19,14 @@ use Workerman\Protocols\Http\Response;
  */
 class Comet
 {
-    public const VERSION = '2.3.5';
+    public const VERSION = '2.3.6';
 
     /** @property \Slim\App $app */
     private static $app;
 
     // Configuration vars
     private static $host;
-    private static $port;    
+    private static $port;
     private static $logger;
     private static $debug;
     private static $init;
@@ -70,7 +70,7 @@ class Comet
 		$pos = mb_strpos(self::$rootDir, 'vendor/gotzmann/comet');
         if ($pos !== false) {
         	self::$rootDir = rtrim(mb_substr(self::$rootDir, 0, $pos), '/');
-		}        
+		}
 
         // Some more preparations for Windows hosts
         if (DIRECTORY_SEPARATOR === '\\') {
@@ -91,7 +91,7 @@ class Comet
         $provider = new Psr17FactoryProvider();
         $provider::setFactories([ CometPsr17Factory::class ]);
         AppFactory::setPsr17FactoryProvider($provider);
-	
+
         // Set up Container
         if (self::$container) {
             AppFactory::setContainer(self::$container);
@@ -159,14 +159,14 @@ class Comet
      * @param int      $workers
      * @param string   $name
      */
-    public function addJob(int $interval, callable $job, array $params = [], callable $init = null, string $name = '', int $workers = 1) 
+    public function addJob(int $interval, callable $job, array $params = [], callable $init = null, string $name = '', int $workers = 1)
     {
-    	self::$jobs[] = [ 
-    		'interval' => $interval, 
-    		'job'      => $job, 
+    	self::$jobs[] = [
+    		'interval' => $interval,
+    		'job'      => $job,
     		'params'   => $params,
-    		'init'     => $init,     		 
-    		'name'     => $name, 
+    		'init'     => $init,
+    		'name'     => $name,
     		'workers'  => $workers,
     	];
     }
@@ -284,7 +284,7 @@ class Comet
         	$w->onWorkerStart = function() use ($job) {
       	        if (self::$init)
 					call_user_func(self::$init);
-            	Timer::add($job['interval'], $job['job']);            		
+            	Timer::add($job['interval'], $job['job']);
         	};
         }
 
@@ -293,7 +293,7 @@ class Comet
         $argv[] = '-q';
 
         // Write Comet startup message to log file and show on screen
-        $jobsInfo = count(self::$jobs) ? ' / ' . count(self::$jobs) . ' jobs' : ''; 
+        $jobsInfo = count(self::$jobs) ? ' / ' . count(self::$jobs) . ' jobs' : '';
       	$hello = $worker->name . ' [' . self::$workers . ' workers' . $jobsInfo . '] ready on http://' . self::$host . ':' . self::$port;
        	if (self::$logger) {
             self::$logger->info($hello);
@@ -320,6 +320,7 @@ class Comet
                 if (self::$serveStatic && $request->getMethod() === 'GET') {
 
                     $path = $request->getUri()->getPath();
+                    $path = urldecode()$path);
                     $filename = self::$staticDir . '/' . $path;
                     $realFile = realpath($filename);
 
@@ -389,9 +390,9 @@ class Comet
         }
 
         // --- Otherwise, send it part by part
-        
-        $connection->send($headers, true); 
-        
+
+        $connection->send($headers, true);
+
         $connection->fileHandler = fopen($file_name, 'r');
 
         $do_write = function() use ($connection)
@@ -400,7 +401,7 @@ class Comet
             while (empty($connection->bufferFull)) {
                 // Read from disk by chunks of 64 of 8K blocks - so it some sort of magic constant ~500Kb
                 $buffer = fread($connection->fileHandler, 64 * 8 * 1024);
-                
+
                 // Stop on EOF
                 if($buffer === '' || $buffer === false) {
                     return;
