@@ -19,6 +19,9 @@ use Workerman\Protocols\Http\Request as WorkermanRequest;
 class Request implements ServerRequestInterface
 {
     use MessageTrait;
+    
+    // TcpConnection $connection :: used by Workerman/Protocols/HTTP
+    public $connection;
 
     /** @var string */
     private $method;
