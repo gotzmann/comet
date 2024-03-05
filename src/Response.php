@@ -125,7 +125,7 @@ class Response implements ResponseInterface
      * @param null $headers Optional HTTP Headers
      * @return Response Comet PSR-7 HTTP Response
      */
-    public function with($body, $status = null)
+    public function with($body, $status = null): self
     {
         if ($status) {
             $this->statusCode = (int) $status;
@@ -153,7 +153,7 @@ class Response implements ResponseInterface
      * @param $headers
      * @return Response
      */
-    public function withHeaders($headers)
+    public function withHeaders($headers): self
     {
         $this->setHeaders($headers);
         return $this;
@@ -164,7 +164,7 @@ class Response implements ResponseInterface
      * @param null $status
      * @return $this
      */
-    public function withText($body, $status = null)
+    public function withText($body, $status = null): self
     {
         if (isset($status)) {
             $this->statusCode = (int) $status;
@@ -183,7 +183,7 @@ class Response implements ResponseInterface
     /**
      * @return int
      */
-    public function getStatusCode()
+    public function getStatusCode(): int
     {
         return $this->statusCode;
     }
@@ -191,7 +191,7 @@ class Response implements ResponseInterface
     /**
      * @return mixed|string|null
      */
-    public function getReasonPhrase()
+    public function getReasonPhrase(): string
     {
         return $this->reasonPhrase;
     }
@@ -201,7 +201,7 @@ class Response implements ResponseInterface
      * @param string $reasonPhrase
      * @return Response
      */
-    public function withStatus($code, $reasonPhrase = '')
+    public function withStatus($code, $reasonPhrase = ''): ResponseInterface
     {
         $this->statusCode = (int) $code;
         if ($reasonPhrase == '' && isset(self::$phrases[$this->statusCode])) {
@@ -213,7 +213,7 @@ class Response implements ResponseInterface
     }
 
     /**
-     * DEPRECATED
+     * @deprecated
      * @param $statusCode
      */
     private function assertStatusCodeIsInteger($statusCode)
@@ -224,7 +224,7 @@ class Response implements ResponseInterface
     }
 
     /**
-     * DEPRECATED
+     * @deprecated
      * @param $statusCode
      */
     private function assertStatusCodeRange($statusCode)
