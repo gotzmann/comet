@@ -189,7 +189,7 @@ class Request implements ServerRequestInterface
     /**
      * We should not allow creating requests from GLOBALS with Workerman-based framework
      *
-     * @throws InvalidArgumentException 
+     * @throws InvalidArgumentException
      */
     public static function fromGlobals()
     {
@@ -263,7 +263,7 @@ class Request implements ServerRequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getServerParams()
+    public function getServerParams(): array
     {
         return $this->serverParams;
     }
@@ -271,7 +271,7 @@ class Request implements ServerRequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getUploadedFiles()
+    public function getUploadedFiles(): array
     {
         return $this->uploadedFiles;
     }
@@ -279,7 +279,7 @@ class Request implements ServerRequestInterface
     /**
      * {@inheritdoc}
      */
-    public function withUploadedFiles(array $uploadedFiles)
+    public function withUploadedFiles(array $uploadedFiles): ServerRequestInterface
     {
         $this->uploadedFiles = $uploadedFiles;
 
@@ -289,7 +289,7 @@ class Request implements ServerRequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getCookieParams()
+    public function getCookieParams(): array
     {
         return $this->cookieParams;
     }
@@ -297,7 +297,7 @@ class Request implements ServerRequestInterface
     /**
      * {@inheritdoc}
      */
-    public function withCookieParams(array $cookies)
+    public function withCookieParams(array $cookies): ServerRequestInterface
     {
         $this->cookieParams = $cookies;
 
@@ -307,7 +307,7 @@ class Request implements ServerRequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getQueryParams()
+    public function getQueryParams(): array
     {
         return $this->queryParams;
     }
@@ -315,7 +315,7 @@ class Request implements ServerRequestInterface
     /**
      * {@inheritdoc}
      */
-    public function withQueryParams(array $query)
+    public function withQueryParams(array $query): ServerRequestInterface
     {
         $this->queryParams = $query;
 
@@ -333,7 +333,7 @@ class Request implements ServerRequestInterface
     /**
      * {@inheritdoc}
      */
-    public function withParsedBody($data)
+    public function withParsedBody($data): ServerRequestInterface
     {
         $this->parsedBody = $data;
 
@@ -343,7 +343,7 @@ class Request implements ServerRequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getAttributes()
+    public function getAttributes(): array
     {
         return $this->attributes;
     }
@@ -367,15 +367,7 @@ class Request implements ServerRequestInterface
      * @param $value
      * @return Request
      */
-    public function setAttribute($attribute, $value)
-    {
-        $this->attributes[$attribute] = $value;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function withAttribute($attribute, $value)
+    public function setAttribute($attribute, $value): ServerRequestInterface
     {
         $this->attributes[$attribute] = $value;
 
@@ -385,7 +377,17 @@ class Request implements ServerRequestInterface
     /**
      * {@inheritdoc}
      */
-    public function withoutAttribute($attribute)
+    public function withAttribute($attribute, $value): ServerRequestInterface
+    {
+        $this->attributes[$attribute] = $value;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function withoutAttribute($attribute): ServerRequestInterface
     {
         if (false === array_key_exists($attribute, $this->attributes)) {
             return $this;

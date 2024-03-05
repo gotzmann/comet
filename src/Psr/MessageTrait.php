@@ -3,6 +3,7 @@
 namespace Comet\Psr;
 
 use Comet\Utils;
+use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\StreamInterface;
 
 /**
@@ -12,30 +13,30 @@ use Psr\Http\Message\StreamInterface;
 trait MessageTrait
 {
     /** @var array Map of all registered headers, as original name => array of values */
-    private $headers = [];
+    private array $headers = [];
 
     /** @var array Map of lowercase header name => original name at registration */
-    private $headerNames  = [];
+    private array $headerNames  = [];
 
     /** @var string */
-    private $protocol = '1.1';
+    private string $protocol = '1.1';
 
     /** @var StreamInterface|null */
-    private $stream;
+    private ?StreamInterface $stream;
 
     /**
      * @return string
      */
-    public function getProtocolVersion()
+    public function getProtocolVersion(): string
     {
         return $this->protocol;
     }
 
     /**
      * @param $version
-     * @return $this
+     * @return MessageInterface
      */
-    public function withProtocolVersion($version)
+    public function withProtocolVersion($version): MessageInterface
     {
         $this->protocol = $version;
         return $this;
@@ -44,7 +45,7 @@ trait MessageTrait
     /**
      * @return array
      */
-    public function getHeaders()
+    public function getHeaders(): array
     {
         return $this->headers;
     }
@@ -53,16 +54,16 @@ trait MessageTrait
      * @param $header
      * @return bool
      */
-    public function hasHeader($header)
+    public function hasHeader($header): bool
     {
         return isset($this->headerNames[strtolower($header)]);
     }
 
     /**
      * @param $header
-     * @return array|mixed
+     * @return string[]
      */
-    public function getHeader($header)
+    public function getHeader($header): array
     {
         $header = strtolower($header);
 
@@ -79,7 +80,7 @@ trait MessageTrait
      * @param $header
      * @return string
      */
-    public function getHeaderLine($header)
+    public function getHeaderLine($header): string
     {
         return implode(', ', $this->getHeader($header));
     }
@@ -87,9 +88,9 @@ trait MessageTrait
     /**
      * @param $header
      * @param $value
-     * @return $this
+     * @return MessageInterface
      */
-    public function withHeader($header, $value)
+    public function withHeader($header, $value): MessageInterface
     {
         // Skip assertHeader
         $value = $this->normalizeHeaderValue($value);
@@ -107,9 +108,9 @@ trait MessageTrait
 
     /**
      * @param array $headers
-     * @return $this
+     * @return MessageInterface
      */
-    public function withHeaders(array $headers)
+    public function withHeaders(array $headers): MessageInterface
     {
         foreach ($headers as $header => $value) {
             if (!is_array($value)) {
@@ -132,9 +133,9 @@ trait MessageTrait
     /**
      * @param $header
      * @param $value
-     * @return $this
+     * @return MessageInterface
      */
-    public function withAddedHeader($header, $value)
+    public function withAddedHeader($header, $value): MessageInterface
     {
         // Skip assertHeader and normalizeHeaderValue
         $normalized = strtolower($header);
@@ -151,9 +152,9 @@ trait MessageTrait
 
     /**
      * @param $header
-     * @return $this
+     * @return MessageInterface
      */
-    public function withoutHeader($header)
+    public function withoutHeader($header): MessageInterface
     {
         $normalized = strtolower($header);
 
@@ -171,7 +172,7 @@ trait MessageTrait
     /**
      * @return StreamInterface|null
      */
-    public function getBody()
+    public function getBody(): StreamInterface
     {
         if (!$this->stream) {
             $this->stream = Utils::streamFor('');
@@ -182,9 +183,9 @@ trait MessageTrait
 
     /**
      * @param StreamInterface $body
-     * @return $this
+     * @return MessageInterface
      */
-    public function withBody(StreamInterface $body)
+    public function withBody(StreamInterface $body): MessageInterface
     {
         if ($body === $this->stream) {
             return $this;
@@ -196,9 +197,9 @@ trait MessageTrait
 
     /**
      * @param array $headers
-     * @return $this
+     * @return MessageInterface
      */
-    private function setHeaders(array $headers)
+    private function setHeaders(array $headers): MessageInterface
     {
         $this->headers = [];
         $this->headerNames = [];
@@ -221,7 +222,7 @@ trait MessageTrait
     }
 
     /**
-     * DEPRECATED
+     * @deprecated
      * @param $value
      * @return string[]
      */
@@ -239,7 +240,7 @@ trait MessageTrait
     }
 
     /**
-     * DEPRECATED
+     * @deprecated
      *
      * Trims whitespace from the header values.
      *
@@ -269,7 +270,7 @@ trait MessageTrait
     }
 
     /**
-     * DEPRECATED
+     * @deprecated
      * @param $header
      */
     private function assertHeader($header)
