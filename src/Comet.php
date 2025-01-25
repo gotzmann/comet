@@ -19,7 +19,7 @@ use Workerman\Protocols\Http\Response;
  */
 class Comet
 {
-    public const VERSION = '2.5.1';
+    public const VERSION = '2.6.0';
 
     /** @property \Slim\App $app */
     private static $app;
@@ -54,7 +54,7 @@ class Comet
      *
      * @param array|null $config
      */
-    public function __construct(array $config = null)
+    public function __construct(array $config = [])
     {
         // Set up params with user defined or default values
         self::$workers   = $config['workers']   ?? 0;
@@ -66,11 +66,11 @@ class Comet
 
         // Construct correct root dir of the project
         $parts = pathinfo(__DIR__);
-		self::$rootDir = str_replace("\\", '/', $parts['dirname']);
-		$pos = mb_strpos(self::$rootDir, 'vendor/gotzmann/comet');
+        self::$rootDir = str_replace("\\", '/', $parts['dirname']);
+        $pos = mb_strpos(self::$rootDir, 'vendor/gotzmann/comet');
         if ($pos !== false) {
-        	self::$rootDir = rtrim(mb_substr(self::$rootDir, 0, $pos), '/');
-		}
+          self::$rootDir = rtrim(mb_substr(self::$rootDir, 0, $pos), '/');
+        }
 
         // Some more preparations for Windows hosts
         if (DIRECTORY_SEPARATOR === '\\') {
@@ -129,7 +129,7 @@ class Comet
      *
      * @param string $key
      */
-    public function getConfig(string $key = null) {
+    public function getConfig(string $key = "") {
         if (!$key) {
     	    return self::$config;
         } else if (array_key_exists($key, self::$config)) {
@@ -177,7 +177,7 @@ class Comet
      * @param string $dir
      * @param array|null $extensions
      */
-    public function serveStatic(string $dir, array $extensions = null)
+    public function serveStatic(string $dir, array $extensions = [])
     {
     	self::$serveStatic = true;
     	// If dir specified as UNIX absolute path, or contains Windows disk name, thats enough
