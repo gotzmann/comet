@@ -273,7 +273,7 @@ class Session
      * @param null $config
      * @return string
      */
-    public static function handlerClass($class_name = null, $config = null)
+    public static function handlerClass(?$class_name = null, ?$config = null)
     {
         if ($class_name) {
             static::$_handlerClass = $class_name;

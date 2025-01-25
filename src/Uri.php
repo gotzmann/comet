@@ -105,7 +105,7 @@ class Uri implements UriInterface
         /* FIXME Disable IPv6
         // If IPv6
         $prefix = '';
-        if (preg_match('%^(.*://\[[0-9:a-f]+\])(.*?)$%', $url, $matches)) {            
+        if (preg_match('%^(.*://\[[0-9:a-f]+\])(.*?)$%', $url, $matches)) {
             $prefix = $matches[1];
             $url = $matches[2];
         } */
@@ -271,7 +271,7 @@ class Uri implements UriInterface
      *
      * @link https://tools.ietf.org/html/rfc3986#section-4.4
      */
-    public static function isSameDocumentReference(UriInterface $uri, UriInterface $base = null): bool
+    public static function isSameDocumentReference(UriInterface $uri, ?UriInterface $base = null): bool
     {
         if ($base !== null) {
             $uri = UriResolver::resolve($base, $uri);
@@ -282,7 +282,10 @@ class Uri implements UriInterface
                 && ($uri->getQuery() === $base->getQuery());
         }
 
-        return $uri->getScheme() === '' && $uri->getAuthority() === '' && $uri->getPath() === '' && $uri->getQuery() === '';
+        return $uri->getScheme() === ''
+            && $uri->getAuthority() === ''
+            && $uri->getPath() === ''
+            && $uri->getQuery() === '';
     }
 
     /**
