@@ -149,6 +149,8 @@ class Comet
         self::$init = $init;
     }
 
+    function noop() {} // helper for "do nothing"
+
     /**
      * Add periodic $job executed every $interval of seconds
      *
@@ -159,7 +161,7 @@ class Comet
      * @param int      $workers
      * @param string   $name
      */
-    public function addJob(int $interval, callable $job, array $params = [], callable $init = null, string $name = '', int $workers = 1)
+    public function addJob(int $interval, callable $job, array $params = [], callable $init = noop, string $name = '', int $workers = 1)
     {
     	self::$jobs[] = [
     		'interval' => $interval,
