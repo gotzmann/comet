@@ -10,7 +10,7 @@
     }],
     "require": {
         "ext-json": "*",
-        "workerman/workerman": "^5.1",
+        "workerman/workerman": "^4.2",
         "slim/slim": "^4.10",
         "rakit/validation": "^1.4"
     },
