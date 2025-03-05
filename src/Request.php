@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Comet;
 
+use Stringable;
 use Comet\Psr\MessageTrait;
 use Comet\Psr\UploadedFile;
 use InvalidArgumentException;
@@ -16,12 +17,12 @@ use Workerman\Protocols\Http\Request as WorkermanRequest;
  * Fast PSR-7 ServerRequest implementation
  * @package Comet
  */
-class Request implements ServerRequestInterface
+class Request implements ServerRequestInterface, Stringable
 {
     use MessageTrait;
     
-    // TcpConnection $connection :: used by Workerman/Protocols/HTTP
-    public $connection;
+    // TcpConnection used by Workerman/Protocols/HTTP
+    public $connection = null;
 
     /** @var string */
     private $method;
@@ -52,6 +53,29 @@ class Request implements ServerRequestInterface
 
     /** @var string|null */
     private $requestTarget;
+
+    // -- Workerman V5
+
+    /** @var int */
+    public static int $maxFileUploads = 1024;
+
+    /** @var int */
+    public const MAX_CACHE_STRING_LENGTH = 4096;
+
+    /** @var int */
+    public const MAX_CACHE_SIZE = 256;
+
+    /** @var array */
+    public array $properties = [];
+
+    /** @var array */
+    protected array $data = [];
+
+    /** @var array */
+    public array $context = [];
+
+    /** @var bool */
+    protected bool $isSafe = true;
 
     /**
      * Request constructor
@@ -495,5 +519,55 @@ class Request implements ServerRequestInterface
         // Ensure Host is the first header.
         // See: http://tools.ietf.org/html/rfc7230#section-5.4
         $this->headers = [$header => [$host]] + $this->headers;
+    }
+
+    // -- Workerman V5
+
+    public function __toString(): string
+    {
+        return $this->buffer;
+    }
+
+    public function __set(string $name, mixed $value): void
+    {
+        $this->properties[$name] = $value;
+    }
+
+    public function __get(string $name): mixed
+    {
+        return $this->properties[$name] ?? null;
+    }
+
+    public function __isset(string $name): bool
+    {
+        return isset($this->properties[$name]);
+    }
+
+    public function __unset(string $name): void
+    {
+        unset($this->properties[$name]);
+    }
+
+    public function __wakeup(): void
+    {
+        $this->isSafe = false;
+    }
+
+    public function destroy(): void
+    {
+        if ($this->context) {
+            $this->context  = [];
+        }
+        if ($this->properties) {
+            $this->properties = [];
+        }
+        if (isset($this->data['files']) && $this->isSafe) {
+            clearstatcache();
+            array_walk_recursive($this->data['files'], function ($value, $key) {
+                if ($key === 'tmp_name' && is_file($value)) {
+                    unlink($value);
+                }
+            });
+        }
     }
 }

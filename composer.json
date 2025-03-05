@@ -2,7 +2,7 @@
     "name": "gotzmann/comet",
     "description": "Modern PHP framework for building blazing fast REST APIs and microservices",
     "license": "MIT",
-    "keywords": ["comet", "slim", "api", "microservice", "framework", "REST", "slimphp", "workerman", "PSR7", "techempower", "benchmark"],
+    "keywords": [ "comet", "slim", "api", "microservice", "framework", "REST", "slimphp", "workerman", "PSR7", "techempower", "benchmark" ],
     "homepage": "https://github.com/gotzmann/comet",
     "authors": [{
         "name": "Serge Gotsuliak",
@@ -10,7 +10,7 @@
     }],
     "require": {
         "ext-json": "*",
-        "workerman/workerman": "^4.1",
+        "workerman/workerman": "^5.1",
         "slim/slim": "^4.10",
         "rakit/validation": "^1.4"
     },

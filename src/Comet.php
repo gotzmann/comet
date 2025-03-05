@@ -19,7 +19,7 @@ use Workerman\Protocols\Http\Response;
  */
 class Comet
 {
-    public const VERSION = '2.6.4';
+    public const VERSION = '2.7.0';
 
     /** @property \Slim\App $app */
     private static $app;
@@ -43,8 +43,8 @@ class Comet
     private static $serveStatic = false;
     private static $staticDir;
     private static $staticExtensions;
-    // Split static content to parts if file size more than limit of 2 Mb
-    private static $trunkLimitSize = 2 * 1024 * 1024;
+    // Split static content to parts if file size more than reasonable limit of 3 MB
+    private static $trunkLimitSize = 3 * 1024 * 1024;
 
     private static $config = [];
     private static $jobs = [];
@@ -72,19 +72,22 @@ class Comet
           self::$rootDir = rtrim(mb_substr(self::$rootDir, 0, $pos), '/');
         }
 
-        // Some more preparations for Windows hosts
+        // Specials for Windows hosts, those can't hadnle multiple processes with PHP
         if (DIRECTORY_SEPARATOR === '\\') {
             if (self::$host === '0.0.0.0') {
                 self::$host = '127.0.0.1';
             }
-            self::$workers = 1; // Windows can't hadnle multiple processes with PHP
-        } else {
-            if (self::$workers == 0) {
-                self::$workers = (int) shell_exec('nproc') * 4; // Linux
-                if (self::$workers == 0) {
-                    self::$workers = (int) shell_exec('sysctl -n hw.logicalcpu') * 4; // MacOS
-                }
-            }
+            self::$workers = 1;
+        }
+
+        // Linux?
+        if (self::$workers == 0) {
+            self::$workers = (int) shell_exec('nproc') * 3;
+        }
+
+        // MacOS?
+        if (self::$workers == 0) {
+            self::$workers = (int) shell_exec('sysctl -n hw.logicalcpu') * 3;
         }
 
         // Using Comet PSR-7 and PSR-17
@@ -149,8 +152,6 @@ class Comet
         self::$init = $init;
     }
 
-    function noop() {} // helper for "do nothing"
-
     /**
      * Add periodic $job executed every $interval of seconds
      *
@@ -161,7 +162,7 @@ class Comet
      * @param int      $workers
      * @param string   $name
      */
-    public function addJob(int $interval, callable $job, array $params = [], callable $init = noop, string $name = '', int $workers = 1)
+    public function addJob(int $interval, callable $job, array $params = [], callable|null $init = null, string $name = '', int $workers = 1)
     {
     	self::$jobs[] = [
     		'interval' => $interval,
