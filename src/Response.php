@@ -270,7 +270,14 @@ class Response implements ResponseInterface
             }
 
             foreach ($headers as $name => $values) {
-                $msg .= "\r\n" . $name . ": " . implode(', ', $values);
+                // Special handling for Set-Cookie: each cookie must be sent as a separate line without combining
+                if (strcasecmp($name, 'Set-Cookie') === 0) {
+                    foreach ($values as $cookieValue) {
+                        $msg .= "\r\nSet-Cookie: " . $cookieValue;
+                    }
+                } else {
+                    $msg .= "\r\n" . $name . ": " . implode(', ', $values);
+                }
             }
         }
 
